@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "better_power (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "better_power (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
