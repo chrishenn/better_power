@@ -48,6 +48,10 @@
               "target": "Package",
               "version": "[2.0.0, )"
             },
+            "Microsoft.PowerShell.SDK": {
+              "target": "Package",
+              "version": "[7.2.1, )"
+            },
             "Microsoft.Windows.SDK.BuildTools": {
               "target": "Package",
               "version": "[10.0.22000.197, )"
@@ -60,9 +64,17 @@
               "target": "Package",
               "version": "[3.2.0.1, )"
             },
+            "System.Collections": {
+              "target": "Package",
+              "version": "[4.3.0, )"
+            },
             "System.Management": {
               "target": "Package",
               "version": "[6.0.0, )"
+            },
+            "System.Management.Automation": {
+              "target": "Package",
+              "version": "[7.2.1, )"
             }
           },
           "imports": [

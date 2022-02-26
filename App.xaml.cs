@@ -19,9 +19,15 @@ using Windows.Foundation.Collections;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
+
+
+
+
+
 namespace better_power
 {
     using System;
+    using System.Collections;
     using System.Management;
     using Microsoft.Management.Infrastructure;
     using ORMi;
@@ -31,27 +37,13 @@ namespace better_power
     using System.ComponentModel;
     using System.Text.RegularExpressions;
 
-    public class Processor : WMIInstance
-    {
-        public string Name { get; set; }
+    using System.Collections.ObjectModel;
+    using System.Management.Automation;
+    //using System.Management.Automation.Runspaces;
 
-        [WMIProperty("NumberOfCores")]
-        public int Cores { get; set; }
-
-        public string Description { get; set; }
-    }
-
-
-
-    /// <summary>
-    /// Provides application-specific behavior to supplement the default Application class.
-    /// </summary>
     public partial class App : Application
     {
-        /// <summary>
-        /// Initializes the singleton application object.  This is the first line of authored code
-        /// executed, and as such is the logical equivalent of main() or WinMain().
-        /// </summary>
+
         public App()
         {
             this.InitializeComponent();
@@ -68,17 +60,25 @@ namespace better_power
             //m_window.Activate();
 
 
+            // read and store group_guid, setting_GUID, friendly name, help string - for each available setting
+            // read and store scheme_guids
 
-            // read and store scheme_GUID, sub_GUID, setting_GUID, friendly name, help string - for each available setting
 
             // format powercfg command strings to set battery or plugged setting state 
 
             // changing a setting runs through powercfg with given GUID
-            // Process.Start("powercfg", "args");
 
-            //      future improvement: edit the appropriate registry key to set the correct setting via GUID
+            // setting on plug power
+            // powercfg /setacvalueindex scheme_GUID sub_GUID setting_GUID setting_index
+
+            // setting on battery power
+            // powercfg /setdcvalueindex scheme_GUID sub_GUID setting_GUID setting_index
+
+            // future improvement: edit the appropriate registry key to set the correct setting via GUID
 
 
+
+            // powercfg -getactivescheme
             // UI allows user to select a scheme to edit
             // UI allows user to change to a given scheme
             // UI allows user to install the classic schemes - from "power saving" to "ultimate perf"
@@ -89,68 +89,308 @@ namespace better_power
             // allow user to inspect help string for a given setting (clearly! not in a flyout!)
 
 
-
             // powercfg /query scheme_GUID, sub_GUID
             // returns all possible setting values for all settings within the specified subgroup for that scheme
 
-            // setting on plug power
-            // powercfg /setacvalueindex scheme_GUID sub_GUID setting_GUID setting_index
-
-            // setting on battery power
-            // powercfg /setdcvalueindex scheme_GUID sub_GUID setting_GUID setting_index
 
 
-            this.Read_powerguids();
+            this.get_existing_scheme_guids();
+            this.get_powersettings();
 
 
         }
+
+
+
+        class possible_vals
+        {
+            public bool is_range;
+
+            public string min_val;
+            public string max_val;
+            public string increment;
+            public string units;
+
+            public Dictionary<string, string> index_dict = new Dictionary<string, string>();
+        }
+        class current_vals
+        {
+            public string ac_value;
+            public string dc_value;
+        }
+
+        class setting_store
+        {
+            public setting_store(string setting_guid, string setting_name, string setting_descr, string parent_groupguid)
+            {
+                _setting_guid = setting_guid;
+                _setting_name = setting_name;
+                _setting_descr = setting_descr;
+                _parent_groupguid = parent_groupguid;
+
+                _setting_possible_vals = new possible_vals();
+                _setting_current_vals = new current_vals();
+            }
+
+            public string _setting_guid { get; set; }
+            public string _setting_name { get; set; }
+            public string _setting_descr { get; set; }
+            public string _parent_groupguid { get; set; }
+            public possible_vals _setting_possible_vals { get; set; }
+            public current_vals _setting_current_vals { get; set; }
+        }
+
+        class group_store
+        {
+            public group_store() {
+                _group_guid = "";
+                _group_name = "";
+                _child_guids = new List<string>();
+            }
+            public group_store(string group_guid, string group_name)
+            {
+                _group_guid = group_guid;
+                _group_name = group_name;
+                _child_guids = new List<string>();
+            }
+
+            public string _group_guid { get; set; }
+            public string _group_name { get; set; }
+            public List<string> _child_guids { get; set; }
+        }
+
+        private ArrayList current_sys_pwrscheme_guids = new ArrayList();
 
         private Window m_window;
 
-        private void Read_powerguids()
-        {  
-            WMIHelper helper = new WMIHelper("root\\CimV2\\power");
-            var powerSettings = helper.Query("SELECT * FROM Win32_PowerSetting").ToList();
-            var powerSettingsInSubgroups = helper.Query("SELECT * FROM Win32_PowerSettingInSubgroup").ToList();
-            var powerCapabilities = helper.Query("SELECT * FROM Win32_PowerSettingCapabilities").ToList();
+        private PowerShell ps = PowerShell.Create();
 
-            Regex guid_reg = new Regex(@"\{([^\}]+)\}");
-            char[] cut_chars = { '{', '}' };
+        private Regex guid_reg = new Regex(@"(?<=GUID:\s*)[^\s]+(?=\s)");
+        private Regex braces_reg = new Regex(@"(?<=\{)[^}]+(?=\})");
+        private Regex peren_reg = new Regex(@"(?<=\().+(?=\))");
+        private Regex value_reg = new Regex(@"(?<=:\s*)[^\s]+");
+
+        private Dictionary<string, setting_store> setting_store_dict = new Dictionary<string, setting_store>();
+        private Dictionary<string, group_store> subgroup_store_dict = new Dictionary<string, group_store>();
 
 
-            for (int i = 0; i < powerCapabilities.Count; i++)
-            {
-                var power_cap = powerCapabilities[i];
 
-                string guid = guid_reg.Match(power_cap.ManagedElement).Value.Trim(cut_chars);
 
-                var match_res = powerSettingsInSubgroups.Find(match_o => match_o.PartComponent.Contains(guid) );
+        private void get_existing_scheme_guids()
+        {
+            this.ps.AddCommand("powercfg").AddArgument("list");
+            var result = this.ps.Invoke();
 
-                if (match_res == null) { continue; }
+            foreach (var res in result) {
 
-                var groupguid = match_res.GroupComponent.Trim(cut_chars);
+                var newout = this.guid_reg.Match(res.BaseObject.ToString()).Value;
 
-                var match_setting = powerSettings.Find(match_o => match_o.InstanceID.Contains(guid));
-
-                var descr = match_setting.ElementName;
-
-                System.Diagnostics.Debug.WriteLine("descr: {}", descr);
-                System.Diagnostics.Debug.WriteLine("guid: {0}, groupguid: {1}", guid, groupguid);
+                if (newout.Count() > 0) this.current_sys_pwrscheme_guids.Add(newout);                
             }
         }
 
-        // Uses the ProcessStartInfo class to start new processes, minimized
-        void OpenWithStartInfo()
-        {
-            ProcessStartInfo startInfo = new ProcessStartInfo("IExplore.exe");
-            //startInfo.WindowStyle = ProcessWindowStyle.Minimized;
-            startInfo.Arguments = "www.northwindtraders.com";
-            startInfo.CreateNoWindow = true;
-            startInfo.UseShellExecute = false;
-            Process.Start(startInfo);
-        }
-    }
 
+
+
+        private string get_current_powerscheme()
+        {
+            this.ps.AddCommand("powercfg").AddArgument("getactivescheme");
+            var result = this.ps.Invoke();
+      
+            return this.guid_reg.Match(result[0].BaseObject.ToString()).Value;
+        }
+
+        private Collection<PSObject> powercfg_query(string scheme_guid, string group_guid)
+        {
+            this.ps.AddCommand("powercfg").AddArgument("q").AddArgument(scheme_guid).AddArgument(group_guid);
+            var result = this.ps.Invoke();
+
+            return result;
+        }
+
+        private bool set_powersetting(string scheme_guid, string group_guid, string setting_guid, int value)
+        {
+
+            // TODO add range checking: enforce "value" within range for given setting
+            // TODO: add these as individual statements with AddStatment?
+            // TODO: check for success
+
+            this.ps.AddCommand("powercfg").AddArgument("setacvalueindex").AddArgument(scheme_guid).AddArgument(group_guid).AddArgument(setting_guid).AddArgument(value);
+            var result = this.ps.Invoke();
+
+            this.ps.AddCommand("powercfg").AddArgument("setdcvalueindex").AddArgument(scheme_guid).AddArgument(group_guid).AddArgument(setting_guid).AddArgument(value);
+            result = this.ps.Invoke();
+
+            return true;
+        }
+
+
+        private int str16_toint(string hex_string) { return Convert.ToInt32(hex_string, 16); }
+
+
+
+
+
+        private void get_powersettings()
+        {
+            // a. build connections from subgroups in dict to child settings by key
+            //      and connnections from child to parent subgroup
+            // b. read possible setting options for each power setting 
+            // c. read current settings for each power setting
+
+            string curr_powerscheme = get_current_powerscheme();
+            var all_settings = powercfg_query(curr_powerscheme, "");
+
+
+            string[] all_strings = new string[all_settings.Count];
+            int all_strings_size = 0;
+            foreach (PSObject setting_ob in all_settings) {
+
+                string tmp = setting_ob.ToString().Trim();
+                if (tmp.Length == 0) continue;
+
+                string stem = tmp.Substring(0, 8);
+
+                if (stem == "GUID Ali") { continue; }
+                if (stem == "Power Sc") { continue; }
+
+                all_strings[all_strings_size] = tmp;
+                all_strings_size++;
+            }
+
+
+            group_store curr_group = null;
+            setting_store curr_setting = null;
+
+            int i = 0; 
+            while (true)
+            {
+                if (i >= all_strings_size) { break; }
+
+                string line = all_strings[i];
+                string stem = line.Substring(0, 8);
+
+                if (stem == "Subgroup") // new setting subgroup
+                {
+                    string group_guid = line.Substring(15, 36);
+                    string group_name = line.Substring(54);
+
+                    curr_group = new group_store(group_guid, group_name);
+                    this.subgroup_store_dict[group_guid] = curr_group;
+
+                    i++;
+                }
+                else if (stem == "Power Se") // new power setting 
+                {
+                    string setting_guid = line.Substring(20, 36);
+                    string setting_name = line.Substring(59); 
+
+                    curr_setting = new setting_store(setting_guid, setting_name, "", curr_group._group_guid);
+                    this.setting_store_dict[setting_guid] = curr_setting;
+
+                    curr_group._child_guids.Add(setting_guid);
+
+                    i++;
+                }
+                else if (stem == "Minimum ") // a setting's range-type value
+                {                   
+                    string min_val =    line.Substring(26);
+                    string max_val =    all_strings[i + 1].Substring(26);
+                    string increment =  all_strings[i + 2].Substring(29);
+                    string units =      all_strings[i + 3].Substring(25);
+
+                    curr_setting._setting_possible_vals.is_range = true;
+                    curr_setting._setting_possible_vals.min_val = min_val;
+                    curr_setting._setting_possible_vals.max_val = max_val;
+                    curr_setting._setting_possible_vals.increment = increment;
+                    curr_setting._setting_possible_vals.units = units;    
+                    
+                    i += 4;
+                }
+                else if (stem == "Possible") // a setting's index-type value
+                {
+                    curr_setting._setting_possible_vals.is_range = false;
+
+                    while (true)
+                    {
+                        string subsetting_index = line.Substring(24);
+                        string subsetting_name = all_strings[i + 1].Substring(32);
+
+                        curr_setting._setting_possible_vals.index_dict[subsetting_index] = subsetting_name;
+
+                        i += 2;
+                        if (i < all_strings.Length) {
+                            line = all_strings[i];
+                            stem = line.Substring(0, 8);
+
+                            if (stem != "Possible") break;
+                        }
+                        else break;
+                    }
+                }
+                else if (stem == "Current ") // current setting's values
+                {
+                    string curr_ac_setting = line.Substring(32);
+                    string curr_dc_setting = all_strings[i + 1].Substring(32);
+
+                    curr_setting._setting_current_vals.ac_value = curr_ac_setting;
+                    curr_setting._setting_current_vals.dc_value = curr_dc_setting;
+
+                    i += 2;
+                }
+            }
+                                        
+        }
+
+
+
+
+
+
+
+
+        //private void get_powerguids_from_classes()
+        //{
+        //    WMIHelper helper = new WMIHelper("root\\CimV2\\power");
+
+        //    var powerSettings = helper.Query("SELECT InstanceID, ElementName, Description FROM Win32_PowerSetting").ToList();
+        //    var powerSettingSubgroups = helper.Query("SELECT InstanceID, ElementName, Description FROM Win32_PowerSettingSubgroup").ToList();
+        //    var powerSettingsInSubgroups = helper.Query("SELECT PartComponent, GroupComponent FROM Win32_PowerSettingInSubgroup").ToList();
+
+        //    for (int i = 0; i < powerSettings.Count; i++)
+        //    {
+        //        string setting_guid = braces_reg.Match(powerSettings[i].InstanceID).Value;
+        //        string setting_name = powerSettings[i].ElementName;
+        //        string setting_descr = powerSettings[i].Description;
+
+        //        var store = new setting_store(setting_guid, "", setting_name, setting_descr);
+        //        this.setting_store_dict[setting_guid] = store;
+        //    }
+
+        //    for (int i = 0; i < powerSettingSubgroups.Count; i++)
+        //    {
+        //        string subgroup_guid = braces_reg.Match(powerSettingSubgroups[i].InstanceID).Value;
+        //        string subgroup_name = powerSettings[i].ElementName;
+        //        string subgroup_descr = powerSettings[i].Description;
+
+        //        var store = new group_store(subgroup_guid, subgroup_name, subgroup_descr);
+        //        this.subgroup_store_dict[subgroup_guid] = store;
+        //    }
+
+        //    for (int i = 0; i < powerSettingsInSubgroups.Count; i++)
+        //    {
+        //        string setting_guid = braces_reg.Match(powerSettingsInSubgroups[i].PartComponent).Value;
+
+        //        if (this.setting_store_dict.ContainsKey(setting_guid))
+        //        {
+        //            string group_guid = braces_reg.Match(powerSettingsInSubgroups[i].GroupComponent).Value;
+        //            this.setting_store_dict[setting_guid]._group_guid = group_guid;
+        //        }
+        //    }
+        //}
+
+
+    }
 
 
 }
