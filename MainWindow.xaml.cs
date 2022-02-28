@@ -13,14 +13,11 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
+
 
 namespace better_power
 {
-    /// <summary>
-    /// An empty window that can be used on its own or navigated to within a Frame.
-    /// </summary>
+
     public sealed partial class MainWindow : Window
     {
         public MainWindow()
@@ -28,9 +25,20 @@ namespace better_power
             this.InitializeComponent();
         }
 
-        private void myButton_Click(object sender, RoutedEventArgs e)
+        private void pad_clicked(object sender, RoutedEventArgs e)
         {
-            myButton.Content = "Clicked";
+            Console.WriteLine("pad clicked");
+        }
+
+        private void NavigationView_Loaded(object sender, RoutedEventArgs e)
+        {
+            Console.WriteLine("pad clicked");
+        }
+        private void NavigationView_SelectionChanged(
+            NavigationView sender,
+            NavigationViewSelectionChangedEventArgs args)
+        {
+            
         }
     }
 }

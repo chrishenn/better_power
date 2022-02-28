@@ -16,30 +16,24 @@ using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
+using System.Collections;
+using System.Management;
+using Microsoft.Management.Infrastructure;
+using ORMi;
 
+using System.Diagnostics;
+using System.ComponentModel;
+using System.Text.RegularExpressions;
 
+using System.Collections.ObjectModel;
+using System.Management.Automation;
 
 
 
 
 namespace better_power
 {
-    using System;
-    using System.Collections;
-    using System.Management;
-    using Microsoft.Management.Infrastructure;
-    using ORMi;
 
-    //using System;
-    using System.Diagnostics;
-    using System.ComponentModel;
-    using System.Text.RegularExpressions;
-
-    using System.Collections.ObjectModel;
-    using System.Management.Automation;
-    //using System.Management.Automation.Runspaces;
 
     public partial class App : Application
     {
@@ -49,37 +43,25 @@ namespace better_power
             this.InitializeComponent();
         }
 
-        /// <summary>
-        /// Invoked when the application is launched normally by the end user.  Other entry points
-        /// will be used such as when the application is launched to open a specific file.
-        /// </summary>
-        /// <param name="args">Details about the launch request and process.</param>
+
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
             m_window = new MainWindow();
-            //m_window.Activate();
+            m_window.Activate();
 
-
-            // read and store group_guid, setting_GUID, friendly name, help string - for each available setting
-            // read and store scheme_guids
-
-
-            // format powercfg command strings to set battery or plugged setting state 
+            // returns all possible setting values for all settings within the specified subgroup for that scheme
+            // powercfg /query scheme_GUID, sub_GUID
 
             // changing a setting runs through powercfg with given GUID
-
             // setting on plug power
             // powercfg /setacvalueindex scheme_GUID sub_GUID setting_GUID setting_index
-
             // setting on battery power
             // powercfg /setdcvalueindex scheme_GUID sub_GUID setting_GUID setting_index
+            // TODO: edit the appropriate registry key to set the correct setting via GUID
 
-            // future improvement: edit the appropriate registry key to set the correct setting via GUID
-
-
-
-            // powercfg -getactivescheme
-            // UI allows user to select a scheme to edit
+            // UI allows user to create a new scheme by copying an old one
+            // select a scheme to edit
+            // edit any scheme
             // UI allows user to change to a given scheme
             // UI allows user to install the classic schemes - from "power saving" to "ultimate perf"
 
@@ -89,16 +71,12 @@ namespace better_power
             // allow user to inspect help string for a given setting (clearly! not in a flyout!)
 
 
-            // powercfg /query scheme_GUID, sub_GUID
-            // returns all possible setting values for all settings within the specified subgroup for that scheme
-
-
-
             this.get_existing_scheme_guids();
             this.get_powersettings();
-
-
         }
+        private Window m_window;
+
+
 
 
 
@@ -142,11 +120,6 @@ namespace better_power
 
         class group_store
         {
-            public group_store() {
-                _group_guid = "";
-                _group_name = "";
-                _child_guids = new List<string>();
-            }
             public group_store(string group_guid, string group_name)
             {
                 _group_guid = group_guid;
@@ -161,7 +134,7 @@ namespace better_power
 
         private ArrayList current_sys_pwrscheme_guids = new ArrayList();
 
-        private Window m_window;
+        
 
         private PowerShell ps = PowerShell.Create();
 
@@ -188,8 +161,6 @@ namespace better_power
                 if (newout.Count() > 0) this.current_sys_pwrscheme_guids.Add(newout);                
             }
         }
-
-
 
 
         private string get_current_powerscheme()
@@ -226,8 +197,6 @@ namespace better_power
 
 
         private int str16_toint(string hex_string) { return Convert.ToInt32(hex_string, 16); }
-
-
 
 
 
@@ -341,11 +310,6 @@ namespace better_power
             }
                                         
         }
-
-
-
-
-
 
 
 

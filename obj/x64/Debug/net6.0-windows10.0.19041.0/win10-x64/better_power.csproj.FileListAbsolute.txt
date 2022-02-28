@@ -1,6 +1,5 @@
 C:\Users\Admin\source\repos\better_power\bin\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\better_power.exe
 C:\Users\Admin\source\repos\better_power\bin\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\App.xbf
-C:\Users\Admin\source\repos\better_power\bin\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\BlankWindow1.xbf
 C:\Users\Admin\source\repos\better_power\bin\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\MainWindow.xbf
 C:\Users\Admin\source\repos\better_power\bin\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\better_power.deps.json
 C:\Users\Admin\source\repos\better_power\bin\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\better_power.runtimeconfig.json
@@ -243,16 +242,12 @@ C:\Users\Admin\source\repos\better_power\bin\x64\Debug\net6.0-windows10.0.19041.
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\better_power.csproj.AssemblyReference.cache
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\App.g.i.cs
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\App.g.cs
-C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\BlankWindow1.g.i.cs
-C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\BlankWindow1.g.cs
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\MainWindow.g.i.cs
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\MainWindow.g.cs
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\XamlTypeInfo.g.cs
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\App.xaml
-C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\BlankWindow1.xaml
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\MainWindow.xaml
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\App.xbf
-C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\BlankWindow1.xbf
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\MainWindow.xbf
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\XamlSaveStateFile.xml
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\better_power.GeneratedMSBuildEditorConfig.editorconfig
