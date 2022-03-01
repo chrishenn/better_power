@@ -6,13 +6,12 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Shapes;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.ApplicationModel;
-using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 
@@ -27,9 +26,8 @@ using System.Text.RegularExpressions;
 
 using System.Collections.ObjectModel;
 using System.Management.Automation;
-
-
-
+using Windows.ApplicationModel.Core;
+using System.Threading.Tasks;
 
 namespace better_power
 {
@@ -38,32 +36,38 @@ namespace better_power
     public partial class App : Application
     {
 
+        private Window m_window;
+        private Frame rootFrame;
+
+
         public App()
         {
             this.InitializeComponent();
         }
 
 
-        protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
+        protected override void OnLaunched(LaunchActivatedEventArgs args)
         {
-            m_window = new MainWindow();
-            m_window.Activate();
+
+            // read all current power setting values
+            // TODO: query current values for each setting in each power scheme and store those per-scheme
 
             // returns all possible setting values for all settings within the specified subgroup for that scheme
             // powercfg /query scheme_GUID, sub_GUID
 
-            // changing a setting runs through powercfg with given GUID
-            // setting on plug power
-            // powercfg /setacvalueindex scheme_GUID sub_GUID setting_GUID setting_index
-            // setting on battery power
-            // powercfg /setdcvalueindex scheme_GUID sub_GUID setting_GUID setting_index
-            // TODO: edit the appropriate registry key to set the correct setting via GUID
+            // get all possible and current settings under a power scheme
+            // powercfg / query scheme_GUID
 
-            // UI allows user to create a new scheme by copying an old one
+            // changing a setting runs through powercfg with given GUID
+            // powercfg /setacvalueindex scheme_GUID sub_GUID setting_GUID setting_index
+            // powercfg /setdcvalueindex scheme_GUID sub_GUID setting_GUID setting_index
+            // TODO: edit the appropriate registry key to set the correct setting via GUID (?)
+
+            // create a new scheme by copying an old one
             // select a scheme to edit
-            // edit any scheme
-            // UI allows user to change to a given scheme
-            // UI allows user to install the classic schemes - from "power saving" to "ultimate perf"
+            // edit selected scheme
+            // apply a given scheme to system
+            // (?) install the classic schemes - from "power saving" to "ultimate perf"
 
             // populate scheme editing view with objects to change each setting 
             // shows friendly setting name
@@ -73,8 +77,57 @@ namespace better_power
 
             this.get_existing_scheme_guids();
             this.get_powersettings();
+
+            this.m_window = new MainWindow();
+            this.m_window.Activate();
+
+            Frame windowFrame;
+            this.m_window.Content = windowFrame = new Frame();
+            windowFrame.Navigate(typeof(NavigationRootPage));
         }
-        private Window m_window;
+
+        
+
+
+
+        private static void UpdateNavigationBasedOnSelectedPage(Frame rootFrame)
+        {
+            //// Check if we brought back an ItemPage
+            //if (rootFrame.Content is ItemPage itemPage)
+            //{
+            //    // We did, so bring the selected item back into view
+            //    string name = itemPage.Item.Title;
+            //    if (Window.Current.Content is NavigationRootPage nav)
+            //    {
+            //        // Finally brings back into view the correct item.
+            //        // But first: Update page layout!
+            //        nav.EnsureItemIsVisibleInNavigation(name);
+            //    }
+            //}
+        }
+
+        private Frame GetRootFrame()
+        {
+            NavigationRootPage rootPage = new NavigationRootPage();
+            Frame rootFrame = (Frame)rootPage.FindName("rootFrame");
+
+            if (rootFrame == null)
+            {
+                throw new Exception("Root frame not found");
+            }
+            rootFrame.Language = Windows.Globalization.ApplicationLanguages.Languages[0];
+            rootFrame.NavigationFailed += OnNavigationFailed;
+             
+            return rootFrame;
+        }
+
+        void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
+        {
+            throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
+        }
+
+
+        //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 
@@ -139,9 +192,6 @@ namespace better_power
         private PowerShell ps = PowerShell.Create();
 
         private Regex guid_reg = new Regex(@"(?<=GUID:\s*)[^\s]+(?=\s)");
-        private Regex braces_reg = new Regex(@"(?<=\{)[^}]+(?=\})");
-        private Regex peren_reg = new Regex(@"(?<=\().+(?=\))");
-        private Regex value_reg = new Regex(@"(?<=:\s*)[^\s]+");
 
         private Dictionary<string, setting_store> setting_store_dict = new Dictionary<string, setting_store>();
         private Dictionary<string, group_store> subgroup_store_dict = new Dictionary<string, group_store>();

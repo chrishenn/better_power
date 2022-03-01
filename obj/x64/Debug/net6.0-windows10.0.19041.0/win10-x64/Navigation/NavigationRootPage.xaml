@@ -1,0 +1,100 @@
+﻿<Page
+    x:Class="better_power.NavigationRootPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:better_power"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary>
+                    <ResourceDictionary.ThemeDictionaries>
+                        <ResourceDictionary x:Key="Light">
+                            <StaticResource x:Key="NavigationViewContentBackground" ResourceKey="LayerFillColorDefaultBrush"/>
+                            <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="Transparent"/>
+                        </ResourceDictionary>
+                        <ResourceDictionary x:Key="Dark">
+                            <StaticResource x:Key="NavigationViewContentBackground" ResourceKey="LayerFillColorDefaultBrush"/>
+                            <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="Transparent"/>
+                        </ResourceDictionary>
+                        <ResourceDictionary x:Key="HighContrast">
+                            <SolidColorBrush x:Key="NavigationViewContentBackground" Color="{ThemeResource SystemColorWindowColor}" />
+                            <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="{ThemeResource SystemColorWindowColor}" />
+                        </ResourceDictionary>
+                    </ResourceDictionary.ThemeDictionaries>
+                </ResourceDictionary>
+                <ResourceDictionary>
+                </ResourceDictionary>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Page.Resources>
+
+
+    <Grid>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+
+        <Rectangle x:ConnectionId='2'
+            x:Name="XboxContentSafeRect"
+            Width="48"
+            Fill="{StaticResource NavigationViewContentBackground}"
+            Visibility="Collapsed" Canvas.ZIndex="0" />
+
+        <Border x:ConnectionId='3' x:Name="AppTitleBar"
+                Grid.Column="1"
+                IsHitTestVisible="True"
+                VerticalAlignment="Top"
+                Background="Transparent"
+                Height="100"
+                Canvas.ZIndex="1">
+            <TextBlock x:ConnectionId='8' x:Name="AppTitle"
+                       Text="Better Power"
+                       VerticalAlignment="Center"
+                       Style="{StaticResource CaptionTextBlockStyle}" />
+        </Border>
+
+        <NavigationView x:ConnectionId='4'
+            Canvas.ZIndex="0"
+            x:Name="NavigationViewControl"
+            Grid.Column="1"
+            AlwaysShowHeader="True"
+            Header=" "
+            IsTabStop="False"
+            IsTitleBarAutoPaddingEnabled="False"
+                                                           
+                                                           
+                                                                         
+                                                     
+                                                  >
+
+            <NavigationView.AutoSuggestBox>
+                <AutoSuggestBox x:ConnectionId='5'
+                    x:Name="controlsSearchBox"
+                    VerticalAlignment="Center"
+                    x:FieldModifier="public"
+                    PlaceholderText="Search"
+                    QueryIcon="Find"
+                                                                      
+                    MinWidth="200"
+                    KeyboardAcceleratorPlacementMode="Hidden"
+                                                                >
+                    <AutoSuggestBox.KeyboardAccelerators>
+                        <KeyboardAccelerator x:ConnectionId='6' Modifiers="Control" Key="F"                         />
+                    </AutoSuggestBox.KeyboardAccelerators>
+                </AutoSuggestBox>
+            </NavigationView.AutoSuggestBox>
+
+            <Frame x:ConnectionId='7' x:Name="rootFrame"                                 />
+        </NavigationView>
+
+    </Grid>
+
+</Page>
+

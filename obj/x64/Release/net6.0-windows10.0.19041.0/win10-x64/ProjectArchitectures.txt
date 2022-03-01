@@ -1,1 +1,0 @@
-C:\Users\Admin\source\repos\better_power\better_power.csproj;x64

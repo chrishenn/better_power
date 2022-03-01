@@ -7,58 +7,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
+    <Grid>
 
-    <Border Background="#272537" CornerRadius="10">
-
-        <Grid>
-
-            <Grid.RowDefinitions>
-                <RowDefinition Height="50"/>
-                <RowDefinition/>
-            </Grid.RowDefinitions>
-        
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="200" />
-                <ColumnDefinition />
-            </Grid.ColumnDefinitions>
-
-            <TextBlock Text="Better Power"
-                       VerticalAlignment="Center"       
-                       HorizontalAlignment="Left"
-                       Foreground="White"
-                       FontSize="22"
-                       Margin="15,0,0,0" />
-
-
-            <NavigationView x:ConnectionId='2' x:Name="NavigationView"
-                                              
-                                                                  
-                Header="WinUI 3 Navigation Sample"
-                IsBackButtonVisible="Collapsed"
-                IsSettingsVisible="False">
-
-                <NavigationView.MenuItems>
-
-                    <NavigationViewItem Content="Home"
-                            Tag="XamlBrewer.WinUI3.Navigation.Sample.Views.HomePage"
-                            ToolTipService.ToolTip="Home">
-                        <NavigationViewItem.Icon>
-                            <BitmapIcon UriSource="/Assets/StoreLogo.png"
-                            ShowAsMonochrome="False" />
-                        </NavigationViewItem.Icon>
-                    </NavigationViewItem>
-
-                </NavigationView.MenuItems>
-            </NavigationView>
-
-
-
-        </Grid>
-    </Border>
-
-
-
-
-
+    </Grid>
 </Window>
 
