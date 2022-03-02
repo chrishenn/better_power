@@ -17,41 +17,22 @@ using Microsoft.UI.Xaml.Navigation;
 
 namespace better_power
 {
-    public sealed partial class NavigationRootPage : Page
+    public sealed partial class Page1 : Page
     {
-        public static NavigationRootPage Current;
-        public static Frame RootFrame = null;
-
-        //public VirtualKey ArrowKey;
-
-        public Action NavigationViewLoaded { get; set; }
-
-        public DeviceType DeviceFamily { get; set; }
-
-
-
-
-        public NavigationRootPage()
+        public Page1()
         {
-            this.InitializeComponent();
+            this.InitializeComponent();            
+        }
+
+        private void Page1_GridLoaded(object sender, RoutedEventArgs e)
+        {
+            App.Window.SetTitleBar(AppTitleBar);
         }
 
 
+        //this.Frame.Navigate(typeof(Page1));
 
-        public string GetAppTitleFromSystem()
-        {
-            return "Better Power";
-        }
 
-        public bool CheckNewControlSelected()
-        {
-            return false;
-        }
-
-        public void EnsureNavigationSelection(string id)
-        {
-
-        }
 
         //private void AddNavigationMenuItems()
         //{
@@ -99,36 +80,14 @@ namespace better_power
             }
         }
 
-        //private static IconElement GetIcon(string imagePath)
-        //{
-            //return imagePath.ToLowerInvariant().EndsWith(".png") ?
-            //            (IconElement)new BitmapIcon() { UriSource = new Uri(imagePath, UriKind.RelativeOrAbsolute), ShowAsMonochrome = false } :
-            //            (IconElement)new FontIcon()
-            //            {
-            //                // FontFamily = new FontFamily("Segoe MDL2 Assets"),
-            //                Glyph = imagePath
-            //            };
-        //}
 
-        private void SetDeviceFamily()
-        {
-
-        }
-
-        private void OnNewControlsMenuItemLoaded(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-
-
-        private void OnNavigationViewControlLoaded(object sender, RoutedEventArgs e)
+        private void SchemeNavigationView_Loaded(object sender, RoutedEventArgs e)
         {
             // Delay necessary to ensure NavigationView visual state can match navigation
             //Task.Delay(500).ContinueWith(_ => this.NavigationViewLoaded?.Invoke(), TaskScheduler.FromCurrentSynchronizationContext());
         }
 
-        private void OnNavigationViewItemInvoked(Microsoft.UI.Xaml.Controls.NavigationView sender, Microsoft.UI.Xaml.Controls.NavigationViewItemInvokedEventArgs args)
+        private void SchemeNavigationView_ItemInvoked(Microsoft.UI.Xaml.Controls.NavigationView sender, Microsoft.UI.Xaml.Controls.NavigationViewItemInvokedEventArgs args)
         {
             // Close any open teaching tips before navigation
             CloseTeachingTips();
@@ -182,18 +141,13 @@ namespace better_power
             //}
         }
 
-        private void OnRootFrameNavigated(object sender, NavigationEventArgs e)
-        {
-            // Close any open teaching tips before navigation
-            CloseTeachingTips();
 
-        }
         private void CloseTeachingTips()
         {
 
         }
 
-        private void OnControlsSearchBoxTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+        private void SchemeNavigationView_SearchBoxTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
             if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
             {
@@ -236,53 +190,19 @@ namespace better_power
             }
         }
 
-        private void OnControlsSearchBoxQuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+        private void SchemeNavigationView_SearchBoxQuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+        {
+
+        }        
+        private void SchemeNavigationView_DisplayModeChanged(Microsoft.UI.Xaml.Controls.NavigationView sender, Microsoft.UI.Xaml.Controls.NavigationViewDisplayModeChangedEventArgs args)
         {
 
         }
-
-        public void EnsureItemIsVisibleInNavigation(string name)
-        {
-
-        }
-
-        private void NavigationViewControl_PaneClosing(Microsoft.UI.Xaml.Controls.NavigationView sender, Microsoft.UI.Xaml.Controls.NavigationViewPaneClosingEventArgs args)
-        {
-            UpdateAppTitleMargin(sender);
-        }
-
-        private void NavigationViewControl_PaneOpening(Microsoft.UI.Xaml.Controls.NavigationView sender, object args)
-        {
-            UpdateAppTitleMargin(sender);
-        }
-
-        private void NavigationViewControl_DisplayModeChanged(Microsoft.UI.Xaml.Controls.NavigationView sender, Microsoft.UI.Xaml.Controls.NavigationViewDisplayModeChangedEventArgs args)
-        {
-
-        }
-
-        private void UpdateAppTitleMargin(Microsoft.UI.Xaml.Controls.NavigationView sender)
-        {
-
-        }
-
-        private void UpdateHeaderMargin(Microsoft.UI.Xaml.Controls.NavigationView sender)
-        {
-
-        }
-
         private void CtrlF_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
         {
-            //controlsSearchBox.Focus(FocusState.Programmatic);
+            //SchemeNavigationView_SearchBox.Focus(FocusState.Programmatic);
         }
     }
 
 
-    public enum DeviceType
-    {
-        Desktop,
-        Mobile,
-        Other,
-        Xbox
-    }
 }

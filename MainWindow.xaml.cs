@@ -13,8 +13,8 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
+//using Page1 = better_power.Page1;
+
 
 namespace better_power
 {
@@ -23,6 +23,10 @@ namespace better_power
         public MainWindow()
         {
             this.InitializeComponent();
-        }
+
+            this.ExtendsContentIntoTitleBar = true;
+
+            this.mainFrame.Navigate( typeof(Page1) );
+        } 
     }
 }

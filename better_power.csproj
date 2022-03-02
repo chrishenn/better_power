@@ -12,6 +12,9 @@
     <EnablePreviewMsixTooling>true</EnablePreviewMsixTooling>
   </PropertyGroup>
   <ItemGroup>
+    <Content Remove="Assets\Image1.png" />
+  </ItemGroup>
+  <ItemGroup>
     <None Remove="MainWindow.xaml" />
     <None Remove="NavigationRootPage.xaml" />
   </ItemGroup>

@@ -35,14 +35,15 @@ namespace better_power
 
     public partial class App : Application
     {
-
-        private Window m_window;
-        private Frame rootFrame;
-
+        public static Window Window { get { return m_window; } }
+        private static Window m_window;
 
         public App()
         {
             this.InitializeComponent();
+
+            m_window = new MainWindow();
+            m_window.Activate();
         }
 
 
@@ -78,58 +79,20 @@ namespace better_power
             this.get_existing_scheme_guids();
             this.get_powersettings();
 
-            this.m_window = new MainWindow();
-            this.m_window.Activate();
+            //this.m_window = new MainWindow();
+            //this.m_frame = new Frame();
 
-            Frame windowFrame;
-            this.m_window.Content = windowFrame = new Frame();
-            windowFrame.Navigate(typeof(NavigationRootPage));
+            //this.m_window.Content = this.m_frame;
+            //this.m_frame.Navigate( typeof(NavigationRootPage) );
+
+            //this.m_window.Activate();
+
         }
 
         
 
 
-
-        private static void UpdateNavigationBasedOnSelectedPage(Frame rootFrame)
-        {
-            //// Check if we brought back an ItemPage
-            //if (rootFrame.Content is ItemPage itemPage)
-            //{
-            //    // We did, so bring the selected item back into view
-            //    string name = itemPage.Item.Title;
-            //    if (Window.Current.Content is NavigationRootPage nav)
-            //    {
-            //        // Finally brings back into view the correct item.
-            //        // But first: Update page layout!
-            //        nav.EnsureItemIsVisibleInNavigation(name);
-            //    }
-            //}
-        }
-
-        private Frame GetRootFrame()
-        {
-            NavigationRootPage rootPage = new NavigationRootPage();
-            Frame rootFrame = (Frame)rootPage.FindName("rootFrame");
-
-            if (rootFrame == null)
-            {
-                throw new Exception("Root frame not found");
-            }
-            rootFrame.Language = Windows.Globalization.ApplicationLanguages.Languages[0];
-            rootFrame.NavigationFailed += OnNavigationFailed;
-             
-            return rootFrame;
-        }
-
-        void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
-        {
-            throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
-        }
-
-
         //----------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
 
 
 
