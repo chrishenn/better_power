@@ -16,7 +16,6 @@
             <SolidColorBrush x:Key="WindowCaptionBackground" Color="#202020" />            
             <SolidColorBrush x:Key="WindowCaptionBackgroundDisabled" Color="#202020" />
 
-
             <SolidColorBrush x:Key="AppTitleBar_Grey" Color="#202020"/>
             <SolidColorBrush x:Key="AppPageBackground" Color="#272727"/>
 
@@ -49,6 +48,7 @@
                     <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="Transparent"/>
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
+
 
         </ResourceDictionary>
     </Application.Resources>

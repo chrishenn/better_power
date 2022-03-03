@@ -10,35 +10,51 @@
 
     <Page.Resources>
         <ResourceDictionary>
+
+            <DataTemplate x:Key="IndexSettingButton" >
+                <Button Content="{Binding }"/>
+            </DataTemplate>
             
-            <DataTemplate x:Key="NavigationViewHeaderTemplate">
-                
+
+            <DataTemplate x:Key="RangeSettingTemplate" >
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="{Binding _setting_name}" Grid.Column="0"/>
+                    <NumberBox Value="TODO current value" Grid.Column="1" />
+                </Grid>
             </DataTemplate>
 
-            <DataTemplate x:Key="NormalItemTemplate" x:DataType="x:Int32">
-                <Button HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{ThemeResource SystemChromeLowColor}">
-                    <TextBlock Text="{x:Bind}" />
-                </Button>
-            </DataTemplate>
+            <DataTemplate x:Key="IndexSettingTemplate" >
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
 
-            <DataTemplate x:Key="AccentItemTemplate" x:DataType="x:Int32">
-                <Button HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{ThemeResource SystemAccentColor}">
-                    <TextBlock Text="{x:Bind}" />
-                </Button>
+                    <TextBlock Text="{Binding _setting_name}" Grid.Column="0"/>
+
+                    <StackPanel Orientation="Horizontal">
+                        <ItemsRepeater 
+                            ItemTemplate="{StaticResource IndexSettingButton}"
+                            ItemsSource="{Binding _setting_possible_vals.index_dict}"/>
+                    </StackPanel>
+                </Grid>
             </DataTemplate>
+            
+            <local:MyDataTemplateSelector x:Key="MyDataTemplateSelector"
+                        Range_Setting="{StaticResource RangeSettingTemplate}"
+                        Index_Setting="{StaticResource IndexSettingTemplate}"/>
                 
         </ResourceDictionary>            
     </Page.Resources>
 
     
 
-
     <Grid Loaded="Page1_GridLoaded">
-        <Grid.Resources>
-            <MyDataTemplateSelector x:Key="MyDataTemplateSelector"
-                        Normal="{StaticResource NormalItemTemplate}"
-                        Accent="{StaticResource AccentItemTemplate}"/>            
-        </Grid.Resources>
                   
         <Grid.RowDefinitions>
             <RowDefinition Height="32"/>
@@ -118,21 +134,16 @@
         </NavigationView>
 
 
-        <ScrollViewer x:Name="ScrollViewer"
+        <ListView x:Name="ListView"
                     Grid.Row="1"
                     Grid.Column="1"                
                     Padding="0,0,0,0" 
-                    IsVerticalRailEnabled="True" VerticalScrollMode="Enabled" VerticalScrollBarVisibility="Visible"
-                    IsHorizontalRailEnabled="False" HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled"
-                    IsVerticalScrollChainingEnabled="False"
                     IsTabStop="False"
-                    Loaded="ScrollViewer_Loaded">
-            
-            <ItemsRepeater
-                ItemsSource="{x:Bind NumberedItems}"
-                ItemTemplate="{StaticResource SimpleItemTemplate}" />
+                    Loaded="ListView_Loaded">
 
-        </ScrollViewer>
+            <ItemsRepeater ItemTemplate="{StaticResource MyDataTemplateSelector}"
+                           Loaded="ItemsRepeater_Loaded"/>
+        </ListView>
 
     </Grid>
 

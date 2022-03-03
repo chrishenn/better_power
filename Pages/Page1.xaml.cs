@@ -20,28 +20,30 @@ namespace better_power
 
     public class MyDataTemplateSelector : DataTemplateSelector
     {
-        public DataTemplate Normal { get; set; }
-        public DataTemplate Accent { get; set; }
+        public DataTemplate Range_Setting { get; set; }
+        public DataTemplate Index_Setting { get; set; }
 
         protected override DataTemplate SelectTemplateCore(object item)
         {
-            if ((int)item % 2 == 0)
-            {
-                return Normal;
+            var setting = (App.setting_store)item;
+
+            if (setting._setting_possible_vals.is_range) {
+                return Range_Setting;
             }
-            else
-            {
-                return Accent;
+            else {
+                return Index_Setting;
             }
         }
     }
+
+
 
 
     public sealed partial class Page1 : Page
     {
         public Page1()
         {
-            this.InitializeComponent();            
+            this.InitializeComponent();
         }
 
         private void Page1_GridLoaded(object sender, RoutedEventArgs e)
@@ -54,19 +56,6 @@ namespace better_power
             // Delay necessary to ensure NavigationView visual state can match navigation
             //Task.Delay(500).ContinueWith(_ => this.NavigationViewLoaded?.Invoke(), TaskScheduler.FromCurrentSynchronizationContext());
 
-            AddNavigationMenuItems();
-        }
-        private void ScrollViewer_Loaded(object sender, RoutedEventArgs e) 
-        { 
-        
-        
-        
-        }
-
-
-
-        private void AddNavigationMenuItems()
-        {
             var setting_dict = App.pub_setting_store_dict;
             var group_dict = App.pub_subgroup_store_dict;
             var scheme_list = App.pub_scheme_guids;
@@ -79,12 +68,40 @@ namespace better_power
                 {
                     string group_guid = kvp.Key;
 
-                    scheme_menuitem.MenuItems.Add( new NavigationViewItem() {Content = group_guid} );
+                    scheme_menuitem.MenuItems.Add(new NavigationViewItem() { Content = group_guid });
                 }
 
-                SchemeNavigationView.MenuItems.Add(scheme_menuitem);
+                this.SchemeNavigationView.MenuItems.Add(scheme_menuitem);
             }
         }
+
+        private void ListView_Loaded(object sender, RoutedEventArgs e)
+        {
+            //var setting_dict = App.pub_setting_store_dict;
+
+            //List<Contact> contactsFiltered = new List<Contact>();
+
+            //foreach (KeyValuePair<string, App.setting_store> kvp in setting_dict)
+            //{
+
+            //}
+
+            //this.ListView.ItemsSource = setting_dict.Values.ToList(); 
+        }
+
+        private void ItemsRepeater_Loaded(object sender, RoutedEventArgs e)
+        {
+            var setting_dict = App.pub_setting_store_dict;
+
+            var repeater = (ItemsRepeater)sender;
+            repeater.ItemsSource = setting_dict.Values.ToList();
+        }
+
+
+
+
+
+
 
         private void OnMenuFlyoutItemClick(object sender, RoutedEventArgs e)
         {

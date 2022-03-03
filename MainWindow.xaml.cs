@@ -13,8 +13,6 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 
-//using Page1 = better_power.Page1;
-
 
 namespace better_power
 {

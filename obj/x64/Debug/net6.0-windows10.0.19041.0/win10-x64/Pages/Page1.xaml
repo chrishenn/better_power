@@ -10,11 +10,41 @@
 
     <Page.Resources>
         <ResourceDictionary>
-        </ResourceDictionary>
+
+            <DataTemplate x:Key="RangeSettingTemplate" >
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="{Binding _setting_name}" Grid.Column="0"/>
+                    <NumberBox Value="TODO current value" Grid.Column="1" />
+                </Grid>
+            </DataTemplate>
+
+            <DataTemplate x:Key="IndexSettingTemplate" >
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="{Binding _setting_name}" Grid.Column="0"/>
+                    <ItemsRepeater ItemsSource="{Binding _setting_possible_vals.index_dict}"/>
+                </Grid>
+            </DataTemplate>
+            
+            <local:MyDataTemplateSelector x:Key="MyDataTemplateSelector"
+                        Range_Setting="{StaticResource RangeSettingTemplate}"
+                        Index_Setting="{StaticResource IndexSettingTemplate}"/>
+                
+        </ResourceDictionary>            
     </Page.Resources>
+
     
-    
-    <Grid x:ConnectionId='2'                          >
+
+    <Grid x:ConnectionId='4'                          >
                   
         <Grid.RowDefinitions>
             <RowDefinition Height="32"/>
@@ -30,7 +60,7 @@
         <Grid Grid.Row="1" Grid.Column="1" Background="{StaticResource AppPageBackground}"/>
 
 
-        <Grid x:ConnectionId='3' x:Name="AppTitleBar" 
+        <Grid x:ConnectionId='5' x:Name="AppTitleBar" 
               Margin="0,0,120,0" 
               Grid.Row="0" 
               Background="{StaticResource AppTitleBar_Grey}"
@@ -41,7 +71,7 @@
                 Width="30" Height="30"
                 Margin="8,0"/>
             
-            <TextBlock x:ConnectionId='8' x:Name="AppTitleTextBlock" Text="Better Power"
+            <TextBlock x:ConnectionId='11' x:Name="AppTitleTextBlock" Text="Better Power"
                 TextWrapping="NoWrap"                       
                 Style="{StaticResource CaptionTextBlockStyle}" 
                 VerticalAlignment="Center"
@@ -49,7 +79,7 @@
         </Grid>
 
 
-        <NavigationView x:ConnectionId='4'
+        <NavigationView x:ConnectionId='6'
             x:Name="SchemeNavigationView"             
             Grid.Row="1"
             
@@ -75,7 +105,7 @@
                                                         >
 
             <NavigationView.AutoSuggestBox>
-                <AutoSuggestBox x:ConnectionId='6'
+                <AutoSuggestBox x:ConnectionId='9'
                     x:Name="SchemeNavigationView_SearchBox"
                     VerticalAlignment="Center"
                     x:FieldModifier="public"
@@ -86,7 +116,7 @@
                     KeyboardAcceleratorPlacementMode="Hidden"
                                                                            >
                     <AutoSuggestBox.KeyboardAccelerators>
-                        <KeyboardAccelerator x:ConnectionId='7' Modifiers="Control" Key="F"                         />
+                        <KeyboardAccelerator x:ConnectionId='10' Modifiers="Control" Key="F"                         />
                     </AutoSuggestBox.KeyboardAccelerators>
                 </AutoSuggestBox>
             </NavigationView.AutoSuggestBox>
@@ -94,16 +124,16 @@
         </NavigationView>
 
 
-        <ScrollViewer x:ConnectionId='5' x:Name="ScrollViewer"
+        <ListView x:ConnectionId='7' x:Name="ListView"
                     Grid.Row="1"
                     Grid.Column="1"                
                     Padding="0,0,0,0" 
-                    VerticalScrollMode="Enabled" VerticalScrollBarVisibility="Visible"
-                    HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled"
-                    IsVerticalScrollChainingEnabled="False"
                     IsTabStop="False"
-                                                
-                />
+                                            >
+
+            <ItemsRepeater x:ConnectionId='8' ItemTemplate="{StaticResource MyDataTemplateSelector}"
+                                                        />
+        </ListView>
 
     </Grid>
 

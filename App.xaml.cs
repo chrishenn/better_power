@@ -67,7 +67,6 @@ namespace better_power
 
         protected override void OnLaunched(LaunchActivatedEventArgs args)
         {
-
             // read all current power setting values
             // TODO: query current values for each setting in each power scheme and store those per-scheme
 
