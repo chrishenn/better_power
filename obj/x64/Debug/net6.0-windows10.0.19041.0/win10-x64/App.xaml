@@ -13,14 +13,12 @@
             </ResourceDictionary.MergedDictionaries>
 
             
-            <!--<SolidColorBrush x:Key="WindowCaptionBackground" Color="White" />-->
             <SolidColorBrush x:Key="WindowCaptionBackground" Color="#202020" />            
-            <!--<SolidColorBrush x:Key="WindowCaptionBackgroundDisabled" Color="#202020" />-->
-            <!--<SolidColorBrush x:Key="WindowCaptionForeground" Color="Red" />-->
-            <!--<SolidColorBrush x:Key="WindowCaptionForegroundDisabled" Color="#202020" />-->
+            <SolidColorBrush x:Key="WindowCaptionBackgroundDisabled" Color="#202020" />
 
 
             <SolidColorBrush x:Key="AppTitleBar_Grey" Color="#202020"/>
+            <SolidColorBrush x:Key="AppPageBackground" Color="#272727"/>
 
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Light">

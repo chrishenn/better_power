@@ -32,15 +32,33 @@ using System.Threading.Tasks;
 namespace better_power
 {
 
-
     public partial class App : Application
     {
+
         public static Window Window { get { return m_window; } }
         private static Window m_window;
+
+        public static Dictionary<string, setting_store> pub_setting_store_dict { get { return setting_store_dict; } }
+        private static Dictionary<string, setting_store> setting_store_dict = new Dictionary<string, setting_store>();
+
+        public static Dictionary<string, group_store> pub_subgroup_store_dict { get { return subgroup_store_dict; } }
+        private static Dictionary<string, group_store> subgroup_store_dict = new Dictionary<string, group_store>();
+
+        public static List<string> pub_scheme_guids { get { return scheme_guids; } }
+        private static List<string> scheme_guids = new List<string>();
+
+
 
         public App()
         {
             this.InitializeComponent();
+
+            //setting_store_dict = new Dictionary<string, setting_store>();
+            //subgroup_store_dict = new Dictionary<string, group_store>();
+            //scheme_guids = new List<string>();
+
+            this.get_existing_scheme_guids();
+            this.get_powersettings();
 
             m_window = new MainWindow();
             m_window.Activate();
@@ -73,30 +91,16 @@ namespace better_power
             // populate scheme editing view with objects to change each setting 
             // shows friendly setting name
             // should indicate possible values to which we can set the setting
-            // allow user to inspect help string for a given setting (clearly! not in a flyout!)
-
-
-            this.get_existing_scheme_guids();
-            this.get_powersettings();
-
-            //this.m_window = new MainWindow();
-            //this.m_frame = new Frame();
-
-            //this.m_window.Content = this.m_frame;
-            //this.m_frame.Navigate( typeof(NavigationRootPage) );
-
-            //this.m_window.Activate();
-
+            // allow user to inspect help string for a given setting (clearly! not in a flyout!)                       
         }
 
         
-
 
         //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 
-        class possible_vals
+        public class possible_vals
         {
             public bool is_range;
 
@@ -107,13 +111,13 @@ namespace better_power
 
             public Dictionary<string, string> index_dict = new Dictionary<string, string>();
         }
-        class current_vals
+        public class current_vals
         {
             public string ac_value;
             public string dc_value;
         }
 
-        class setting_store
+        public class setting_store
         {
             public setting_store(string setting_guid, string setting_name, string setting_descr, string parent_groupguid)
             {
@@ -134,7 +138,7 @@ namespace better_power
             public current_vals _setting_current_vals { get; set; }
         }
 
-        class group_store
+        public class group_store
         {
             public group_store(string group_guid, string group_name)
             {
@@ -148,16 +152,13 @@ namespace better_power
             public List<string> _child_guids { get; set; }
         }
 
-        private ArrayList current_sys_pwrscheme_guids = new ArrayList();
-
         
-
+                
         private PowerShell ps = PowerShell.Create();
 
         private Regex guid_reg = new Regex(@"(?<=GUID:\s*)[^\s]+(?=\s)");
 
-        private Dictionary<string, setting_store> setting_store_dict = new Dictionary<string, setting_store>();
-        private Dictionary<string, group_store> subgroup_store_dict = new Dictionary<string, group_store>();
+
 
 
 
@@ -171,7 +172,7 @@ namespace better_power
 
                 var newout = this.guid_reg.Match(res.BaseObject.ToString()).Value;
 
-                if (newout.Count() > 0) this.current_sys_pwrscheme_guids.Add(newout);                
+                if (newout.Count() > 0) scheme_guids.Add(newout);                
             }
         }
 
@@ -215,11 +216,6 @@ namespace better_power
 
         private void get_powersettings()
         {
-            // a. build connections from subgroups in dict to child settings by key
-            //      and connnections from child to parent subgroup
-            // b. read possible setting options for each power setting 
-            // c. read current settings for each power setting
-
             string curr_powerscheme = get_current_powerscheme();
             var all_settings = powercfg_query(curr_powerscheme, "");
 
@@ -258,7 +254,7 @@ namespace better_power
                     string group_name = line.Substring(54);
 
                     curr_group = new group_store(group_guid, group_name);
-                    this.subgroup_store_dict[group_guid] = curr_group;
+                    subgroup_store_dict[group_guid] = curr_group;
 
                     i++;
                 }
@@ -268,7 +264,7 @@ namespace better_power
                     string setting_name = line.Substring(59); 
 
                     curr_setting = new setting_store(setting_guid, setting_name, "", curr_group._group_guid);
-                    this.setting_store_dict[setting_guid] = curr_setting;
+                    setting_store_dict[setting_guid] = curr_setting;
 
                     curr_group._child_guids.Add(setting_guid);
 

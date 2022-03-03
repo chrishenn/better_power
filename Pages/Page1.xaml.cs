@@ -17,6 +17,26 @@ using Microsoft.UI.Xaml.Navigation;
 
 namespace better_power
 {
+
+    public class MyDataTemplateSelector : DataTemplateSelector
+    {
+        public DataTemplate Normal { get; set; }
+        public DataTemplate Accent { get; set; }
+
+        protected override DataTemplate SelectTemplateCore(object item)
+        {
+            if ((int)item % 2 == 0)
+            {
+                return Normal;
+            }
+            else
+            {
+                return Accent;
+            }
+        }
+    }
+
+
     public sealed partial class Page1 : Page
     {
         public Page1()
@@ -29,48 +49,42 @@ namespace better_power
             App.Window.SetTitleBar(AppTitleBar);
         }
 
+        private void SchemeNavigationView_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Delay necessary to ensure NavigationView visual state can match navigation
+            //Task.Delay(500).ContinueWith(_ => this.NavigationViewLoaded?.Invoke(), TaskScheduler.FromCurrentSynchronizationContext());
 
-        //this.Frame.Navigate(typeof(Page1));
+            AddNavigationMenuItems();
+        }
+        private void ScrollViewer_Loaded(object sender, RoutedEventArgs e) 
+        { 
+        
+        
+        
+        }
 
 
 
-        //private void AddNavigationMenuItems()
-        //{
-        //    foreach (var group in )
-        //    {
-        //        var itemGroup = new Microsoft.UI.Xaml.Controls.NavigationViewItem() { Content = group.Title, Tag = group.UniqueId, DataContext = group, Icon = GetIcon(group.ImagePath) };
+        private void AddNavigationMenuItems()
+        {
+            var setting_dict = App.pub_setting_store_dict;
+            var group_dict = App.pub_subgroup_store_dict;
+            var scheme_list = App.pub_scheme_guids;
 
-        //        var groupMenuFlyoutItem = new MenuFlyoutItem() { Text = $"Copy Link to {group.Title} Samples", Icon = new FontIcon() { Glyph = "\uE8C8" }, Tag = group };
-        //        groupMenuFlyoutItem.Click += this.OnMenuFlyoutItemClick;
-        //        itemGroup.ContextFlyout = new MenuFlyout() { Items = { groupMenuFlyoutItem } };
+            foreach (var scheme_guid in scheme_list)
+            {
+                var scheme_menuitem = new NavigationViewItem() { Content = scheme_guid };
 
-        //        AutomationProperties.SetName(itemGroup, group.Title);
+                foreach (KeyValuePair<string, App.group_store> kvp in group_dict)
+                {
+                    string group_guid = kvp.Key;
 
-        //        foreach (var item in group.Items)
-        //        {
-        //            var itemInGroup = new Microsoft.UI.Xaml.Controls.NavigationViewItem() { Content = item.Title, Tag = item.UniqueId, DataContext = item, Icon = GetIcon(item.ImagePath) };
+                    scheme_menuitem.MenuItems.Add( new NavigationViewItem() {Content = group_guid} );
+                }
 
-        //            var itemInGroupMenuFlyoutItem = new MenuFlyoutItem() { Text = $"Copy Link to {item.Title} Sample", Icon = new FontIcon() { Glyph = "\uE8C8" }, Tag = item };
-        //            itemInGroupMenuFlyoutItem.Click += this.OnMenuFlyoutItemClick;
-        //            itemInGroup.ContextFlyout = new MenuFlyout() { Items = { itemInGroupMenuFlyoutItem } };
-
-        //            itemGroup.MenuItems.Add(itemInGroup);
-        //            AutomationProperties.SetName(itemInGroup, item.Title);
-        //        }
-
-        //        //NavigationViewControl.MenuItems.Add(itemGroup);
-
-        //        if (group.UniqueId == "AllControls")
-        //        {
-        //            this._allControlsMenuItem = itemGroup;
-        //        }
-        //        else if (group.UniqueId == "NewControls")
-        //        {
-        //            this._newControlsMenuItem = itemGroup;
-        //        }
-        //    }
-        //    _newControlsMenuItem.Loaded += OnNewControlsMenuItemLoaded;
-        //}
+                SchemeNavigationView.MenuItems.Add(scheme_menuitem);
+            }
+        }
 
         private void OnMenuFlyoutItemClick(object sender, RoutedEventArgs e)
         {
@@ -80,17 +94,14 @@ namespace better_power
             }
         }
 
+        private void SchemeNavigationView_PaneOpen(NavigationView sender, object args) { }
+        private void SchemeNavigationView_PaneClose(NavigationView sender, object args) { }
 
-        private void SchemeNavigationView_Loaded(object sender, RoutedEventArgs e)
-        {
-            // Delay necessary to ensure NavigationView visual state can match navigation
-            //Task.Delay(500).ContinueWith(_ => this.NavigationViewLoaded?.Invoke(), TaskScheduler.FromCurrentSynchronizationContext());
-        }
 
-        private void SchemeNavigationView_ItemInvoked(Microsoft.UI.Xaml.Controls.NavigationView sender, Microsoft.UI.Xaml.Controls.NavigationViewItemInvokedEventArgs args)
+
+
+        private void SchemeNavigationView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
         {
-            // Close any open teaching tips before navigation
-            CloseTeachingTips();
 
             if (args.InvokedItemContainer.IsSelected)
             {
@@ -99,52 +110,23 @@ namespace better_power
                 return;
             }
 
-            //if (args.IsSettingsInvoked)
-            //{
-            //    if (rootFrame.CurrentSourcePageType != typeof(SettingsPage))
-            //    {
-            //        rootFrame.Navigate(typeof(SettingsPage));
-            //    }
-            //}
-            //else
-            //{
-            //    var invokedItem = args.InvokedItemContainer;
+            if (args.IsSettingsInvoked)
+            {
+                //if (rootFrame.CurrentSourcePageType != typeof(SettingsPage))
+                //{
+                //    rootFrame.Navigate(typeof(SettingsPage));
+                //}
+            }
+            else
+            {
+                var invokedItem = args.InvokedItemContainer;
 
-            //    if (invokedItem == _allControlsMenuItem)
-            //    {
-            //        if (rootFrame.CurrentSourcePageType != typeof(AllControlsPage))
-            //        {
-            //            rootFrame.Navigate(typeof(AllControlsPage));
-            //        }
-            //    }
-            //    else if (invokedItem == _newControlsMenuItem)
-            //    {
-            //        if (rootFrame.CurrentSourcePageType != typeof(NewControlsPage))
-            //        {
-            //            rootFrame.Navigate(typeof(NewControlsPage));
-            //        }
-            //    }
-            //    else
-            //    {
-            //        if (invokedItem.DataContext is ControlInfoDataGroup)
-            //        {
-            //            var itemId = ((ControlInfoDataGroup)invokedItem.DataContext).UniqueId;
-            //            rootFrame.Navigate(typeof(SectionPage), itemId);
-            //        }
-            //        else if (invokedItem.DataContext is ControlInfoDataItem)
-            //        {
-            //            var item = (ControlInfoDataItem)invokedItem.DataContext;
-            //            rootFrame.Navigate(typeof(ItemPage), item.UniqueId);
-            //        }
+                if (invokedItem == null)
+                {
+                    //this.Frame.Navigate(typeof(Page1));
+                }
 
-            //    }
-            //}
-        }
-
-
-        private void CloseTeachingTips()
-        {
-
+            }
         }
 
         private void SchemeNavigationView_SearchBoxTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
@@ -194,13 +176,13 @@ namespace better_power
         {
 
         }        
-        private void SchemeNavigationView_DisplayModeChanged(Microsoft.UI.Xaml.Controls.NavigationView sender, Microsoft.UI.Xaml.Controls.NavigationViewDisplayModeChangedEventArgs args)
+        private void SchemeNavigationView_DisplayModeChanged(NavigationView sender, NavigationViewDisplayModeChangedEventArgs args)
         {
 
         }
         private void CtrlF_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
         {
-            //SchemeNavigationView_SearchBox.Focus(FocusState.Programmatic);
+            SchemeNavigationView_SearchBox.Focus(FocusState.Programmatic);
         }
     }
 

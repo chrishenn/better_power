@@ -6,88 +6,104 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-    <!--Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">-->
-
-
-    
 
 
     <Page.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary>
-                    <ResourceDictionary.ThemeDictionaries>
-                        <!--<ResourceDictionary x:Key="Light">
-                            <StaticResource x:Key="NavigationViewContentBackground" ResourceKey="LayerFillColorDefaultBrush"/>
-                            <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="Transparent"/>
-                        </ResourceDictionary>
-                        <ResourceDictionary x:Key="Dark">
-                            <StaticResource x:Key="NavigationViewContentBackground" ResourceKey="LayerFillColorDefaultBrush"/>
-                            <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="Transparent"/>
-                        </ResourceDictionary>
-                        <ResourceDictionary x:Key="HighContrast">
-                            <SolidColorBrush x:Key="NavigationViewContentBackground" Color="{ThemeResource SystemColorWindowColor}" />
-                            <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="{ThemeResource SystemColorWindowColor}" />
-                        </ResourceDictionary>-->
-                    </ResourceDictionary.ThemeDictionaries>
-                </ResourceDictionary>
-                <ResourceDictionary>
-                </ResourceDictionary>
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
+            
+            <DataTemplate x:Key="NavigationViewHeaderTemplate">
+                
+            </DataTemplate>
+
+            <DataTemplate x:Key="NormalItemTemplate" x:DataType="x:Int32">
+                <Button HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{ThemeResource SystemChromeLowColor}">
+                    <TextBlock Text="{x:Bind}" />
+                </Button>
+            </DataTemplate>
+
+            <DataTemplate x:Key="AccentItemTemplate" x:DataType="x:Int32">
+                <Button HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{ThemeResource SystemAccentColor}">
+                    <TextBlock Text="{x:Bind}" />
+                </Button>
+            </DataTemplate>
+                
+        </ResourceDictionary>            
     </Page.Resources>
+
+    
 
 
     <Grid Loaded="Page1_GridLoaded">
-        
-        
-        
+        <Grid.Resources>
+            <MyDataTemplateSelector x:Key="MyDataTemplateSelector"
+                        Normal="{StaticResource NormalItemTemplate}"
+                        Accent="{StaticResource AccentItemTemplate}"/>            
+        </Grid.Resources>
+                  
         <Grid.RowDefinitions>
             <RowDefinition Height="32"/>
-            <RowDefinition/>
+            <RowDefinition />
         </Grid.RowDefinitions>
         
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="1*" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <Grid x:Name="AppTitleBar" Margin="0,0,120,0" Grid.Row="0" Background="{StaticResource AppTitleBar_Grey}">
-            <Image Source="Assets/power_icon.png"
+        <Grid Grid.Row="1" Grid.Column="0" Background="{StaticResource AppPageBackground}"/>
+        <Grid Grid.Row="1" Grid.Column="1" Background="{StaticResource AppPageBackground}"/>
+
+
+        <Grid x:Name="AppTitleBar" 
+              Margin="0,0,120,0" 
+              Grid.Row="0" 
+              Background="{StaticResource AppTitleBar_Grey}"
+              Grid.ColumnSpan="2" >
+            
+            <Image Source="C:\Users\Admin\source\repos\better_power\Assets\power_icon.png"
                 HorizontalAlignment="Left" 
-                Width="16" Height="16"
+                Width="30" Height="30"
                 Margin="8,0"/>
             
             <TextBlock x:Name="AppTitleTextBlock" Text="Better Power"
                 TextWrapping="NoWrap"                       
                 Style="{StaticResource CaptionTextBlockStyle}" 
                 VerticalAlignment="Center"
-                Margin="28,0,0,0"/>
+                Margin="46,0,0,0"/>
         </Grid>
 
-        <!--<NavigationView
-            x:Name="SchemeNavigationView" 
-            
+
+        <NavigationView
+            x:Name="SchemeNavigationView"             
             Grid.Row="1"
-            Grid.Column="0"
-            Canvas.ZIndex="0"           
-            IsBackButtonVisible="0" 
             
-            AlwaysShowHeader="True"
+            IsSettingsVisible="True"
+            IsBackButtonVisible="Collapsed"
+            IsBackEnabled="False"
             Header=""
-            
+            AlwaysShowHeader="False"
+            PaneTitle="Installed Schemes"
+            PaneDisplayMode="Left"
+            ExpandedModeThresholdWidth="500"
+            SelectionFollowsFocus="Disabled"
             IsTabStop="False"
             IsTitleBarAutoPaddingEnabled="False"
-                                  
+            
+            Background="{StaticResource AppTitleBar_Grey}"
+                                              
             DisplayModeChanged="SchemeNavigationView_DisplayModeChanged"
             ItemInvoked="SchemeNavigationView_ItemInvoked"
-            Loaded="SchemeNavigationView_Loaded">
+            Loaded="SchemeNavigationView_Loaded"
+            
+            PaneOpening="SchemeNavigationView_PaneOpen"
+            PaneClosing="SchemeNavigationView_PaneClose">
 
             <NavigationView.AutoSuggestBox>
                 <AutoSuggestBox
                     x:Name="SchemeNavigationView_SearchBox"
                     VerticalAlignment="Center"
                     x:FieldModifier="public"
-                    PlaceholderText="Search"
+                    PlaceholderText=""
                     QueryIcon="Find"
                     QuerySubmitted="SchemeNavigationView_SearchBoxQuerySubmitted"
                     MinWidth="200"
@@ -99,7 +115,24 @@
                 </AutoSuggestBox>
             </NavigationView.AutoSuggestBox>
 
-        </NavigationView>-->
+        </NavigationView>
+
+
+        <ScrollViewer x:Name="ScrollViewer"
+                    Grid.Row="1"
+                    Grid.Column="1"                
+                    Padding="0,0,0,0" 
+                    IsVerticalRailEnabled="True" VerticalScrollMode="Enabled" VerticalScrollBarVisibility="Visible"
+                    IsHorizontalRailEnabled="False" HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled"
+                    IsVerticalScrollChainingEnabled="False"
+                    IsTabStop="False"
+                    Loaded="ScrollViewer_Loaded">
+            
+            <ItemsRepeater
+                ItemsSource="{x:Bind NumberedItems}"
+                ItemTemplate="{StaticResource SimpleItemTemplate}" />
+
+        </ScrollViewer>
 
     </Grid>
 

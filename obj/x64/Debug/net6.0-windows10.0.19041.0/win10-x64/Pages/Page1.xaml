@@ -6,100 +6,104 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-    <!--Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">-->
-
-
-    
 
 
     <Page.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary>
-                    <ResourceDictionary.ThemeDictionaries>
-                        <!--<ResourceDictionary x:Key="Light">
-                            <StaticResource x:Key="NavigationViewContentBackground" ResourceKey="LayerFillColorDefaultBrush"/>
-                            <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="Transparent"/>
-                        </ResourceDictionary>
-                        <ResourceDictionary x:Key="Dark">
-                            <StaticResource x:Key="NavigationViewContentBackground" ResourceKey="LayerFillColorDefaultBrush"/>
-                            <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="Transparent"/>
-                        </ResourceDictionary>
-                        <ResourceDictionary x:Key="HighContrast">
-                            <SolidColorBrush x:Key="NavigationViewContentBackground" Color="{ThemeResource SystemColorWindowColor}" />
-                            <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="{ThemeResource SystemColorWindowColor}" />
-                        </ResourceDictionary>-->
-                    </ResourceDictionary.ThemeDictionaries>
-                </ResourceDictionary>
-                <ResourceDictionary>
-                </ResourceDictionary>
-            </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Page.Resources>
-
-
+    
+    
     <Grid x:ConnectionId='2'                          >
-        
-        
-        
+                  
         <Grid.RowDefinitions>
             <RowDefinition Height="32"/>
-            <RowDefinition/>
+            <RowDefinition />
         </Grid.RowDefinitions>
         
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="1*" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <Grid x:ConnectionId='3' x:Name="AppTitleBar" Margin="0,0,120,0" Grid.Row="0" Background="{StaticResource AppTitleBar_Grey}">
-            <Image Source="Assets\power_icon.png"
+        <Grid Grid.Row="1" Grid.Column="0" Background="{StaticResource AppPageBackground}"/>
+        <Grid Grid.Row="1" Grid.Column="1" Background="{StaticResource AppPageBackground}"/>
+
+
+        <Grid x:ConnectionId='3' x:Name="AppTitleBar" 
+              Margin="0,0,120,0" 
+              Grid.Row="0" 
+              Background="{StaticResource AppTitleBar_Grey}"
+              Grid.ColumnSpan="2" >
+            
+            <Image Source="C:\Users\Admin\source\repos\better_power\Assets\power_icon.png"
                 HorizontalAlignment="Left" 
-                Width="16" Height="16"
+                Width="30" Height="30"
                 Margin="8,0"/>
             
-            <TextBlock x:ConnectionId='4' x:Name="AppTitleTextBlock" Text="Better Power"
+            <TextBlock x:ConnectionId='8' x:Name="AppTitleTextBlock" Text="Better Power"
                 TextWrapping="NoWrap"                       
                 Style="{StaticResource CaptionTextBlockStyle}" 
                 VerticalAlignment="Center"
-                Margin="28,0,0,0"/>
+                Margin="46,0,0,0"/>
         </Grid>
 
-        <!--<NavigationView
-            x:Name="SchemeNavigationView" 
-            
+
+        <NavigationView x:ConnectionId='4'
+            x:Name="SchemeNavigationView"             
             Grid.Row="1"
-            Grid.Column="0"
-            Canvas.ZIndex="0"           
-            IsBackButtonVisible="0" 
             
-            AlwaysShowHeader="True"
+            IsSettingsVisible="True"
+            IsBackButtonVisible="Collapsed"
+            IsBackEnabled="False"
             Header=""
-            
+            AlwaysShowHeader="False"
+            PaneTitle="Installed Schemes"
+            PaneDisplayMode="Left"
+            ExpandedModeThresholdWidth="500"
+            SelectionFollowsFocus="Disabled"
             IsTabStop="False"
             IsTitleBarAutoPaddingEnabled="False"
-                                  
-            DisplayModeChanged="SchemeNavigationView_DisplayModeChanged"
-            ItemInvoked="SchemeNavigationView_ItemInvoked"
-            Loaded="SchemeNavigationView_Loaded">
+            
+            Background="{StaticResource AppTitleBar_Grey}"
+                                              
+                                                                        
+                                                          
+                                                
+            
+                                                       
+                                                        >
 
             <NavigationView.AutoSuggestBox>
-                <AutoSuggestBox
+                <AutoSuggestBox x:ConnectionId='6'
                     x:Name="SchemeNavigationView_SearchBox"
                     VerticalAlignment="Center"
                     x:FieldModifier="public"
-                    PlaceholderText="Search"
+                    PlaceholderText=""
                     QueryIcon="Find"
-                    QuerySubmitted="SchemeNavigationView_SearchBoxQuerySubmitted"
+                                                                                 
                     MinWidth="200"
                     KeyboardAcceleratorPlacementMode="Hidden"
-                    TextChanged="SchemeNavigationView_SearchBoxTextChanged">
+                                                                           >
                     <AutoSuggestBox.KeyboardAccelerators>
-                        <KeyboardAccelerator Modifiers="Control" Key="F" Invoked="CtrlF_Invoked" />
+                        <KeyboardAccelerator x:ConnectionId='7' Modifiers="Control" Key="F"                         />
                     </AutoSuggestBox.KeyboardAccelerators>
                 </AutoSuggestBox>
             </NavigationView.AutoSuggestBox>
 
-        </NavigationView>-->
+        </NavigationView>
+
+
+        <ScrollViewer x:ConnectionId='5' x:Name="ScrollViewer"
+                    Grid.Row="1"
+                    Grid.Column="1"                
+                    Padding="0,0,0,0" 
+                    VerticalScrollMode="Enabled" VerticalScrollBarVisibility="Visible"
+                    HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled"
+                    IsVerticalScrollChainingEnabled="False"
+                    IsTabStop="False"
+                                                
+                />
 
     </Grid>
 
