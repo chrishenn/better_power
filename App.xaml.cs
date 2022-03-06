@@ -260,7 +260,7 @@ namespace better_power
                 else if (stem == "Power Se") // new power setting 
                 {
                     string setting_guid = line.Substring(20, 36);
-                    string setting_name = line.Substring(59); 
+                    string setting_name = line.Substring(59, line.Length-1-59); 
 
                     curr_setting = new setting_store(setting_guid, setting_name, "", curr_group._group_guid);
                     setting_store_dict[setting_guid] = curr_setting;

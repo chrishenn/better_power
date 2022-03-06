@@ -10,44 +10,56 @@
 
     <Page.Resources>
         <ResourceDictionary>
-
-            <DataTemplate x:Key="IndexSettingButton" >
-                <Button Content="{Binding }"/>
-            </DataTemplate>
-            
+          
 
             <DataTemplate x:Key="RangeSettingTemplate" >
-                <Grid>
+                <Grid  CornerRadius="2" BorderThickness="1" Padding="5" Margin="5" BorderBrush="Gray">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Text="{Binding _setting_name}" Grid.Column="0"/>
-                    <NumberBox Value="TODO current value" Grid.Column="1" />
+                    <TextBlock Text="{Binding _setting_name}" 
+                               Grid.Column="0" 
+                               Width="400"
+                               VerticalAlignment="Center" 
+                               HorizontalAlignment="Left"
+                               TextWrapping="WrapWholeWords"
+                               Margin="10,5,0,5" />
+
+                    <NumberBox Value="10" 
+                               Grid.Column="1" 
+                               Width="200"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Left"
+                               Margin="0,5,10,5" />
                 </Grid>
             </DataTemplate>
 
-            <DataTemplate x:Key="IndexSettingTemplate" >
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-
-                    <TextBlock Text="{Binding _setting_name}" Grid.Column="0"/>
-
-                    <StackPanel Orientation="Horizontal">
-                        <ItemsRepeater 
-                            ItemTemplate="{StaticResource IndexSettingButton}"
-                            ItemsSource="{Binding _setting_possible_vals.index_dict}"/>
-                    </StackPanel>
-                </Grid>
-            </DataTemplate>
             
-            <local:MyDataTemplateSelector x:Key="MyDataTemplateSelector"
-                        Range_Setting="{StaticResource RangeSettingTemplate}"
-                        Index_Setting="{StaticResource IndexSettingTemplate}"/>
+            <DataTemplate x:Key="IndexSettingTemplate" >
+                <Grid CornerRadius="2" BorderThickness="1" Padding="5" Margin="5" BorderBrush="Gray">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" 
+                               Width="400"
+                               VerticalAlignment="Center" 
+                               HorizontalAlignment="Left"
+                               TextWrapping="WrapWholeWords"
+                               Margin="10,5,0,5" />
+
+                    <ComboBox Grid.Column="1" 
+                              Width="200"
+                              VerticalAlignment="Center"
+                              HorizontalAlignment="Left"
+                              Margin="0,5,10,5" />
+
+                </Grid>
+            </DataTemplate>
+  
                 
         </ResourceDictionary>            
     </Page.Resources>
@@ -134,16 +146,15 @@
         </NavigationView>
 
 
-        <ListView x:Name="ListView"
+        <ListView x:Name="ListView_main"
                     Grid.Row="1"
-                    Grid.Column="1"                
-                    Padding="0,0,0,0" 
-                    IsTabStop="False"
-                    Loaded="ListView_Loaded">
+                    Grid.Column="1"     
+                    Padding="0,5,0,5"
+                    IsTabStop="False" 
+                    SelectionMode="None"
+                    IsItemClickEnabled="False"
+                  />
 
-            <ItemsRepeater ItemTemplate="{StaticResource MyDataTemplateSelector}"
-                           Loaded="ItemsRepeater_Loaded"/>
-        </ListView>
 
     </Grid>
 

@@ -12,8 +12,7 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
-
-
+using System.Collections.ObjectModel;
 
 namespace better_power
 {
@@ -44,6 +43,42 @@ namespace better_power
         public Page1()
         {
             this.InitializeComponent();
+
+
+
+            // Add power setting cards to main ListView
+            var setting_dict = App.pub_setting_store_dict;
+
+            foreach( var setting in setting_dict.Values )
+            {               
+                if (setting._setting_possible_vals.is_range)
+                {
+                    ListViewItem lvitem = new ListViewItem();
+                    DataTemplate r_setting_template = (DataTemplate)this.Resources["RangeSettingTemplate"];
+
+                    lvitem.ContentTemplate = r_setting_template;
+                    lvitem.DataContext = setting;
+
+                    this.ListView_main.Items.Add(lvitem);
+
+                } else {
+                    DataTemplate i_setting_template = (DataTemplate)this.Resources["IndexSettingTemplate"];
+
+                    Grid i_elem = (Grid)i_setting_template.LoadContent();
+
+                    TextBlock i_textblock = (TextBlock)i_elem.Children[0];
+                    i_textblock.Text = setting._setting_name;
+
+                    ComboBox cbox = (ComboBox)i_elem.Children[1];
+                    cbox.ItemsSource = setting._setting_possible_vals.index_dict.Values;
+                    cbox.PlaceholderText = "current Setting";
+                                       
+
+                    this.ListView_main.Items.Add(i_elem);
+                }
+            }
+
+
         }
 
         private void Page1_GridLoaded(object sender, RoutedEventArgs e)
@@ -75,44 +110,18 @@ namespace better_power
             }
         }
 
-        private void ListView_Loaded(object sender, RoutedEventArgs e)
-        {
-            //var setting_dict = App.pub_setting_store_dict;
-
-            //List<Contact> contactsFiltered = new List<Contact>();
-
-            //foreach (KeyValuePair<string, App.setting_store> kvp in setting_dict)
-            //{
-
-            //}
-
-            //this.ListView.ItemsSource = setting_dict.Values.ToList(); 
-        }
-
-        private void ItemsRepeater_Loaded(object sender, RoutedEventArgs e)
-        {
-            var setting_dict = App.pub_setting_store_dict;
-
-            var repeater = (ItemsRepeater)sender;
-            repeater.ItemsSource = setting_dict.Values.ToList();
-        }
-
-
-
 
 
 
 
         private void OnMenuFlyoutItemClick(object sender, RoutedEventArgs e)
         {
-            switch ((sender as MenuFlyoutItem).Tag)
-            {
 
-            }
         }
 
         private void SchemeNavigationView_PaneOpen(NavigationView sender, object args) { }
         private void SchemeNavigationView_PaneClose(NavigationView sender, object args) { }
+
 
 
 
@@ -145,6 +154,8 @@ namespace better_power
 
             }
         }
+
+
 
         private void SchemeNavigationView_SearchBoxTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
