@@ -270,13 +270,14 @@ namespace better_power
                     i++;
                 }
                 else if (stem == "Minimum ") // a setting's range-type value
-                {                   
+                {
+                    curr_setting._setting_possible_vals.is_range = true;
+
                     string min_val =    line.Substring(26);
                     string max_val =    all_strings[i + 1].Substring(26);
                     string increment =  all_strings[i + 2].Substring(29);
                     string units =      all_strings[i + 3].Substring(25);
-
-                    curr_setting._setting_possible_vals.is_range = true;
+                                        
                     curr_setting._setting_possible_vals.min_val = min_val;
                     curr_setting._setting_possible_vals.max_val = max_val;
                     curr_setting._setting_possible_vals.increment = increment;

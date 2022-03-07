@@ -36,7 +36,11 @@ namespace better_power
     }
 
 
-
+    // TODO
+    //  Create collection of settings-data objects
+    //  bind observable collection of settings-data objects to listview (allows filtering and search later)
+    // 
+    //  Settings-data objects must implement INotifyPropertyChanged to handle arbitrary property changes
 
     public sealed partial class Page1 : Page
     {
@@ -71,9 +75,7 @@ namespace better_power
 
                     ComboBox cbox = (ComboBox)i_elem.Children[1];
                     cbox.ItemsSource = setting._setting_possible_vals.index_dict.Values;
-                    cbox.PlaceholderText = "current Setting";
-                                       
-
+                                                        
                     this.ListView_main.Items.Add(i_elem);
                 }
             }
