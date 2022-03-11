@@ -24,7 +24,7 @@ namespace better_power
 
         protected override DataTemplate SelectTemplateCore(object item)
         {
-            var setting = (App.setting_store)item;
+            var setting = (SettingStore)item;
 
             if (setting._setting_possible_vals.is_range) {
                 return Range_Setting;
@@ -36,11 +36,9 @@ namespace better_power
     }
 
 
-    // TODO
-    //  Create collection of settings-data objects
-    //  bind observable collection of settings-data objects to listview (allows filtering and search later)
-    // 
+    // TODO 
     //  Settings-data objects must implement INotifyPropertyChanged to handle arbitrary property changes
+    // and/or, we specify the bind-type in each x:Bind declaration in the xaml
 
     public sealed partial class Page1 : Page
     {
@@ -48,40 +46,36 @@ namespace better_power
         {
             this.InitializeComponent();
 
-
-
             // Add power setting cards to main ListView
             var setting_dict = App.pub_setting_store_dict;
 
-            foreach( var setting in setting_dict.Values )
-            {               
-                if (setting._setting_possible_vals.is_range)
-                {
-                    ListViewItem lvitem = new ListViewItem();
-                    DataTemplate r_setting_template = (DataTemplate)this.Resources["RangeSettingTemplate"];
+            ObservableCollection<FrameworkElement> setting_items = new ObservableCollection<FrameworkElement>();
 
-                    lvitem.ContentTemplate = r_setting_template;
-                    lvitem.DataContext = setting;
 
-                    this.ListView_main.Items.Add(lvitem);
-
+            foreach ( var setting in setting_dict.Values )
+            {
+                string box_name;
+                if (setting._setting_possible_vals.is_range) {
+                    box_name = "NumberBoxTemplate";
                 } else {
-                    DataTemplate i_setting_template = (DataTemplate)this.Resources["IndexSettingTemplate"];
-
-                    Grid i_elem = (Grid)i_setting_template.LoadContent();
-
-                    TextBlock i_textblock = (TextBlock)i_elem.Children[0];
-                    i_textblock.Text = setting._setting_name;
-
-                    ComboBox cbox = (ComboBox)i_elem.Children[1];
-                    cbox.ItemsSource = setting._setting_possible_vals.index_dict.Values;
-                                                        
-                    this.ListView_main.Items.Add(i_elem);
+                    box_name = "ComboBoxTemplate";
                 }
+
+                DataTemplate setting_template = (DataTemplate)this.Resources["SettingTemplate"];
+                DataTemplate box_template = (DataTemplate)this.Resources[box_name];
+
+                Grid setting_elem = (Grid)setting_template.LoadContent();
+                Control box_elem = (Control)box_template.LoadContent();
+
+                setting_elem.Children.Add(box_elem);
+                setting_elem.DataContext = setting;
+
+                setting_items.Add(setting_elem);
             }
 
-
+            this.ListView_main.ItemsSource = setting_items;
         }
+
 
         private void Page1_GridLoaded(object sender, RoutedEventArgs e)
         {

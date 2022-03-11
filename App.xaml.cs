@@ -38,8 +38,8 @@ namespace better_power
         public static Window Window { get { return m_window; } }
         private static Window m_window;
 
-        public static Dictionary<string, setting_store> pub_setting_store_dict { get { return setting_store_dict; } }
-        private static Dictionary<string, setting_store> setting_store_dict = new Dictionary<string, setting_store>();
+        public static Dictionary<string, SettingStore> pub_setting_store_dict { get { return setting_store_dict; } }
+        private static Dictionary<string, SettingStore> setting_store_dict = new Dictionary<string, SettingStore>();
 
         public static Dictionary<string, group_store> pub_subgroup_store_dict { get { return subgroup_store_dict; } }
         private static Dictionary<string, group_store> subgroup_store_dict = new Dictionary<string, group_store>();
@@ -114,27 +114,6 @@ namespace better_power
         {
             public string ac_value;
             public string dc_value;
-        }
-
-        public class setting_store
-        {
-            public setting_store(string setting_guid, string setting_name, string setting_descr, string parent_groupguid)
-            {
-                _setting_guid = setting_guid;
-                _setting_name = setting_name;
-                _setting_descr = setting_descr;
-                _parent_groupguid = parent_groupguid;
-
-                _setting_possible_vals = new possible_vals();
-                _setting_current_vals = new current_vals();
-            }
-
-            public string _setting_guid { get; set; }
-            public string _setting_name { get; set; }
-            public string _setting_descr { get; set; }
-            public string _parent_groupguid { get; set; }
-            public possible_vals _setting_possible_vals { get; set; }
-            public current_vals _setting_current_vals { get; set; }
         }
 
         public class group_store
@@ -237,7 +216,7 @@ namespace better_power
 
 
             group_store curr_group = null;
-            setting_store curr_setting = null;
+            SettingStore curr_setting = null;
 
             int i = 0; 
             while (true)
@@ -262,7 +241,7 @@ namespace better_power
                     string setting_guid = line.Substring(20, 36);
                     string setting_name = line.Substring(59, line.Length-1-59); 
 
-                    curr_setting = new setting_store(setting_guid, setting_name, "", curr_group._group_guid);
+                    curr_setting = new SettingStore(setting_guid, setting_name, "", curr_group._group_guid);
                     setting_store_dict[setting_guid] = curr_setting;
 
                     curr_group._child_guids.Add(setting_guid);
