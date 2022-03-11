@@ -22,7 +22,9 @@ namespace better_power
         public string _setting_name { get; set; }
         public string _setting_descr { get; set; }
         public string _parent_groupguid { get; set; }
+
         public possible_vals _setting_possible_vals { get; set; }
+
         public current_vals _setting_current_vals { get; set; }
     }
 

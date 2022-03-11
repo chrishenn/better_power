@@ -12,7 +12,7 @@
         <ResourceDictionary>
 
             
-            <DataTemplate x:Key="SettingTemplate"                                >
+            <DataTemplate x:Key="SettingTemplate"                                >  
                 
                 <Grid x:ConnectionId='7' CornerRadius="2" BorderThickness="1" Padding="5" Margin="5" BorderBrush="Gray">
                     <Grid.ColumnDefinitions>
@@ -27,29 +27,33 @@
                                HorizontalAlignment="Left"
                                TextWrapping="WrapWholeWords"
                                Margin="10,5,0,5" />
-
                 </Grid>
             </DataTemplate>
 
             
             <DataTemplate x:Key="ComboBoxTemplate"                                >
-                <ComboBox x:ConnectionId='5' Grid.Column="1" 
-                              Width="200"
-                              VerticalAlignment="Center"
-                              HorizontalAlignment="Left"
-                              Margin="0,5,10,5" 
-                                                                                             
-                              />
+                <ComboBox x:ConnectionId='5'     
+                    Grid.Column="1" 
+                    Width="200"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Left"
+                    Margin="0,5,10,5" 
+                    
+                                                                                   
+                                                                                        
+                    />
             </DataTemplate>
 
             <DataTemplate x:Key="NumberBoxTemplate"                                >
-                <NumberBox Value="10" 
-                               Grid.Column="1" 
-                               Width="200"
-                               VerticalAlignment="Center"
-                               HorizontalAlignment="Left"
-                               Margin="0,5,10,5" />
-                
+                <NumberBox x:ConnectionId='3'     
+                    Grid.Column="1" 
+                    Width="200"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Left"
+                    Margin="0,5,10,5" 
+                    
+                                                                                
+                    />                
             </DataTemplate>
   
                 

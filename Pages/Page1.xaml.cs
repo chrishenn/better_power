@@ -50,24 +50,40 @@ namespace better_power
             var setting_dict = App.pub_setting_store_dict;
 
             ObservableCollection<FrameworkElement> setting_items = new ObservableCollection<FrameworkElement>();
-
-
-            foreach ( var setting in setting_dict.Values )
+                        
+            foreach (KeyValuePair<string, SettingStore> kvp in setting_dict)
             {
-                string box_name;
-                if (setting._setting_possible_vals.is_range) {
-                    box_name = "NumberBoxTemplate";
-                } else {
-                    box_name = "ComboBoxTemplate";
+                string setting_guid = kvp.Key;
+                SettingStore setting = kvp.Value;
+
+                Control box_elem;
+                if (setting._setting_possible_vals.is_range)
+                {
+                    DataTemplate box_template = (DataTemplate)this.Resources["NumberBoxTemplate"];
+                    NumberBox nb_elem = (NumberBox)box_template.LoadContent();
+
+                    // todo: bind this field in template
+                    // todo: data units + format
+                    // todo: ac + dc menus
+
+                    nb_elem.ValueChanged += NumberBoxValueChanged;
+                    nb_elem.Tag = setting_guid;
+
+                    box_elem = nb_elem;
+
                 }
+                else
+                {
+                    DataTemplate box_template = (DataTemplate)this.Resources["ComboBoxTemplate"];
+                    ComboBox cb_elem = (ComboBox)box_template.LoadContent();
 
-                DataTemplate setting_template = (DataTemplate)this.Resources["SettingTemplate"];
-                DataTemplate box_template = (DataTemplate)this.Resources[box_name];
-
+                    box_elem = cb_elem;
+                }
+                
+                DataTemplate setting_template = (DataTemplate)this.Resources["SettingTemplate"];    
                 Grid setting_elem = (Grid)setting_template.LoadContent();
-                Control box_elem = (Control)box_template.LoadContent();
 
-                setting_elem.Children.Add(box_elem);
+                setting_elem.Children.Add( box_elem );
                 setting_elem.DataContext = setting;
 
                 setting_items.Add(setting_elem);
@@ -75,6 +91,23 @@ namespace better_power
 
             this.ListView_main.ItemsSource = setting_items;
         }
+
+
+
+        private void NumberBoxValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs e)
+        {
+            if (sender.IsLoaded) {
+
+                var setting_dict = App.pub_setting_store_dict;
+
+                SettingStore setting = setting_dict[(string)sender.Tag];
+
+
+            }
+        }
+
+
+
 
 
         private void Page1_GridLoaded(object sender, RoutedEventArgs e)
@@ -95,7 +128,7 @@ namespace better_power
             {
                 var scheme_menuitem = new NavigationViewItem() { Content = scheme_guid };
 
-                foreach (KeyValuePair<string, App.group_store> kvp in group_dict)
+                foreach (KeyValuePair<string, App.GroupStore> kvp in group_dict)
                 {
                     string group_guid = kvp.Key;
 
@@ -110,17 +143,10 @@ namespace better_power
 
 
 
-        private void OnMenuFlyoutItemClick(object sender, RoutedEventArgs e)
-        {
-
-        }
+        private void OnMenuFlyoutItemClick(object sender, RoutedEventArgs e) { }
 
         private void SchemeNavigationView_PaneOpen(NavigationView sender, object args) { }
         private void SchemeNavigationView_PaneClose(NavigationView sender, object args) { }
-
-
-
-
 
         private void SchemeNavigationView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
         {
@@ -150,8 +176,6 @@ namespace better_power
 
             }
         }
-
-
 
         private void SchemeNavigationView_SearchBoxTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
@@ -196,14 +220,9 @@ namespace better_power
             }
         }
 
-        private void SchemeNavigationView_SearchBoxQuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
-        {
+        private void SchemeNavigationView_SearchBoxQuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args) { }        
+        private void SchemeNavigationView_DisplayModeChanged(NavigationView sender, NavigationViewDisplayModeChangedEventArgs args) { }
 
-        }        
-        private void SchemeNavigationView_DisplayModeChanged(NavigationView sender, NavigationViewDisplayModeChangedEventArgs args)
-        {
-
-        }
         private void CtrlF_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
         {
             SchemeNavigationView_SearchBox.Focus(FocusState.Programmatic);

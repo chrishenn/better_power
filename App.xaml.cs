@@ -41,8 +41,8 @@ namespace better_power
         public static Dictionary<string, SettingStore> pub_setting_store_dict { get { return setting_store_dict; } }
         private static Dictionary<string, SettingStore> setting_store_dict = new Dictionary<string, SettingStore>();
 
-        public static Dictionary<string, group_store> pub_subgroup_store_dict { get { return subgroup_store_dict; } }
-        private static Dictionary<string, group_store> subgroup_store_dict = new Dictionary<string, group_store>();
+        public static Dictionary<string, GroupStore> pub_subgroup_store_dict { get { return subgroup_store_dict; } }
+        private static Dictionary<string, GroupStore> subgroup_store_dict = new Dictionary<string, GroupStore>();
 
         public static List<string> pub_scheme_guids { get { return scheme_guids; } }
         private static List<string> scheme_guids = new List<string>();
@@ -112,13 +112,13 @@ namespace better_power
         }
         public class current_vals
         {
-            public string ac_value;
-            public string dc_value;
+            public int ac_value;
+            public int dc_value;
         }
 
-        public class group_store
+        public class GroupStore
         {
-            public group_store(string group_guid, string group_name)
+            public GroupStore(string group_guid, string group_name)
             {
                 _group_guid = group_guid;
                 _group_name = group_name;
@@ -137,7 +137,12 @@ namespace better_power
         private Regex guid_reg = new Regex(@"(?<=GUID:\s*)[^\s]+(?=\s)");
 
 
+        public bool set_powersetting()
+        {
 
+            this.ps
+            return true;
+        }
 
 
 
@@ -188,7 +193,7 @@ namespace better_power
         }
 
 
-        private int str16_toint(string hex_string) { return Convert.ToInt32(hex_string, 16); }
+        public static int str16_toint(string hex_string) { return Convert.ToInt32(hex_string, 16); }
 
 
 
@@ -215,7 +220,7 @@ namespace better_power
             }
 
 
-            group_store curr_group = null;
+            GroupStore curr_group = null;
             SettingStore curr_setting = null;
 
             int i = 0; 
@@ -231,7 +236,7 @@ namespace better_power
                     string group_guid = line.Substring(15, 36);
                     string group_name = line.Substring(54);
 
-                    curr_group = new group_store(group_guid, group_name);
+                    curr_group = new GroupStore(group_guid, group_name);
                     subgroup_store_dict[group_guid] = curr_group;
 
                     i++;
@@ -290,8 +295,8 @@ namespace better_power
                     string curr_ac_setting = line.Substring(32);
                     string curr_dc_setting = all_strings[i + 1].Substring(32);
 
-                    curr_setting._setting_current_vals.ac_value = curr_ac_setting;
-                    curr_setting._setting_current_vals.dc_value = curr_dc_setting;
+                    curr_setting._setting_current_vals.ac_value = str16_toint(curr_ac_setting);
+                    curr_setting._setting_current_vals.dc_value = str16_toint(curr_dc_setting);
 
                     i += 2;
                 }
