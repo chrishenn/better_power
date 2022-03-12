@@ -137,12 +137,6 @@ namespace better_power
         private Regex guid_reg = new Regex(@"(?<=GUID:\s*)[^\s]+(?=\s)");
 
 
-        public bool set_powersetting()
-        {
-
-            this.ps
-            return true;
-        }
 
 
 
@@ -160,7 +154,7 @@ namespace better_power
         }
 
 
-        private string get_current_powerscheme()
+        public string get_current_powerscheme()
         {
             this.ps.AddCommand("powercfg").AddArgument("getactivescheme");
             var result = this.ps.Invoke();
@@ -176,20 +170,15 @@ namespace better_power
             return result;
         }
 
-        private bool set_powersetting(string scheme_guid, string group_guid, string setting_guid, int value)
+        public bool set_powersetting(string scheme_guid, string group_guid, string setting_guid, int value)
         {
-
-            // TODO add range checking: enforce "value" within range for given setting
-            // TODO: add these as individual statements with AddStatment?
-            // TODO: check for success
-
             this.ps.AddCommand("powercfg").AddArgument("setacvalueindex").AddArgument(scheme_guid).AddArgument(group_guid).AddArgument(setting_guid).AddArgument(value);
             var result = this.ps.Invoke();
 
-            this.ps.AddCommand("powercfg").AddArgument("setdcvalueindex").AddArgument(scheme_guid).AddArgument(group_guid).AddArgument(setting_guid).AddArgument(value);
-            result = this.ps.Invoke();
+            //this.ps.AddCommand("powercfg").AddArgument("setdcvalueindex").AddArgument(scheme_guid).AddArgument(group_guid).AddArgument(setting_guid).AddArgument(value);
+            //result = this.ps.Invoke();
 
-            return true;
+            return (result.Count == 0);
         }
 
 

@@ -14,6 +14,8 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using System.Collections.ObjectModel;
 
+
+
 namespace better_power
 {
 
@@ -102,6 +104,10 @@ namespace better_power
 
                 SettingStore setting = setting_dict[(string)sender.Tag];
 
+                // todo: range checking - in the numberbox maybe?
+                string current_scheme = (App.Current as App).get_current_powerscheme();
+
+                bool result = (App.Current as App).set_powersetting(current_scheme, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.Value);
 
             }
         }
