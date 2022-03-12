@@ -29,8 +29,28 @@ using System.Management.Automation;
 using Windows.ApplicationModel.Core;
 using System.Threading.Tasks;
 
+
+
 namespace better_power
 {
+
+
+    // TODO
+
+    // get rid of navigationview clutter
+
+    // switch system power scheme
+    // indicate the currently-active power scheme in the UI
+
+    // observe settings changes from the OS 
+
+    // 
+
+    // create a new scheme by copying an existing one
+
+    // (?) change settings via registry key
+    // (?) install the classic schemes - from "power saving" to "ultimate perf"
+
 
     public class SettingStore
     {
@@ -41,8 +61,6 @@ namespace better_power
             _setting_descr = setting_descr;
             _parent_groupguid = parent_groupguid;
 
-            _setting_possible_vals = new possible_vals();
-            _setting_current_vals = new current_vals();
         }
 
         public string _setting_guid { get; set; }
@@ -50,13 +68,6 @@ namespace better_power
         public string _setting_descr { get; set; }
         public string _parent_groupguid { get; set; }
 
-        public possible_vals _setting_possible_vals { get; set; }
-
-        public current_vals _setting_current_vals { get; set; }
-    }
-
-    public class possible_vals
-    {
         public bool is_range;
 
         public string min_val;
@@ -65,9 +76,9 @@ namespace better_power
         public string units;
 
         public Dictionary<string, string> index_dict = new Dictionary<string, string>();
-    }
-    public class current_vals
-    {
+
+
+        // todo: make into dict to save current vals for each power scheme
         public int ac_value;
         public int dc_value;
     }
@@ -88,16 +99,14 @@ namespace better_power
 
 
 
-
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
+    //-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 
     public partial class App : Application
     {
+
 
         public static Window Window { get { return m_window; } }
         private static Window m_window;
@@ -108,17 +117,13 @@ namespace better_power
         public static Dictionary<string, GroupStore> pub_subgroup_store_dict { get { return subgroup_store_dict; } }
         private static Dictionary<string, GroupStore> subgroup_store_dict = new Dictionary<string, GroupStore>();
 
-        public static List<string> pub_scheme_guids { get { return scheme_guids; } }
-        private static List<string> scheme_guids = new List<string>();
+        public static Dictionary<string, string> pub_scheme_guids { get { return scheme_guids; } }
+        private static Dictionary<string, string> scheme_guids = new Dictionary<string, string>();
 
-
-
+        public static string pub_curr_scheme_guid { get { return curr_scheme_guid; } }
+        private static string curr_scheme_guid;
 
         private PowerShell ps = PowerShell.Create();
-
-        private Regex guid_reg = new Regex(@"(?<=GUID:\s*)[^\s]+(?=\s)");
-
-
 
 
 
@@ -126,6 +131,8 @@ namespace better_power
         {
             this.InitializeComponent();
 
+            // todo: storing values in static vars, correct to run in instance constructor?
+            this.get_current_scheme_guid();
             this.get_scheme_guids();
             this.get_powersettings();
 
@@ -135,30 +142,11 @@ namespace better_power
 
 
         protected override void OnLaunched(LaunchActivatedEventArgs args)
-        {
-            // read all current power setting values
-            // TODO: query current values for each setting in each power scheme and store those per-scheme
-
-            // returns all possible setting values for all settings within the specified subgroup for that scheme
-            // powercfg /query scheme_GUID, sub_GUID
-
-            // get all possible and current settings under a power scheme
-            // powercfg / query scheme_GUID
-
-            // changing a setting runs through powercfg with given GUID
-            // powercfg /setacvalueindex scheme_GUID sub_GUID setting_GUID setting_index
-            // powercfg /setdcvalueindex scheme_GUID sub_GUID setting_GUID setting_index
-            // TODO: edit the appropriate registry key to set the correct setting via GUID (?)
-
-            // create a new scheme by copying an old one
-            // select a scheme to edit
-            // edit selected scheme
-            // apply a given scheme to system
-            // (?) install the classic schemes - from "power saving" to "ultimate perf"
+        {                                  
 
             // populate scheme editing view with objects to change each setting 
-            // shows friendly setting name
-            // should indicate possible values to which we can set the setting
+            
+            
             // allow user to inspect help string for a given setting (clearly! not in a flyout!)                       
         }
 
@@ -170,34 +158,34 @@ namespace better_power
 
 
 
-        
-                
-
-
-
-
-
-
         private void get_scheme_guids()
         {
             this.ps.AddCommand("powercfg").AddArgument("list");
             var result = this.ps.Invoke();
 
-            foreach (var res in result) {
+            foreach (var ps_ob in result) {
 
-                var newout = this.guid_reg.Match(res.BaseObject.ToString()).Value;
+                string tmp = ps_ob.ToString().Trim();
+                if (tmp.Length == 0) continue;
 
-                if (newout.Count() > 0) scheme_guids.Add(newout);                
+                string stem = tmp.Substring(0, 8);
+
+                if (stem == "Power Sc") 
+                {
+                    string guid = tmp.Substring(19, 36);
+                    string name = tmp.Substring(58);
+                    name = name.TrimEnd( new char[] {')', '*', ' '} );
+
+                    App.scheme_guids[guid] = name;
+                }
             }
         }
 
 
-        public string get_current_powerscheme()
+        public void get_current_scheme_guid()
         {
             this.ps.AddCommand("powercfg").AddArgument("getactivescheme");
-            var result = this.ps.Invoke();
-      
-            return this.guid_reg.Match(result[0].BaseObject.ToString()).Value;
+            App.curr_scheme_guid = this.ps.Invoke()[0].ToString().Trim().Substring(19,36);
         }
 
         private Collection<PSObject> powercfg_query(string scheme_guid, string group_guid)
@@ -226,7 +214,7 @@ namespace better_power
 
         private void get_powersettings()
         {
-            string curr_powerscheme = get_current_powerscheme();
+            string curr_powerscheme = App.curr_scheme_guid;
             var all_settings = powercfg_query(curr_powerscheme, "");
 
 
@@ -282,30 +270,30 @@ namespace better_power
                 }
                 else if (stem == "Minimum ") // a setting's range-type value
                 {
-                    curr_setting._setting_possible_vals.is_range = true;
+                    curr_setting.is_range = true;
 
                     string min_val =    line.Substring(26);
                     string max_val =    all_strings[i + 1].Substring(26);
                     string increment =  all_strings[i + 2].Substring(29);
                     string units =      all_strings[i + 3].Substring(25);
                                         
-                    curr_setting._setting_possible_vals.min_val = min_val;
-                    curr_setting._setting_possible_vals.max_val = max_val;
-                    curr_setting._setting_possible_vals.increment = increment;
-                    curr_setting._setting_possible_vals.units = units;    
+                    curr_setting.min_val = min_val;
+                    curr_setting.max_val = max_val;
+                    curr_setting.increment = increment;
+                    curr_setting.units = units;    
                     
                     i += 4;
                 }
                 else if (stem == "Possible") // a setting's index-type value
                 {
-                    curr_setting._setting_possible_vals.is_range = false;
+                    curr_setting.is_range = false;
 
                     while (true)
                     {
                         string subsetting_index = line.Substring(24);
                         string subsetting_name = all_strings[i + 1].Substring(32);
 
-                        curr_setting._setting_possible_vals.index_dict[subsetting_index] = subsetting_name;
+                        curr_setting.index_dict[subsetting_index] = subsetting_name;
 
                         i += 2;
                         if (i < all_strings.Length) {
@@ -322,8 +310,8 @@ namespace better_power
                     string curr_ac_setting = line.Substring(32);
                     string curr_dc_setting = all_strings[i + 1].Substring(32);
 
-                    curr_setting._setting_current_vals.ac_value = str16_toint(curr_ac_setting);
-                    curr_setting._setting_current_vals.dc_value = str16_toint(curr_dc_setting);
+                    curr_setting.ac_value = str16_toint(curr_ac_setting);
+                    curr_setting.dc_value = str16_toint(curr_dc_setting);
 
                     i += 2;
                 }

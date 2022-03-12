@@ -39,8 +39,8 @@
                     HorizontalAlignment="Left"
                     Margin="0,5,10,5" 
                     
-                                                                                   
-                                                                                        
+                                                            
+                                                                  
                     />
             </DataTemplate>
 
@@ -52,7 +52,7 @@
                     HorizontalAlignment="Left"
                     Margin="0,5,10,5" 
                     
-                                                                                
+                                                          
                     />                
             </DataTemplate>
   
@@ -69,20 +69,23 @@
             <RowDefinition />
         </Grid.RowDefinitions>
         
-        <Grid.ColumnDefinitions>
+        <!--<Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+        </Grid.ColumnDefinitions>-->
 
-        <Grid Grid.Row="1" Grid.Column="0" Background="{StaticResource AppPageBackground}"/>
-        <Grid Grid.Row="1" Grid.Column="1" Background="{StaticResource AppPageBackground}"/>
+        <!--<Grid Grid.Row="1" Grid.Column="0" Background="{StaticResource AppPageBackground}"/>
+        <Grid Grid.Row="1" Grid.Column="1" Background="{StaticResource AppPageBackground}"/>-->
+
+
+        <Grid Grid.Row="1" Background="{StaticResource AppPageBackground}"/>
 
 
         <Grid x:ConnectionId='10' x:Name="AppTitleBar" 
               Margin="0,0,120,0" 
               Grid.Row="0" 
-              Background="{StaticResource AppTitleBar_Grey}"
-              Grid.ColumnSpan="2" >
+              Background="{StaticResource AppTitleBar_Grey}" >
+            <!--Grid.ColumnSpan="2" >-->            
             
             <Image Source="C:\Users\Admin\source\repos\better_power\Assets\power_icon.png"
                 HorizontalAlignment="Left" 
@@ -100,6 +103,7 @@
         <NavigationView x:ConnectionId='11'
             x:Name="SchemeNavigationView"             
             Grid.Row="1"
+            PaneDisplayMode="Left"
             
             IsSettingsVisible="True"
             IsBackButtonVisible="Collapsed"
@@ -107,7 +111,7 @@
             Header=""
             AlwaysShowHeader="False"
             PaneTitle="Installed Schemes"
-            PaneDisplayMode="Left"
+            
             ExpandedModeThresholdWidth="500"
             SelectionFollowsFocus="Disabled"
             IsTabStop="False"
@@ -123,33 +127,38 @@
                                                         >
 
             <NavigationView.AutoSuggestBox>
-                <AutoSuggestBox x:ConnectionId='13'
+                <AutoSuggestBox x:ConnectionId='12'
                     x:Name="SchemeNavigationView_SearchBox"
                     VerticalAlignment="Center"
                     x:FieldModifier="public"
-                    PlaceholderText=""
+                    PlaceholderText="Search Settings in Active Scheme"
                     QueryIcon="Find"
                                                                                  
                     MinWidth="200"
                     KeyboardAcceleratorPlacementMode="Hidden"
                                                                            >
                     <AutoSuggestBox.KeyboardAccelerators>
-                        <KeyboardAccelerator x:ConnectionId='14' Modifiers="Control" Key="F"                         />
+                        <KeyboardAccelerator x:ConnectionId='13' Modifiers="Control" Key="F"                         />
                     </AutoSuggestBox.KeyboardAccelerators>
                 </AutoSuggestBox>
             </NavigationView.AutoSuggestBox>
 
-        </NavigationView>
-
-
-        <ListView x:ConnectionId='12' x:Name="ListView_main"
+            <NavigationView.Content>
+                <ListView x:ConnectionId='14' x:Name="ListView_main"
                     Grid.Row="1"
-                    Grid.Column="1"     
+                         
                     Padding="0,5,0,5"
                     IsTabStop="False" 
                     SelectionMode="None"
                     IsItemClickEnabled="False"
                   />
+            </NavigationView.Content>
+
+        </NavigationView>
+
+
+        
+        <!--Grid.Column="1"-->
 
 
     </Grid>

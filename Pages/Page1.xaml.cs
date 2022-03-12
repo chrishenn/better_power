@@ -28,7 +28,7 @@ namespace better_power
         {
             var setting = (SettingStore)item;
 
-            if (setting._setting_possible_vals.is_range) {
+            if (setting.is_range) {
                 return Range_Setting;
             }
             else {
@@ -38,12 +38,21 @@ namespace better_power
     }
 
 
-    // TODO 
-    //  Settings-data objects must implement INotifyPropertyChanged to handle arbitrary property changes
-    // and/or, we specify the bind-type in each x:Bind declaration in the xaml
+
+
 
     public sealed partial class Page1 : Page
     {
+
+        // TODO
+        // indicate possible values to which we can set the setting
+        // data units + format
+        // possible range
+        // range checking?
+        // ac + dc menus
+
+
+
         public Page1()
         {
             this.InitializeComponent();
@@ -59,25 +68,23 @@ namespace better_power
                 SettingStore setting = kvp.Value;
 
                 Control box_elem;
-                if (setting._setting_possible_vals.is_range)
+                if (setting.is_range)
                 {
                     DataTemplate box_template = (DataTemplate)this.Resources["NumberBoxTemplate"];
                     NumberBox nb_elem = (NumberBox)box_template.LoadContent();
-
-                    // todo: bind this field in template
-                    // todo: data units + format
-                    // todo: ac + dc menus
 
                     nb_elem.ValueChanged += NumberBoxValueChanged;
                     nb_elem.Tag = setting_guid;
 
                     box_elem = nb_elem;
-
                 }
                 else
                 {
                     DataTemplate box_template = (DataTemplate)this.Resources["ComboBoxTemplate"];
                     ComboBox cb_elem = (ComboBox)box_template.LoadContent();
+
+                    cb_elem.SelectionChanged += ComboBoxSelectionChanged;
+                    cb_elem.Tag = setting_guid;
 
                     box_elem = cb_elem;
                 }
@@ -96,19 +103,32 @@ namespace better_power
 
 
 
+
+
+
         private void NumberBoxValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs e)
         {
-            if (sender.IsLoaded) {
-
-                var setting_dict = App.pub_setting_store_dict;
-
-                SettingStore setting = setting_dict[(string)sender.Tag];
-
-                // todo: range checking - in the numberbox maybe?
-                string current_scheme = (App.Current as App).get_current_powerscheme();
+            if (sender.IsLoaded) 
+            {
+                SettingStore setting = App.pub_setting_store_dict[ (string)sender.Tag ];
+                                                                
+                string current_scheme = App.pub_curr_scheme_guid;
 
                 bool result = (App.Current as App).set_powersetting(current_scheme, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.Value);
+            }
+        }
 
+        private void ComboBoxSelectionChanged(object _sender, SelectionChangedEventArgs e)
+        {
+            ComboBox sender = _sender as ComboBox;
+
+            if (sender.IsLoaded)
+            {
+                SettingStore setting = App.pub_setting_store_dict[ (string)sender.Tag ];
+
+                string current_scheme = App.pub_curr_scheme_guid;
+
+                bool result = (App.Current as App).set_powersetting(current_scheme, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.SelectedIndex);
             }
         }
 
