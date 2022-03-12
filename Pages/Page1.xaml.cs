@@ -146,19 +146,18 @@ namespace better_power
             // Delay necessary to ensure NavigationView visual state can match navigation
             //Task.Delay(500).ContinueWith(_ => this.NavigationViewLoaded?.Invoke(), TaskScheduler.FromCurrentSynchronizationContext());
 
-            var setting_dict = App.pub_setting_store_dict;
             var group_dict = App.pub_subgroup_store_dict;
-            var scheme_list = App.pub_scheme_guids;
+            var scheme_dict = App.pub_scheme_guids;
 
-            foreach (var scheme_guid in scheme_list)
+            this.SchemeNavigationView.MenuItems.Add( new NavigationViewItemHeader() {Content="Installed Schemes"} );
+
+            foreach (var scheme in scheme_dict)
             {
-                var scheme_menuitem = new NavigationViewItem() { Content = scheme_guid };
+                var scheme_menuitem = new NavigationViewItem() { Content = scheme.Value, Tag = scheme.Key };
 
-                foreach (KeyValuePair<string, GroupStore> kvp in group_dict)
+                foreach (var group in group_dict)
                 {
-                    string group_guid = kvp.Key;
-
-                    scheme_menuitem.MenuItems.Add(new NavigationViewItem() { Content = group_guid });
+                    scheme_menuitem.MenuItems.Add(new NavigationViewItem() {Content = group.Value._group_name, Tag = group.Key} );
                 }
 
                 this.SchemeNavigationView.MenuItems.Add(scheme_menuitem);

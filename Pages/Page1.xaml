@@ -100,8 +100,8 @@
             IsBackEnabled="False"
             Header=""
             AlwaysShowHeader="False"
-            PaneTitle="Installed Schemes"
-            
+            PaneTitle=""
+                        
             ExpandedModeThresholdWidth="500"
             SelectionFollowsFocus="Disabled"
             IsTabStop="False"
@@ -135,13 +135,11 @@
 
             <NavigationView.Content>
                 <ListView x:Name="ListView_main"
-                    Grid.Row="1"
-                         
+                    Grid.Row="1"                         
                     Padding="0,5,0,5"
                     IsTabStop="False" 
                     SelectionMode="None"
-                    IsItemClickEnabled="False"
-                  />
+                    IsItemClickEnabled="False" />
             </NavigationView.Content>
 
         </NavigationView>

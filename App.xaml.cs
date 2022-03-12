@@ -249,7 +249,7 @@ namespace better_power
                 if (stem == "Subgroup") // new setting subgroup
                 {
                     string group_guid = line.Substring(15, 36);
-                    string group_name = line.Substring(54);
+                    string group_name = line.Substring(54, line.Length-1-54);
 
                     curr_group = new GroupStore(group_guid, group_name);
                     subgroup_store_dict[group_guid] = curr_group;
