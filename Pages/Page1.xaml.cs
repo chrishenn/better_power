@@ -134,7 +134,7 @@ namespace better_power
             {
                 var scheme_menuitem = new NavigationViewItem() { Content = scheme_guid };
 
-                foreach (KeyValuePair<string, App.GroupStore> kvp in group_dict)
+                foreach (KeyValuePair<string, GroupStore> kvp in group_dict)
                 {
                     string group_guid = kvp.Key;
 

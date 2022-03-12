@@ -32,6 +32,70 @@ using System.Threading.Tasks;
 namespace better_power
 {
 
+    public class SettingStore
+    {
+        public SettingStore(string setting_guid, string setting_name, string setting_descr, string parent_groupguid)
+        {
+            _setting_guid = setting_guid;
+            _setting_name = setting_name;
+            _setting_descr = setting_descr;
+            _parent_groupguid = parent_groupguid;
+
+            _setting_possible_vals = new possible_vals();
+            _setting_current_vals = new current_vals();
+        }
+
+        public string _setting_guid { get; set; }
+        public string _setting_name { get; set; }
+        public string _setting_descr { get; set; }
+        public string _parent_groupguid { get; set; }
+
+        public possible_vals _setting_possible_vals { get; set; }
+
+        public current_vals _setting_current_vals { get; set; }
+    }
+
+    public class possible_vals
+    {
+        public bool is_range;
+
+        public string min_val;
+        public string max_val;
+        public string increment;
+        public string units;
+
+        public Dictionary<string, string> index_dict = new Dictionary<string, string>();
+    }
+    public class current_vals
+    {
+        public int ac_value;
+        public int dc_value;
+    }
+
+    public class GroupStore
+    {
+        public GroupStore(string group_guid, string group_name)
+        {
+            _group_guid = group_guid;
+            _group_name = group_name;
+            _child_guids = new List<string>();
+        }
+
+        public string _group_guid { get; set; }
+        public string _group_name { get; set; }
+        public List<string> _child_guids { get; set; }
+    }
+
+
+
+
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
     public partial class App : Application
     {
 
@@ -49,15 +113,20 @@ namespace better_power
 
 
 
+
+        private PowerShell ps = PowerShell.Create();
+
+        private Regex guid_reg = new Regex(@"(?<=GUID:\s*)[^\s]+(?=\s)");
+
+
+
+
+
         public App()
         {
             this.InitializeComponent();
 
-            //setting_store_dict = new Dictionary<string, setting_store>();
-            //subgroup_store_dict = new Dictionary<string, group_store>();
-            //scheme_guids = new List<string>();
-
-            this.get_existing_scheme_guids();
+            this.get_scheme_guids();
             this.get_powersettings();
 
             m_window = new MainWindow();
@@ -95,52 +164,21 @@ namespace better_power
 
         
 
-        //----------------------------------------------------------------------------------------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------------------------
 
 
 
-        public class possible_vals
-        {
-            public bool is_range;
 
-            public string min_val;
-            public string max_val;
-            public string increment;
-            public string units;
-
-            public Dictionary<string, string> index_dict = new Dictionary<string, string>();
-        }
-        public class current_vals
-        {
-            public int ac_value;
-            public int dc_value;
-        }
-
-        public class GroupStore
-        {
-            public GroupStore(string group_guid, string group_name)
-            {
-                _group_guid = group_guid;
-                _group_name = group_name;
-                _child_guids = new List<string>();
-            }
-
-            public string _group_guid { get; set; }
-            public string _group_name { get; set; }
-            public List<string> _child_guids { get; set; }
-        }
 
         
                 
-        private PowerShell ps = PowerShell.Create();
-
-        private Regex guid_reg = new Regex(@"(?<=GUID:\s*)[^\s]+(?=\s)");
 
 
 
 
 
-        private void get_existing_scheme_guids()
+
+        private void get_scheme_guids()
         {
             this.ps.AddCommand("powercfg").AddArgument("list");
             var result = this.ps.Invoke();

@@ -203,7 +203,7 @@ namespace better_power
                     }
                 }
             }
-            private void Update__setting_current_vals(global::better_power.App.current_vals obj, int phase)
+            private void Update__setting_current_vals(global::better_power.current_vals obj, int phase)
             {
                 if (obj != null)
                 {
@@ -453,7 +453,7 @@ namespace better_power
                     }
                 }
             }
-            private void Update__setting_possible_vals(global::better_power.App.possible_vals obj, int phase)
+            private void Update__setting_possible_vals(global::better_power.possible_vals obj, int phase)
             {
                 if (obj != null)
                 {
@@ -487,7 +487,7 @@ namespace better_power
                     }
                 }
             }
-            private void Update__setting_current_vals(global::better_power.App.current_vals obj, int phase)
+            private void Update__setting_current_vals(global::better_power.current_vals obj, int phase)
             {
                 if (obj != null)
                 {
