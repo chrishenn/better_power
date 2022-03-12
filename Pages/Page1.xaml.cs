@@ -179,20 +179,22 @@ namespace better_power
 
 
 
-                //this.SchemeNavigationView.MenuItems.Add( new NavigationViewItemHeader() {Content="Installed Schemes", FontWeight=FontWeights.Bold, Foreground= new SolidColorBrush(Colors.SlateBlue)} );
+            //this.SchemeNavigationView.MenuItems.Add( new NavigationViewItemHeader() {Content="Installed Schemes", FontWeight=FontWeights.Bold, Foreground= new SolidColorBrush(Colors.SlateBlue)} );
 
-                //foreach (var scheme in scheme_dict)
-                //{
-                //    var scheme_menuitem = new NavigationViewItem() { Content = scheme.Value, Tag = scheme.Key };
+            //foreach (var scheme in scheme_dict)
+            //{
+            //    var scheme_menuitem = new NavigationViewItem() { Content = scheme.Value, Tag = scheme.Key };
 
-                //    scheme_menuitem.MenuItems.Add( new NavigationViewItemHeader() {Content="Setting Groups", FontWeight = FontWeights.Bold, Foreground=new SolidColorBrush(Colors.SlateBlue)});
+            //    scheme_menuitem.MenuItems.Add( new NavigationViewItemHeader() {Content="Setting Groups", FontWeight = FontWeights.Bold, Foreground=new SolidColorBrush(Colors.SlateBlue)});
 
-                //    foreach (var group in group_dict) {
-                //        scheme_menuitem.MenuItems.Add(new NavigationViewItem() {Content = group.Value._group_name, Tag = group.Key} );
-                //    }
+            //    foreach (var group in group_dict) {
+            //        scheme_menuitem.MenuItems.Add(new NavigationViewItem() {Content = group.Value._group_name, Tag = group.Key} );
+            //    }
 
-                //    this.SchemeNavigationView.MenuItems.Add(scheme_menuitem);
-                //}
+            //    this.SchemeNavigationView.MenuItems.Add(scheme_menuitem);
+            //}
+
+            NavSetSchemeItemActive(App.pub_curr_scheme_guid);
 
 
         }
@@ -200,14 +202,20 @@ namespace better_power
 
         private void NavSetSchemeItemActive(string guid)
         {
-            string active_scheme_guid = App.pub_curr_scheme_guid;
+            var scheme_dict = App.pub_scheme_guids;
 
-            foreach (NavigationViewItem schemeitem in this.SchemeNavigationView.MenuItems)
+            foreach (object _schemeitem in this.SchemeNavigationView.MenuItems)
             {
-                if ( (string)schemeitem.Tag == active_scheme_guid )
+                if (_schemeitem is NavigationViewItem)
                 {
-                    
-                }
+                    NavigationViewItem schemeitem = _schemeitem as NavigationViewItem;
+                    string scheme_guid = (string)schemeitem.Tag;
+                    if (scheme_guid == guid)
+                    {
+                        scheme_dict[scheme_guid].active_indicator = "(Active)";
+                        break;
+                    }
+                }                
             }
         }
 

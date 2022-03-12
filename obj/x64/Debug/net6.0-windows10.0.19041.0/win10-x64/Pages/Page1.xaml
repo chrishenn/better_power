@@ -58,13 +58,28 @@
 
 
             <DataTemplate x:Key="NavSchemeItem"                               >
-                <StackPanel x:ConnectionId='3' Orientation="Horizontal" HorizontalAlignment="Stretch">
+                <!--<StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                    <TextBlock Text="{x:Bind scheme_name}"/>
+                    <TextBlock x:Name="ActiveText" 
+                               HorizontalAlignment="Center"
+                               Text="{x:Bind active_indicator, Mode=OneWay}"
+                               FontWeight="Bold" 
+                               Foreground="MediumSpringGreen"/>
+                </StackPanel>-->
+
+                <Grid x:ConnectionId='3' HorizontalAlignment="Stretch">
+                    <Grid.ColumnDefinitions >
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    
                     <TextBlock x:ConnectionId='4'                            />
                     <TextBlock x:ConnectionId='5' x:Name="ActiveText" 
+                               HorizontalAlignment="Center"
                                                                             
                                FontWeight="Bold" 
-                               Foreground="SlateBlue"/>
-                </StackPanel>
+                               Foreground="MediumSpringGreen"/>
+                </Grid>
             </DataTemplate>
   
                 

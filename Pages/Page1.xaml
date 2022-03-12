@@ -58,13 +58,20 @@
 
 
             <DataTemplate x:Key="NavSchemeItem" x:DataType="local:SchemeStore">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                <Grid HorizontalAlignment="Stretch">
+                    <Grid.ColumnDefinitions >
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    
                     <TextBlock Text="{x:Bind scheme_name}"/>
                     <TextBlock x:Name="ActiveText" 
+                               Grid.Column="1"
+                               HorizontalAlignment="Center"
                                Text="{x:Bind active_indicator, Mode=OneWay}"
                                FontWeight="Bold" 
-                               Foreground="SlateBlue"/>
-                </StackPanel>
+                               Foreground="MediumSpringGreen"/>
+                </Grid>
             </DataTemplate>
   
                 
