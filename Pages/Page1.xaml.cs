@@ -5,6 +5,8 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Microsoft.UI;
+using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -41,14 +43,21 @@ namespace better_power
 
 
 
+
+
+
     public sealed partial class Page1 : Page
     {
 
         // TODO
+
+        // navigation: 
+
         // indicate possible values to which we can set the setting
         // data units + format
         // possible range
         // range checking?
+        // indicate if setting was applied or failed (green flash / red error icon)
         // ac + dc menus
 
 
@@ -149,18 +158,56 @@ namespace better_power
             var group_dict = App.pub_subgroup_store_dict;
             var scheme_dict = App.pub_scheme_guids;
 
-            this.SchemeNavigationView.MenuItems.Add( new NavigationViewItemHeader() {Content="Installed Schemes"} );
+
+            this.SchemeNavigationView.MenuItems.Add(new NavigationViewItemHeader() { Content = "Installed Schemes", FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Colors.SlateBlue) });
 
             foreach (var scheme in scheme_dict)
             {
-                var scheme_menuitem = new NavigationViewItem() { Content = scheme.Value, Tag = scheme.Key };
+                var scheme_menuitem = new NavigationViewItem();
+                scheme_menuitem.Tag = scheme.Key;
+                scheme_menuitem.ContentTemplate = (DataTemplate)this.Resources["NavSchemeItem"];
+                scheme_menuitem.DataContext = scheme.Value;                
+
+                scheme_menuitem.MenuItems.Add(new NavigationViewItemHeader() { Content = "Setting Groups", FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Colors.SlateBlue) });
 
                 foreach (var group in group_dict)
                 {
-                    scheme_menuitem.MenuItems.Add(new NavigationViewItem() {Content = group.Value._group_name, Tag = group.Key} );
+                    scheme_menuitem.MenuItems.Add(new NavigationViewItem() { Content = group.Value._group_name, Tag = group.Key });
                 }
-
                 this.SchemeNavigationView.MenuItems.Add(scheme_menuitem);
+            }
+
+
+
+                //this.SchemeNavigationView.MenuItems.Add( new NavigationViewItemHeader() {Content="Installed Schemes", FontWeight=FontWeights.Bold, Foreground= new SolidColorBrush(Colors.SlateBlue)} );
+
+                //foreach (var scheme in scheme_dict)
+                //{
+                //    var scheme_menuitem = new NavigationViewItem() { Content = scheme.Value, Tag = scheme.Key };
+
+                //    scheme_menuitem.MenuItems.Add( new NavigationViewItemHeader() {Content="Setting Groups", FontWeight = FontWeights.Bold, Foreground=new SolidColorBrush(Colors.SlateBlue)});
+
+                //    foreach (var group in group_dict) {
+                //        scheme_menuitem.MenuItems.Add(new NavigationViewItem() {Content = group.Value._group_name, Tag = group.Key} );
+                //    }
+
+                //    this.SchemeNavigationView.MenuItems.Add(scheme_menuitem);
+                //}
+
+
+        }
+
+
+        private void NavSetSchemeItemActive(string guid)
+        {
+            string active_scheme_guid = App.pub_curr_scheme_guid;
+
+            foreach (NavigationViewItem schemeitem in this.SchemeNavigationView.MenuItems)
+            {
+                if ( (string)schemeitem.Tag == active_scheme_guid )
+                {
+                    
+                }
             }
         }
 

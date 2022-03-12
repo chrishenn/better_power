@@ -55,6 +55,17 @@
                     Value="{x:Bind ac_value, Mode=TwoWay}"
                     />                
             </DataTemplate>
+
+
+            <DataTemplate x:Key="NavSchemeItem" x:DataType="local:SchemeStore">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                    <TextBlock Text="{x:Bind scheme_name}"/>
+                    <TextBlock x:Name="ActiveText" 
+                               Text="{x:Bind active_indicator, Mode=OneWay}"
+                               FontWeight="Bold" 
+                               Foreground="SlateBlue"/>
+                </StackPanel>
+            </DataTemplate>
   
                 
         </ResourceDictionary>            

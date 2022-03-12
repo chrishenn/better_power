@@ -97,6 +97,18 @@ namespace better_power
         public List<string> _child_guids { get; set; }
     }
 
+    public class SchemeStore
+    {
+        public string scheme_name;
+        public string active_indicator;
+
+        public SchemeStore(string scheme_name)
+        {
+            this.scheme_name = scheme_name;
+            this.active_indicator = "";
+        }
+    }
+
 
 
     //-----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -117,8 +129,8 @@ namespace better_power
         public static Dictionary<string, GroupStore> pub_subgroup_store_dict { get { return subgroup_store_dict; } }
         private static Dictionary<string, GroupStore> subgroup_store_dict = new Dictionary<string, GroupStore>();
 
-        public static Dictionary<string, string> pub_scheme_guids { get { return scheme_guids; } }
-        private static Dictionary<string, string> scheme_guids = new Dictionary<string, string>();
+        public static Dictionary<string, SchemeStore> pub_scheme_guids { get { return scheme_guids; } }
+        private static Dictionary<string, SchemeStore> scheme_guids = new Dictionary<string, SchemeStore>();
 
         public static string pub_curr_scheme_guid { get { return curr_scheme_guid; } }
         private static string curr_scheme_guid;
@@ -142,19 +154,24 @@ namespace better_power
 
 
         protected override void OnLaunched(LaunchActivatedEventArgs args)
-        {                                  
-
-            // populate scheme editing view with objects to change each setting 
-            
-            
-            // allow user to inspect help string for a given setting (clearly! not in a flyout!)                       
+        {                         
         }
 
-        
+        public static int str16_toint(string hex_string) { return Convert.ToInt32(hex_string, 16); }
+
+
 
         //-------------------------------------------------------------------------------------------------
 
 
+
+
+
+        public void get_current_scheme_guid()
+        {
+            this.ps.AddCommand("powercfg").AddArgument("getactivescheme");
+            App.curr_scheme_guid = this.ps.Invoke()[0].ToString().Trim().Substring(19, 36);
+        }
 
 
 
@@ -176,17 +193,13 @@ namespace better_power
                     string name = tmp.Substring(58);
                     name = name.TrimEnd( new char[] {')', '*', ' '} );
 
-                    App.scheme_guids[guid] = name;
+                    App.scheme_guids[guid] = new SchemeStore(name);
                 }
             }
         }
 
 
-        public void get_current_scheme_guid()
-        {
-            this.ps.AddCommand("powercfg").AddArgument("getactivescheme");
-            App.curr_scheme_guid = this.ps.Invoke()[0].ToString().Trim().Substring(19,36);
-        }
+
 
         private Collection<PSObject> powercfg_query(string scheme_guid, string group_guid)
         {
@@ -195,6 +208,7 @@ namespace better_power
 
             return result;
         }
+
 
         public bool set_powersetting(string scheme_guid, string group_guid, string setting_guid, int value)
         {
@@ -206,10 +220,6 @@ namespace better_power
 
             return (result.Count == 0);
         }
-
-
-        public static int str16_toint(string hex_string) { return Convert.ToInt32(hex_string, 16); }
-
 
 
         private void get_powersettings()

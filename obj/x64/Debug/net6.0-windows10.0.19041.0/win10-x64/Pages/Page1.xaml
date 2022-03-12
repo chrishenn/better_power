@@ -14,13 +14,13 @@
             
             <DataTemplate x:Key="SettingTemplate"                                >  
                 
-                <Grid x:ConnectionId='7' CornerRadius="2" BorderThickness="1" Padding="5" Margin="5" BorderBrush="Gray">
+                <Grid x:ConnectionId='11' CornerRadius="2" BorderThickness="1" Padding="5" Margin="5" BorderBrush="Gray">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock x:ConnectionId='8'                                                              
+                    <TextBlock x:ConnectionId='12'                                                              
                                Grid.Column="0" 
                                Width="400"
                                VerticalAlignment="Center" 
@@ -32,7 +32,7 @@
 
             
             <DataTemplate x:Key="ComboBoxTemplate"                                >
-                <ComboBox x:ConnectionId='5'     
+                <ComboBox x:ConnectionId='9'     
                     Grid.Column="1" 
                     Width="200"
                     VerticalAlignment="Center"
@@ -45,7 +45,7 @@
             </DataTemplate>
 
             <DataTemplate x:Key="NumberBoxTemplate"                                >
-                <NumberBox x:ConnectionId='3'     
+                <NumberBox x:ConnectionId='7'     
                     Grid.Column="1" 
                     Width="200"
                     VerticalAlignment="Center"
@@ -55,6 +55,17 @@
                                                           
                     />                
             </DataTemplate>
+
+
+            <DataTemplate x:Key="NavSchemeItem"                               >
+                <StackPanel x:ConnectionId='3' Orientation="Horizontal" HorizontalAlignment="Stretch">
+                    <TextBlock x:ConnectionId='4'                            />
+                    <TextBlock x:ConnectionId='5' x:Name="ActiveText" 
+                                                                            
+                               FontWeight="Bold" 
+                               Foreground="SlateBlue"/>
+                </StackPanel>
+            </DataTemplate>
   
                 
         </ResourceDictionary>            
@@ -62,7 +73,7 @@
 
     
 
-    <Grid x:ConnectionId='9'                          >
+    <Grid x:ConnectionId='13'                          >
                   
         <Grid.RowDefinitions>
             <RowDefinition Height="32"/>
@@ -72,7 +83,7 @@
         <Grid Grid.Row="1" Background="{StaticResource AppPageBackground}"/>
 
 
-        <Grid x:ConnectionId='10' x:Name="AppTitleBar" 
+        <Grid x:ConnectionId='14' x:Name="AppTitleBar" 
               Margin="0,0,120,0" 
               Grid.Row="0" 
               Background="{StaticResource AppTitleBar_Grey}" >
@@ -82,7 +93,7 @@
                 Width="30" Height="30"
                 Margin="8,0"/>
             
-            <TextBlock x:ConnectionId='15' x:Name="AppTitleTextBlock" Text="Better Power"
+            <TextBlock x:ConnectionId='19' x:Name="AppTitleTextBlock" Text="Better Power"
                 TextWrapping="NoWrap"                       
                 Style="{StaticResource CaptionTextBlockStyle}" 
                 VerticalAlignment="Center"
@@ -90,7 +101,7 @@
         </Grid>
 
 
-        <NavigationView x:ConnectionId='11'
+        <NavigationView x:ConnectionId='15'
             x:Name="SchemeNavigationView"             
             Grid.Row="1"
             PaneDisplayMode="Left"
@@ -117,7 +128,7 @@
                                                         >
 
             <NavigationView.AutoSuggestBox>
-                <AutoSuggestBox x:ConnectionId='12'
+                <AutoSuggestBox x:ConnectionId='16'
                     x:Name="SchemeNavigationView_SearchBox"
                     VerticalAlignment="Center"
                     x:FieldModifier="public"
@@ -128,13 +139,13 @@
                     KeyboardAcceleratorPlacementMode="Hidden"
                                                                            >
                     <AutoSuggestBox.KeyboardAccelerators>
-                        <KeyboardAccelerator x:ConnectionId='13' Modifiers="Control" Key="F"                         />
+                        <KeyboardAccelerator x:ConnectionId='17' Modifiers="Control" Key="F"                         />
                     </AutoSuggestBox.KeyboardAccelerators>
                 </AutoSuggestBox>
             </NavigationView.AutoSuggestBox>
 
             <NavigationView.Content>
-                <ListView x:ConnectionId='14' x:Name="ListView_main"
+                <ListView x:ConnectionId='18' x:Name="ListView_main"
                     Grid.Row="1"                         
                     Padding="0,5,0,5"
                     IsTabStop="False" 
