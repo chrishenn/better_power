@@ -39,8 +39,8 @@
                     HorizontalAlignment="Left"
                     Margin="0,5,10,5" 
                     
-                                                            
-                                                                  
+                                                                              
+                                                                     
                     />
             </DataTemplate>
 
@@ -52,7 +52,7 @@
                     HorizontalAlignment="Left"
                     Margin="0,5,10,5" 
                     
-                                                          
+                                                             
                     />                
             </DataTemplate>
 

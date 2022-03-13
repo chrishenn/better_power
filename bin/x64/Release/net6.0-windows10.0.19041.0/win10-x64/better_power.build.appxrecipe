@@ -1630,6 +1630,12 @@
     <AppxPackagedFile Include="C:\Users\Admin\source\repos\better_power\Assets\LockScreenLogo.scale-200.png">
       <PackagePath>Assets\LockScreenLogo.scale-200.png</PackagePath>
     </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\Admin\source\repos\better_power\Assets\power_icon.png">
+      <PackagePath>Assets\power_icon.png</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\Admin\source\repos\better_power\Assets\power_icon_32.png">
+      <PackagePath>Assets\power_icon_32.png</PackagePath>
+    </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Admin\source\repos\better_power\Assets\SplashScreen.scale-200.png">
       <PackagePath>Assets\SplashScreen.scale-200.png</PackagePath>
     </AppxPackagedFile>

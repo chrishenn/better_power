@@ -6,29 +6,31 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Shapes;
+using Microsoft.Management.Infrastructure;
 
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.UI.Xaml.Data;
+using Windows.ApplicationModel.Core;
 
 using System.Collections;
 using System.Management;
-using Microsoft.Management.Infrastructure;
-using ORMi;
-
+using System.Threading.Tasks;
 using System.Diagnostics;
-using System.ComponentModel;
 using System.Text.RegularExpressions;
-
 using System.Collections.ObjectModel;
 using System.Management.Automation;
-using Windows.ApplicationModel.Core;
-using System.Threading.Tasks;
 
+using ORMi;
+using better_power.Common;
 
 
 namespace better_power
@@ -48,7 +50,7 @@ namespace better_power
     // (?) pull power setting info from system objects
 
 
-    public class SettingStore
+    public class SettingStore : BindableBase
     {
         public SettingStore(string setting_guid, string setting_name, string setting_descr, string parent_groupguid)
         {
@@ -71,12 +73,22 @@ namespace better_power
         public string increment;
         public string units;
 
-        public Dictionary<string, string> possible_settings_index_dict = new Dictionary<string, string>();
-                        
-        public int curr_ac_val;
-        public int curr_dc_val;
+        public Dictionary<string, string> possible_settings_index_dict = new Dictionary<string, string>();                        
+        public Dictionary<string, (int ac_val, int dc_val)> curr_setting_vals_by_scheme = new Dictionary<string, (int ac_val, int dc_val)>();
 
-        public Dictionary<string, (int, int)> curr_setting_vals_by_scheme = new Dictionary<string, (int, int)>();
+        private int _curr_ac_val;
+        private int _curr_dc_val;
+
+        public int curr_ac_val
+        {
+            get { return this._curr_ac_val; }
+            set { this.SetProperty(ref this._curr_ac_val, value); }
+        }
+        public int curr_dc_val
+        {
+            get { return this._curr_dc_val; }
+            set { this.SetProperty(ref this._curr_dc_val, value); }
+        }
     }
 
     public class GroupStore
@@ -143,7 +155,7 @@ namespace better_power
             this.get_current_scheme_guid();
             this.get_scheme_guids();
             this.get_powersettings();
-
+            this.get_all_setting_vals_by_scheme();
 
             m_window = new MainWindow();
             m_window.Activate();
@@ -333,38 +345,35 @@ namespace better_power
                 string curr_scheme_guid = kvp.Key;
                 var res_objs = powercfg_query(curr_scheme_guid, "");
 
-                string curr_setting_guid;
-
+                string curr_setting_guid = null;
                 int i = 0;
                 while (true)
                 {
                     if (i >= res_objs.Count) break;
 
                     string line = res_objs[i].ToString().Trim();
-
-                    if (line.Length == 0) { i++; continue; }
                     
+                    if (line.Length == 0) { i++; continue; }
+
                     string stem = line.Substring(0, 8);
 
                     if (stem == "Power Se")
                     {
                         curr_setting_guid = line.Substring(20, 36);
+                        i++;
                     }
                     else if (stem == "Current ")
                     {
-                        string ac_value = str16_toint( line.Substring(32) );
-                        string dc_value = str16_toint( res_objs[i+1].ToString().Trim().Substring(32) );
+                        int ac_value = str16_toint( line.Substring(32) );
+                        int dc_value = str16_toint( res_objs[i+1].ToString().Trim().Substring(32) );
 
-
-                        App.setting_store_dict[curr_setting_guid].curr_setting_vals_by_scheme[curr_scheme_guid][0] = 
+                        App.setting_store_dict[curr_setting_guid].curr_setting_vals_by_scheme[curr_scheme_guid] = (ac_val: ac_value, dc_val: dc_value);
 
                         i += 2;
                     }
                     else i++;
                 }
             }
-            
-
         }
 
 

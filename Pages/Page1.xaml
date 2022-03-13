@@ -26,7 +26,10 @@
                                VerticalAlignment="Center" 
                                HorizontalAlignment="Left"
                                TextWrapping="WrapWholeWords"
-                               Margin="10,5,0,5" />
+                               Margin="10,5,0,5" 
+                               
+                               x:Phase="0"
+                               />
                 </Grid>
             </DataTemplate>
 
@@ -39,8 +42,10 @@
                     HorizontalAlignment="Left"
                     Margin="0,5,10,5" 
                     
-                    ItemsSource="{x:Bind index_dict.Values}"
-                    SelectedIndex="{x:Bind ac_value, Mode=TwoWay}"
+                    ItemsSource="{x:Bind possible_settings_index_dict.Values}"
+                    SelectedIndex="{x:Bind curr_ac_val, Mode=TwoWay}"
+                    
+                    x:Phase="1"
                     />
             </DataTemplate>
 
@@ -52,7 +57,9 @@
                     HorizontalAlignment="Left"
                     Margin="0,5,10,5" 
                     
-                    Value="{x:Bind ac_value, Mode=TwoWay}"
+                    Value="{x:Bind curr_ac_val, Mode=TwoWay}"
+                    
+                    x:Phase="1"
                     />                
             </DataTemplate>
 

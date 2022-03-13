@@ -96,7 +96,7 @@ namespace better_power
 
 
 
-
+        // todo: propagate changed values into setting's value_by_scheme for current scheme
         private void NumberBoxValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs e)
         {
             if (sender.IsLoaded) 
@@ -159,7 +159,6 @@ namespace better_power
             }
 
             NavSetSchemeItemActive(App.pub_curr_scheme_guid, true);
-
         }
 
 
@@ -197,7 +196,19 @@ namespace better_power
             }
             else if (args.SelectedItemContainer != null)
             {
+                // update the settings in the main listview to reflect the selected theme's current values
+
                 var sel_menuitem = args.SelectedItemContainer;
+                string scheme_guid = (string)sel_menuitem.Tag;
+
+                var setting_dict = App.pub_setting_store_dict;
+
+                foreach (var kvp in setting_dict)
+                {
+                    SettingStore setting_data = kvp.Value;
+                    setting_data.curr_ac_val = setting_data.curr_setting_vals_by_scheme[scheme_guid].ac_val;
+                    setting_data.curr_dc_val = setting_data.curr_setting_vals_by_scheme[scheme_guid].dc_val;
+                }
             }
         }
 
