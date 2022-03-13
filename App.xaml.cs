@@ -127,7 +127,6 @@ namespace better_power
     public partial class App : Application
     {
 
-
         public static Window Window { get { return m_window; } }
         private static Window m_window;
 
@@ -156,14 +155,22 @@ namespace better_power
             this.get_scheme_guids();
             this.get_powersettings();
             this.get_all_setting_vals_by_scheme();
-
-            m_window = new MainWindow();
-            m_window.Activate();
         }
 
-
         protected override void OnLaunched(LaunchActivatedEventArgs args)
-        {                         
+        {
+            m_window = new MainWindow();
+            m_window.Activate();
+
+            Frame rootFrame = m_window.Content as Frame;
+            if (rootFrame == null)
+            {
+                rootFrame = new Frame();
+
+                m_window.Content = rootFrame;
+
+                rootFrame.Navigate(typeof(Page1));
+            }
         }
 
         public static int str16_toint(string hex_string) { return Convert.ToInt32(hex_string, 16); }

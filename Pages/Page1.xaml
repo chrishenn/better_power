@@ -164,15 +164,10 @@
                     SelectionMode="None"
                     IsItemClickEnabled="False">
 
-                <Frame x:Name="ContentFrame" />
             </ListView> 
-
         </NavigationView>
 
         
-        <Frame x:Name="RootFrame" />
-    </Grid>
-
-   
+    </Grid>   
 
 </Page>

@@ -224,7 +224,7 @@ namespace better_power.better_power_XamlTypeInfo
 
         private void InitTypeTables()
         {
-            _typeNameTable = new string[39];
+            _typeNameTable = new string[40];
             _typeNameTable[0] = "Microsoft.UI.Xaml.Controls.XamlControlsResources";
             _typeNameTable[1] = "Microsoft.UI.Xaml.ResourceDictionary";
             _typeNameTable[2] = "Object";
@@ -264,8 +264,9 @@ namespace better_power.better_power_XamlTypeInfo
             _typeNameTable[36] = "better_power.Page1";
             _typeNameTable[37] = "Microsoft.UI.Xaml.Controls.Page";
             _typeNameTable[38] = "Microsoft.UI.Xaml.Controls.UserControl";
+            _typeNameTable[39] = "better_power.Page2";
 
-            _typeTable = new global::System.Type[39];
+            _typeTable = new global::System.Type[40];
             _typeTable[0] = typeof(global::Microsoft.UI.Xaml.Controls.XamlControlsResources);
             _typeTable[1] = typeof(global::Microsoft.UI.Xaml.ResourceDictionary);
             _typeTable[2] = typeof(global::System.Object);
@@ -305,6 +306,7 @@ namespace better_power.better_power_XamlTypeInfo
             _typeTable[36] = typeof(global::better_power.Page1);
             _typeTable[37] = typeof(global::Microsoft.UI.Xaml.Controls.Page);
             _typeTable[38] = typeof(global::Microsoft.UI.Xaml.Controls.UserControl);
+            _typeTable[39] = typeof(global::better_power.Page2);
         }
 
         private int LookupTypeIndexByName(string typeName)
@@ -345,6 +347,7 @@ namespace better_power.better_power_XamlTypeInfo
         private object Activate_20_NavigationView() { return new global::Microsoft.UI.Xaml.Controls.NavigationView(); }
         private object Activate_34_NavigationViewTemplateSettings() { return new global::Microsoft.UI.Xaml.Controls.NavigationViewTemplateSettings(); }
         private object Activate_36_Page1() { return new global::better_power.Page1(); }
+        private object Activate_39_Page2() { return new global::better_power.Page2(); }
         private void MapAdd_0_XamlControlsResources(object instance, object key, object item)
         {
             var collection = (global::System.Collections.Generic.IDictionary<global::System.Object, global::System.Object>)instance;
@@ -638,6 +641,13 @@ namespace better_power.better_power_XamlTypeInfo
 
             case 38:   //  Microsoft.UI.Xaml.Controls.UserControl
                 xamlType = new global::better_power.better_power_XamlTypeInfo.XamlSystemBaseType(typeName, type);
+                break;
+
+            case 39:   //  better_power.Page2
+                userType = new global::better_power.better_power_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Microsoft.UI.Xaml.Controls.Page"));
+                userType.Activator = Activate_39_Page2;
+                userType.SetIsLocalType();
+                xamlType = userType;
                 break;
             }
             return xamlType;

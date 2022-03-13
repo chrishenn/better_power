@@ -15,18 +15,20 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
+
 
 
 
 namespace better_power
 {
 
-
     public sealed partial class Page1 : Page
     {
 
         // TODO
 
+        // navigate: new page
         // group headers in list view
 
         // setting cards:
@@ -40,12 +42,21 @@ namespace better_power
         // make a tree view rather than navigationview?
 
 
+        ObservableCollection<FrameworkElement> setting_items = new ObservableCollection<FrameworkElement>();
+        ObservableCollection<SettingStore> setting_data = new ObservableCollection<SettingStore>();
+
 
         public Page1()
         {
             this.InitializeComponent();
+
+            foreach (var kvp in App.pub_setting_store_dict)
+            {
+                this.setting_data.Add( kvp.Value );
+            }
         }
 
+        
 
 
         // Add power setting cards to main ListView
@@ -53,12 +64,9 @@ namespace better_power
         {            
             var setting_dict = App.pub_setting_store_dict;
 
-            ObservableCollection<FrameworkElement> setting_items = new ObservableCollection<FrameworkElement>();
-
-            foreach (var kvp in setting_dict)
+            foreach (var setting in this.setting_data)
             {
-                string setting_guid = kvp.Key;
-                SettingStore setting = kvp.Value;
+                string setting_guid = setting._setting_guid;
 
                 Control box_elem;
                 if (setting.is_range)
@@ -88,10 +96,10 @@ namespace better_power
                 setting_elem.Children.Add(box_elem);
                 setting_elem.DataContext = setting;
 
-                setting_items.Add(setting_elem);
+                this.setting_items.Add(setting_elem);
             }
 
-            this.ListView_main.ItemsSource = setting_items;
+            this.ListView_main.ItemsSource = this.setting_items;
         }
 
 
@@ -186,31 +194,32 @@ namespace better_power
 
 
 
-
+        // TODO: navigate to a new page
         private void SchemeNavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
-
             if (args.IsSettingsSelected)
             {
                 //RootFrame.Navigate( typeof(SettingsPage) );                
             }
             else if (args.SelectedItemContainer != null)
             {
-                // update the settings in the main listview to reflect the selected theme's current values
 
-                var sel_menuitem = args.SelectedItemContainer;
-                string scheme_guid = (string)sel_menuitem.Tag;
+                //this.Frame.Navigate(typeof(Page2));
 
-                var setting_dict = App.pub_setting_store_dict;
+                //var sel_menuitem = args.SelectedItemContainer;
+                //string scheme_guid = (string)sel_menuitem.Tag;
 
-                foreach (var kvp in setting_dict)
-                {
-                    SettingStore setting_data = kvp.Value;
-                    setting_data.curr_ac_val = setting_data.curr_setting_vals_by_scheme[scheme_guid].ac_val;
-                    setting_data.curr_dc_val = setting_data.curr_setting_vals_by_scheme[scheme_guid].dc_val;
-                }
+                //foreach (var setting_data in this.setting_data)
+                //{
+                //    var vals = setting_data.curr_setting_vals_by_scheme[scheme_guid];
+
+                //    setting_data.curr_ac_val = vals.ac_val;
+                //    setting_data.curr_dc_val = vals.dc_val;
+                //}
             }
         }
+
+
 
 
 
