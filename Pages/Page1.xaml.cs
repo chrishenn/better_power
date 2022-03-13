@@ -21,57 +21,41 @@ using System.Collections.ObjectModel;
 namespace better_power
 {
 
-    public class MyDataTemplateSelector : DataTemplateSelector
-    {
-        public DataTemplate Range_Setting { get; set; }
-        public DataTemplate Index_Setting { get; set; }
-
-        protected override DataTemplate SelectTemplateCore(object item)
-        {
-            var setting = (SettingStore)item;
-
-            if (setting.is_range) {
-                return Range_Setting;
-            }
-            else {
-                return Index_Setting;
-            }
-        }
-    }
-
-
-
-
-
-
-
 
     public sealed partial class Page1 : Page
     {
 
         // TODO
 
-        // navigation: 
+        // group headers in list view
 
-        // indicate possible values to which we can set the setting
-        // data units + format
-        // possible range
-        // range checking?
-        // indicate if setting was applied or failed (green flash / red error icon)
-        // ac + dc menus
+        // setting cards:
+        //      indicate possible values to which we can set the setting
+        //      data units + format
+        //      possible range
+        //      range checking?
+        //      indicate if setting was applied or failed (green flash / red error icon)
+        //      ac + dc menus
+
+        // make a tree view rather than navigationview?
 
 
 
         public Page1()
         {
             this.InitializeComponent();
+        }
 
-            // Add power setting cards to main ListView
+
+
+        // Add power setting cards to main ListView
+        private void ListView_Loaded(object sender, RoutedEventArgs e)
+        {            
             var setting_dict = App.pub_setting_store_dict;
 
             ObservableCollection<FrameworkElement> setting_items = new ObservableCollection<FrameworkElement>();
-                        
-            foreach (KeyValuePair<string, SettingStore> kvp in setting_dict)
+
+            foreach (var kvp in setting_dict)
             {
                 string setting_guid = kvp.Key;
                 SettingStore setting = kvp.Value;
@@ -97,11 +81,11 @@ namespace better_power
 
                     box_elem = cb_elem;
                 }
-                
-                DataTemplate setting_template = (DataTemplate)this.Resources["SettingTemplate"];    
+
+                DataTemplate setting_template = (DataTemplate)this.Resources["SettingTemplate"];
                 Grid setting_elem = (Grid)setting_template.LoadContent();
 
-                setting_elem.Children.Add( box_elem );
+                setting_elem.Children.Add(box_elem);
                 setting_elem.DataContext = setting;
 
                 setting_items.Add(setting_elem);
@@ -109,8 +93,6 @@ namespace better_power
 
             this.ListView_main.ItemsSource = setting_items;
         }
-
-
 
 
 
@@ -150,11 +132,10 @@ namespace better_power
             App.Window.SetTitleBar(AppTitleBar);
         }
 
+
+        // Add navigationviewitems to navigationview
         private void SchemeNavigationView_Loaded(object sender, RoutedEventArgs e)
         {
-            // Delay necessary to ensure NavigationView visual state can match navigation
-            //Task.Delay(500).ContinueWith(_ => this.NavigationViewLoaded?.Invoke(), TaskScheduler.FromCurrentSynchronizationContext());
-
             var group_dict = App.pub_subgroup_store_dict;
             var scheme_dict = App.pub_scheme_guids;
 
@@ -177,30 +158,12 @@ namespace better_power
                 this.SchemeNavigationView.MenuItems.Add(scheme_menuitem);
             }
 
-
-
-            //this.SchemeNavigationView.MenuItems.Add( new NavigationViewItemHeader() {Content="Installed Schemes", FontWeight=FontWeights.Bold, Foreground= new SolidColorBrush(Colors.SlateBlue)} );
-
-            //foreach (var scheme in scheme_dict)
-            //{
-            //    var scheme_menuitem = new NavigationViewItem() { Content = scheme.Value, Tag = scheme.Key };
-
-            //    scheme_menuitem.MenuItems.Add( new NavigationViewItemHeader() {Content="Setting Groups", FontWeight = FontWeights.Bold, Foreground=new SolidColorBrush(Colors.SlateBlue)});
-
-            //    foreach (var group in group_dict) {
-            //        scheme_menuitem.MenuItems.Add(new NavigationViewItem() {Content = group.Value._group_name, Tag = group.Key} );
-            //    }
-
-            //    this.SchemeNavigationView.MenuItems.Add(scheme_menuitem);
-            //}
-
-            NavSetSchemeItemActive(App.pub_curr_scheme_guid);
-
+            NavSetSchemeItemActive(App.pub_curr_scheme_guid, true);
 
         }
 
 
-        private void NavSetSchemeItemActive(string guid)
+        private void NavSetSchemeItemActive(string guid, bool nav_to_active)
         {
             var scheme_dict = App.pub_scheme_guids;
 
@@ -213,6 +176,7 @@ namespace better_power
                     if (scheme_guid == guid)
                     {
                         scheme_dict[scheme_guid].active_indicator = "(Active)";
+                        if (nav_to_active) this.SchemeNavigationView.SelectedItem = schemeitem;
                         break;
                     }
                 }                
@@ -223,39 +187,21 @@ namespace better_power
 
 
 
-        private void OnMenuFlyoutItemClick(object sender, RoutedEventArgs e) { }
 
-        private void SchemeNavigationView_PaneOpen(NavigationView sender, object args) { }
-        private void SchemeNavigationView_PaneClose(NavigationView sender, object args) { }
-
-        private void SchemeNavigationView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
+        private void SchemeNavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
 
-            if (args.InvokedItemContainer.IsSelected)
+            if (args.IsSettingsSelected)
             {
-                // Clicked on an item that is already selected,
-                // Avoid navigating to the same page again causing movement.
-                return;
+                //RootFrame.Navigate( typeof(SettingsPage) );                
             }
-
-            if (args.IsSettingsInvoked)
+            else if (args.SelectedItemContainer != null)
             {
-                //if (rootFrame.CurrentSourcePageType != typeof(SettingsPage))
-                //{
-                //    rootFrame.Navigate(typeof(SettingsPage));
-                //}
-            }
-            else
-            {
-                var invokedItem = args.InvokedItemContainer;
-
-                if (invokedItem == null)
-                {
-                    //this.Frame.Navigate(typeof(Page1));
-                }
-
+                var sel_menuitem = args.SelectedItemContainer;
             }
         }
+
+
 
         private void SchemeNavigationView_SearchBoxTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
@@ -300,7 +246,14 @@ namespace better_power
             }
         }
 
-        private void SchemeNavigationView_SearchBoxQuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args) { }        
+        private void SchemeNavigationView_SearchBoxQuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args) { }
+
+
+
+
+        private void OnMenuFlyoutItemClick(object sender, RoutedEventArgs e) { }
+
+        // todo: check for compact and morph Active indicator to circle
         private void SchemeNavigationView_DisplayModeChanged(NavigationView sender, NavigationViewDisplayModeChangedEventArgs args) { }
 
         private void CtrlF_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)

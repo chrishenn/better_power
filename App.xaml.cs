@@ -37,19 +37,15 @@ namespace better_power
 
     // TODO
 
-    // get rid of navigationview clutter
-
     // switch system power scheme
     // indicate the currently-active power scheme in the UI
 
     // observe settings changes from the OS 
-
-    // 
-
     // create a new scheme by copying an existing one
 
     // (?) change settings via registry key
     // (?) install the classic schemes - from "power saving" to "ultimate perf"
+    // (?) pull power setting info from system objects
 
 
     public class SettingStore
@@ -75,12 +71,12 @@ namespace better_power
         public string increment;
         public string units;
 
-        public Dictionary<string, string> index_dict = new Dictionary<string, string>();
+        public Dictionary<string, string> possible_settings_index_dict = new Dictionary<string, string>();
+                        
+        public int curr_ac_val;
+        public int curr_dc_val;
 
-
-        // todo: make into dict to save current vals for each power scheme
-        public int ac_value;
-        public int dc_value;
+        public Dictionary<string, (int, int)> curr_setting_vals_by_scheme = new Dictionary<string, (int, int)>();
     }
 
     public class GroupStore
@@ -147,6 +143,7 @@ namespace better_power
             this.get_current_scheme_guid();
             this.get_scheme_guids();
             this.get_powersettings();
+
 
             m_window = new MainWindow();
             m_window.Activate();
@@ -244,7 +241,6 @@ namespace better_power
                 all_strings_size++;
             }
 
-
             GroupStore curr_group = null;
             SettingStore curr_setting = null;
 
@@ -303,7 +299,7 @@ namespace better_power
                         string subsetting_index = line.Substring(24);
                         string subsetting_name = all_strings[i + 1].Substring(32);
 
-                        curr_setting.index_dict[subsetting_index] = subsetting_name;
+                        curr_setting.possible_settings_index_dict[subsetting_index] = subsetting_name;
 
                         i += 2;
                         if (i < all_strings.Length) {
@@ -320,13 +316,55 @@ namespace better_power
                     string curr_ac_setting = line.Substring(32);
                     string curr_dc_setting = all_strings[i + 1].Substring(32);
 
-                    curr_setting.ac_value = str16_toint(curr_ac_setting);
-                    curr_setting.dc_value = str16_toint(curr_dc_setting);
+                    curr_setting.curr_ac_val = str16_toint(curr_ac_setting);
+                    curr_setting.curr_dc_val = str16_toint(curr_dc_setting);
 
                     i += 2;
                 }
             }
                                         
+        }
+
+        // populate the existing settings objs in the settings dict with current setting values
+        private void get_all_setting_vals_by_scheme()
+        {
+            foreach (var kvp in App.scheme_guids)
+            {
+                string curr_scheme_guid = kvp.Key;
+                var res_objs = powercfg_query(curr_scheme_guid, "");
+
+                string curr_setting_guid;
+
+                int i = 0;
+                while (true)
+                {
+                    if (i >= res_objs.Count) break;
+
+                    string line = res_objs[i].ToString().Trim();
+
+                    if (line.Length == 0) { i++; continue; }
+                    
+                    string stem = line.Substring(0, 8);
+
+                    if (stem == "Power Se")
+                    {
+                        curr_setting_guid = line.Substring(20, 36);
+                    }
+                    else if (stem == "Current ")
+                    {
+                        string ac_value = str16_toint( line.Substring(32) );
+                        string dc_value = str16_toint( res_objs[i+1].ToString().Trim().Substring(32) );
+
+
+                        App.setting_store_dict[curr_setting_guid].curr_setting_vals_by_scheme[curr_scheme_guid][0] = 
+
+                        i += 2;
+                    }
+                    else i++;
+                }
+            }
+            
+
         }
 
 
