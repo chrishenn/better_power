@@ -45,6 +45,9 @@ namespace better_power
         ObservableCollection<FrameworkElement> setting_items = new ObservableCollection<FrameworkElement>();
         ObservableCollection<SettingStore> setting_data = new ObservableCollection<SettingStore>();
 
+        bool settings_locked_for_navigation = false;
+
+
 
         public Page1()
         {
@@ -56,9 +59,8 @@ namespace better_power
             }
         }
 
+
         
-
-
         // Add power setting cards to main ListView
         private void ListView_Loaded(object sender, RoutedEventArgs e)
         {            
@@ -103,14 +105,13 @@ namespace better_power
         }
 
 
-
         // todo: propagate changed values into setting's value_by_scheme for current scheme
         private void NumberBoxValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs e)
         {
-            if (sender.IsLoaded) 
+            if (sender.IsLoaded && !this.settings_locked_for_navigation)
             {
-                SettingStore setting = App.pub_setting_store_dict[ (string)sender.Tag ];
-                                                                
+                SettingStore setting = App.pub_setting_store_dict[(string)sender.Tag];
+
                 string current_scheme = App.pub_curr_scheme_guid;
 
                 bool result = (App.Current as App).set_powersetting(current_scheme, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.Value);
@@ -121,9 +122,9 @@ namespace better_power
         {
             ComboBox sender = _sender as ComboBox;
 
-            if (sender.IsLoaded)
+            if (sender.IsLoaded && !this.settings_locked_for_navigation)
             {
-                SettingStore setting = App.pub_setting_store_dict[ (string)sender.Tag ];
+                SettingStore setting = App.pub_setting_store_dict[(string)sender.Tag];
 
                 string current_scheme = App.pub_curr_scheme_guid;
 
@@ -194,7 +195,7 @@ namespace better_power
 
 
 
-        // TODO: navigate to a new page
+        // navigate to a new page
         private void SchemeNavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
             if (args.IsSettingsSelected)
@@ -203,19 +204,20 @@ namespace better_power
             }
             else if (args.SelectedItemContainer != null)
             {
+                this.settings_locked_for_navigation = true;
 
-                //this.Frame.Navigate(typeof(Page2));
+                var sel_menuitem = args.SelectedItemContainer;
+                string scheme_guid = (string)sel_menuitem.Tag;
 
-                //var sel_menuitem = args.SelectedItemContainer;
-                //string scheme_guid = (string)sel_menuitem.Tag;
+                foreach (var setting_data in this.setting_data)
+                {
+                    var vals = setting_data.curr_setting_vals_by_scheme[scheme_guid];
 
-                //foreach (var setting_data in this.setting_data)
-                //{
-                //    var vals = setting_data.curr_setting_vals_by_scheme[scheme_guid];
+                    setting_data.curr_ac_val = vals.ac_val;
+                    setting_data.curr_dc_val = vals.dc_val;
+                }
 
-                //    setting_data.curr_ac_val = vals.ac_val;
-                //    setting_data.curr_dc_val = vals.dc_val;
-                //}
+                this.settings_locked_for_navigation = false;
             }
         }
 

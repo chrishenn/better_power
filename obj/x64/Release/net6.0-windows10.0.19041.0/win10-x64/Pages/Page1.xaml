@@ -163,8 +163,8 @@
                     IsTabStop="False" 
                     SelectionMode="None"
                     IsItemClickEnabled="False">
-
             </ListView> 
+            
         </NavigationView>
 
         

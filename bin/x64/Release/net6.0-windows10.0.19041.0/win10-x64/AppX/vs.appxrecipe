@@ -29,13 +29,13 @@
     <AppXManifest Include="C:\Users\Admin\source\repos\better_power\bin\x64\Release\net6.0-windows10.0.19041.0\win10-x64\AppxManifest.xml">
       <PackagePath>AppxManifest.xml</PackagePath>
       <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
-      <Modified>2022-03-13T07:23:42.131</Modified>
+      <Modified>2022-03-15T02:35:11.620</Modified>
     </AppXManifest>
   </ItemGroup>
   <ItemGroup>
     <AppxPackagedFile Include="C:\Users\Admin\source\repos\better_power\bin\x64\Release\net6.0-windows10.0.19041.0\win10-x64\resources.pri">
       <PackagePath>resources.pri</PackagePath>
-      <Modified>2022-03-13T07:23:41.465</Modified>
+      <Modified>2022-03-15T02:35:10.995</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Admin\source\repos\better_power\bin\x64\Release\net6.0-windows10.0.19041.0\win10-x64\better_power.runtimeconfig.json">
       <PackagePath>better_power.runtimeconfig.json</PackagePath>
@@ -43,7 +43,7 @@
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Admin\source\repos\better_power\obj\x64\Release\net6.0-windows10.0.19041.0\win10-x64\apphost.exe">
       <PackagePath>better_power.exe</PackagePath>
-      <Modified>2022-03-13T07:23:41.402</Modified>
+      <Modified>2022-03-15T02:35:10.917</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Admin\.nuget\packages\microsoft.powershell.sdk\7.2.1\contentFiles\any\any\ref\Microsoft.CSharp.dll">
       <PackagePath>ref\Microsoft.CSharp.dll</PackagePath>
@@ -2159,7 +2159,7 @@
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Admin\source\repos\better_power\obj\x64\Release\net6.0-windows10.0.19041.0\win10-x64\R2R\better_power.dll">
       <PackagePath>better_power.dll</PackagePath>
-      <Modified>2022-03-13T07:23:42.038</Modified>
+      <Modified>2022-03-15T02:35:11.526</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Admin\source\repos\better_power\obj\x64\Release\net6.0-windows10.0.19041.0\win10-x64\R2R\Microsoft.Windows.SDK.NET.dll">
       <PackagePath>Microsoft.Windows.SDK.NET.dll</PackagePath>

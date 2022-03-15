@@ -29,25 +29,25 @@
     <AppXManifest Include="C:\Users\Admin\source\repos\better_power\bin\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\AppxManifest.xml">
       <PackagePath>AppxManifest.xml</PackagePath>
       <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
-      <Modified>2022-03-13T03:45:15.280</Modified>
+      <Modified>2022-03-15T02:36:55.381</Modified>
     </AppXManifest>
   </ItemGroup>
   <ItemGroup>
     <AppxPackagedFile Include="C:\Users\Admin\source\repos\better_power\bin\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\resources.pri">
       <PackagePath>resources.pri</PackagePath>
-      <Modified>2022-03-13T03:45:14.951</Modified>
+      <Modified>2022-03-15T02:36:55.054</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Admin\source\repos\better_power\bin\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\better_power.runtimeconfig.json">
       <PackagePath>better_power.runtimeconfig.json</PackagePath>
-      <Modified>2022-03-13T02:28:25.289</Modified>
+      <Modified>2022-03-15T02:36:55.027</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Admin\source\repos\better_power\bin\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\better_power.dll">
       <PackagePath>better_power.dll</PackagePath>
-      <Modified>2022-03-13T03:45:14.697</Modified>
+      <Modified>2022-03-15T02:36:54.644</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\apphost.exe">
       <PackagePath>better_power.exe</PackagePath>
-      <Modified>2022-03-13T03:45:14.700</Modified>
+      <Modified>2022-03-15T02:36:54.648</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Admin\.nuget\packages\microsoft.powershell.sdk\7.2.1\contentFiles\any\any\ref\Microsoft.CSharp.dll">
       <PackagePath>ref\Microsoft.CSharp.dll</PackagePath>
@@ -755,7 +755,7 @@
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Admin\source\repos\better_power\bin\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\better_power.deps.json">
       <PackagePath>better_power.deps.json</PackagePath>
-      <Modified>2022-03-13T03:45:14.920</Modified>
+      <Modified>2022-03-15T02:36:54.938</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Admin\.nuget\packages\microsoft.netcore.app.runtime.win-x64\6.0.2\runtimes\win-x64\lib\net6.0\Microsoft.CSharp.dll">
       <PackagePath>Microsoft.CSharp.dll</PackagePath>
