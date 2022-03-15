@@ -22,7 +22,7 @@
 
                     <TextBlock Text="{x:Bind _setting_name}"                                
                                Grid.Column="0" 
-                               Width="400"
+                               Width="300"
                                VerticalAlignment="Center" 
                                HorizontalAlignment="Left"
                                TextWrapping="WrapWholeWords"
@@ -71,13 +71,25 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     
-                    <TextBlock Text="{x:Bind scheme_name}"/>
-                    <TextBlock x:Name="ActiveText" 
+                    <TextBlock Text="{x:Bind scheme_name}"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               />
+                    <!--<TextBlock x:Name="ActiveText" 
                                Grid.Column="1"
                                HorizontalAlignment="Center"
                                Text="{x:Bind active_indicator, Mode=OneWay}"
                                FontWeight="Bold" 
-                               Foreground="MediumSpringGreen"/>
+                               Foreground="MediumSpringGreen"/>-->
+                    <ToggleButton x:Name="SetActiveSchemeButton" 
+                               Grid.Column="1"
+                            Margin="8"
+                               HorizontalAlignment="Center"
+                               Content="Active"
+                               FontWeight="Bold" 
+                               Foreground="MediumSpringGreen"
+                    />
+                    
                 </Grid>
             </DataTemplate>
   
@@ -120,7 +132,7 @@
             Grid.Row="1"
             PaneDisplayMode="Left"
             
-            IsSettingsVisible="True"
+            IsSettingsVisible="False"
             IsBackButtonVisible="Collapsed"
             IsBackEnabled="False"
             Header=""

@@ -39,11 +39,22 @@ namespace better_power
 
     // TODO
 
+    // group headers in list view
     // switch system power scheme
-    // indicate the currently-active power scheme in the UI
 
     // observe settings changes from the OS 
     // create a new scheme by copying an existing one
+
+    // setting cards:
+    //      indicate possible values to which we can set the setting
+
+    //      data units + format     
+    //      range checking
+    //      indicate if setting was applied or failed (green flash / red error icon)
+    //      ac + dc menus
+
+    // turn off: clicking on a scheme opens group list 
+    // application icon and name in taskbar
 
     // (?) change settings via registry key
     // (?) install the classic schemes - from "power saving" to "ultimate perf"

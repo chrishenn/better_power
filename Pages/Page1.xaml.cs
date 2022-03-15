@@ -26,20 +26,7 @@ namespace better_power
     public sealed partial class Page1 : Page
     {
 
-        // TODO
 
-        // navigate: new page
-        // group headers in list view
-
-        // setting cards:
-        //      indicate possible values to which we can set the setting
-        //      data units + format
-        //      possible range
-        //      range checking?
-        //      indicate if setting was applied or failed (green flash / red error icon)
-        //      ac + dc menus
-
-        // make a tree view rather than navigationview?
 
 
         ObservableCollection<FrameworkElement> setting_items = new ObservableCollection<FrameworkElement>();
@@ -105,16 +92,22 @@ namespace better_power
         }
 
 
-        // todo: propagate changed values into setting's value_by_scheme for current scheme
+
         private void NumberBoxValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs e)
         {
             if (sender.IsLoaded && !this.settings_locked_for_navigation)
             {
-                SettingStore setting = App.pub_setting_store_dict[(string)sender.Tag];
+                SettingStore setting = App.pub_setting_store_dict[sender.Tag.ToString()];
 
-                string current_scheme = App.pub_curr_scheme_guid;
+                string selected_scheme_guid = (SchemeNavigationView.SelectedItem as NavigationViewItemBase).Tag.ToString();
 
-                bool result = (App.Current as App).set_powersetting(current_scheme, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.Value);
+                // propogate changed values into setting_vals_by_scheme dict for this setting.
+                // todo: will not be needed if the application watches system settings changes
+                // todo: update either AC or DC setting
+                var curr_vals = setting.curr_setting_vals_by_scheme[selected_scheme_guid];
+                setting.curr_setting_vals_by_scheme[selected_scheme_guid] = ((int)sender.Value, curr_vals.dc_val);
+
+                bool result = (App.Current as App).set_powersetting(selected_scheme_guid, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.Value);
             }
         }
 
@@ -124,11 +117,17 @@ namespace better_power
 
             if (sender.IsLoaded && !this.settings_locked_for_navigation)
             {
-                SettingStore setting = App.pub_setting_store_dict[(string)sender.Tag];
+                SettingStore setting = App.pub_setting_store_dict[sender.Tag.ToString()];
 
-                string current_scheme = App.pub_curr_scheme_guid;
+                string selected_scheme_guid = (SchemeNavigationView.SelectedItem as NavigationViewItemBase).Tag.ToString();
 
-                bool result = (App.Current as App).set_powersetting(current_scheme, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.SelectedIndex);
+                // propogate changed values into setting_vals_by_scheme dict for this setting.
+                // todo: will not be needed if the application watches system settings changes
+                // todo: update either AC or DC setting
+                var curr_vals = setting.curr_setting_vals_by_scheme[selected_scheme_guid];
+                setting.curr_setting_vals_by_scheme[selected_scheme_guid] = ((int)sender.SelectedIndex, curr_vals.dc_val);
+
+                bool result = (App.Current as App).set_powersetting(selected_scheme_guid, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.SelectedIndex);
             }
         }
 
@@ -180,7 +179,7 @@ namespace better_power
                 if (_schemeitem is NavigationViewItem)
                 {
                     NavigationViewItem schemeitem = _schemeitem as NavigationViewItem;
-                    string scheme_guid = (string)schemeitem.Tag;
+                    string scheme_guid = schemeitem.Tag.ToString();
                     if (scheme_guid == guid)
                     {
                         scheme_dict[scheme_guid].active_indicator = "(Active)";
@@ -195,7 +194,7 @@ namespace better_power
 
 
 
-        // navigate to a new page
+        // "navigate" to a new page
         private void SchemeNavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
             if (args.IsSettingsSelected)
@@ -207,7 +206,7 @@ namespace better_power
                 this.settings_locked_for_navigation = true;
 
                 var sel_menuitem = args.SelectedItemContainer;
-                string scheme_guid = (string)sel_menuitem.Tag;
+                string scheme_guid = sel_menuitem.Tag.ToString();
 
                 foreach (var setting_data in this.setting_data)
                 {
