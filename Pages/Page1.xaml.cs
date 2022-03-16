@@ -25,11 +25,17 @@ namespace better_power
     public sealed partial class Page1 : Page
     {
 
-        ObservableCollection<FrameworkElement> setting_items = new ObservableCollection<FrameworkElement>();
-        ObservableCollection<FrameworkElement> all_setting_items;
+        ObservableCollection<FrameworkElement> setting_elements = new ObservableCollection<FrameworkElement>();
 
-        Dictionary<string, FrameworkElement> setting_item_dict = new Dictionary<string, FrameworkElement>();
+        // todo: may not need to be observablecollection
+        ObservableCollection<FrameworkElement> all_setting_elements;
 
+        Dictionary<string, FrameworkElement> setting_element_dict = new Dictionary<string, FrameworkElement>();
+        Dictionary<string, FrameworkElement> scheme_element_dict = new Dictionary<string, FrameworkElement>();
+
+        // todo: add group_item_dict
+
+        // todo: may not need to be observablecollection
         ObservableCollection<SettingStore> setting_data = new ObservableCollection<SettingStore>();
 
         string current_display_scheme_guid;
@@ -37,18 +43,16 @@ namespace better_power
         bool settings_locked_for_navigation = false;
 
 
-
+        // generate listview settings elements
         public Page1()
         {
             this.InitializeComponent();
 
-            foreach (var kvp in App.pub_setting_store_dict)
+            foreach (var kvp in App.setting_data_dict)
             {
                 this.setting_data.Add( kvp.Value );
             }
 
-
-            // generate collections for listview settings elements
             string curr_groupid = "";
 
             foreach (var setting in this.setting_data)
@@ -58,9 +62,9 @@ namespace better_power
                 if (setting._parent_groupguid != curr_groupid)
                 {
                     curr_groupid = setting._parent_groupguid;
-                    string curr_groupname = App.pub_subgroup_store_dict[curr_groupid]._group_name;
+                    string curr_groupname = App.group_data_dict[curr_groupid]._group_name;
 
-                    this.setting_items.Add(new ListViewHeaderItem() { Content = curr_groupname, Tag = curr_groupid });
+                    this.setting_elements.Add(new ListViewHeaderItem() { Content = curr_groupname, Tag = curr_groupid });
                 }
 
                 Control box_elem;
@@ -93,36 +97,48 @@ namespace better_power
                 setting_elem.DataContext = setting;
                 setting_elem.Tag = setting_guid;
 
-                // Success animation
+                // register animators into element's Resources
                 Color background_gray = (Application.Current.Resources["AppTitleBar_Grey"] as SolidColorBrush).Color;
-                Duration duration = new Duration(TimeSpan.FromSeconds(1));
-
                 SolidColorBrush background_brush = new SolidColorBrush(background_gray);
                 setting_elem.Background = background_brush;
 
-                var color_togreen = new LinearColorKeyFrame() { Value = Colors.MediumSpringGreen, KeyTime=TimeSpan.FromSeconds(0.025) };
-                var color_green = new LinearColorKeyFrame() { Value = Colors.MediumSpringGreen, KeyTime=TimeSpan.FromSeconds(0.1) };
-                var color_togray = new LinearColorKeyFrame() { Value = background_gray, KeyTime = TimeSpan.FromSeconds(0.25) };
-
-                var animation = new ColorAnimationUsingKeyFrames();
-                animation.KeyFrames.Add(color_togreen);
-                animation.KeyFrames.Add(color_green);
-                animation.KeyFrames.Add(color_togray);
-
-                Storyboard.SetTarget(animation, background_brush);
-                Storyboard.SetTargetProperty(animation, "Color");
-
-                Storyboard story_board = new Storyboard() { Children={ animation } };
-                
-                setting_elem.Resources.Add("storyboard", story_board);
+                register_animation(setting_elem, background_brush, Colors.MediumSpringGreen, "success_animation");
+                register_animation(setting_elem, background_brush, Colors.MediumVioletRed, "fail_animation");
 
                 // add setting element to instance collections to find later
-                this.setting_items.Add(setting_elem);
-                this.setting_item_dict[setting_guid] = setting_elem;
+                this.setting_elements.Add(setting_elem);
+                this.setting_element_dict[setting_guid] = setting_elem;
             }
 
             // copy all setting items; this.setting_items is observed by the listview
-            this.all_setting_items = new ObservableCollection<FrameworkElement>(this.setting_items);
+            this.all_setting_elements = new ObservableCollection<FrameworkElement>(this.setting_elements);
+        }
+
+        private void Page1_GridLoaded(object sender, RoutedEventArgs e)
+        {
+            App.Window.SetTitleBar(AppTitleBar);
+        }
+
+        // register animation to a settings element or a scheme menuitem in the navigationview
+        private void register_animation(FrameworkElement element, SolidColorBrush animated_brush, Color color, string animation_name)
+        {
+            Color background_gray = (Application.Current.Resources["AppTitleBar_Grey"] as SolidColorBrush).Color;
+
+            var color_tocolor = new LinearColorKeyFrame() { Value = color, KeyTime = TimeSpan.FromSeconds(0.025) };
+            var color_hold = new LinearColorKeyFrame() { Value = color, KeyTime = TimeSpan.FromSeconds(0.1) };
+            var color_togray = new LinearColorKeyFrame() { Value = background_gray, KeyTime = TimeSpan.FromSeconds(0.25) };
+
+            var animation = new ColorAnimationUsingKeyFrames();
+            animation.KeyFrames.Add(color_tocolor);
+            animation.KeyFrames.Add(color_hold);
+            animation.KeyFrames.Add(color_togray);
+
+            Storyboard.SetTarget(animation, animated_brush);
+            Storyboard.SetTargetProperty(animation, "Color");
+
+            Storyboard story_board = new Storyboard() { Children = { animation } };
+
+            element.Resources.Add(animation_name, story_board);
         }
 
 
@@ -130,25 +146,23 @@ namespace better_power
         // Add power setting cards collection to main ListView
         private void ListView_Loaded(object sender, RoutedEventArgs e)
         {
-            this.ListView_main.ItemsSource = this.setting_items;            
+            this.ListView_main.ItemsSource = this.setting_elements;            
         }
-
-
 
         private void NumberBoxValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs e)
         {
             if (sender.IsLoaded && !this.settings_locked_for_navigation)
             {
-                SettingStore setting = App.pub_setting_store_dict[sender.Tag.ToString()];
+                SettingStore setting = App.setting_data_dict[sender.Tag.ToString()];
 
                 string selected_scheme_guid = this.current_display_scheme_guid;
 
                 var curr_vals = setting.curr_setting_vals_by_scheme[selected_scheme_guid];
                 setting.curr_setting_vals_by_scheme[selected_scheme_guid] = ((int)sender.Value, curr_vals.dc_val);
 
-                bool result = (App.Current as App).set_powersetting(selected_scheme_guid, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.Value);
+                bool success = (App.Current as App).set_powersetting(selected_scheme_guid, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.Value);
 
-                if (result) FireSuccessFlash(setting);
+                FireSettingSuccessFlash(setting, success);
             }
         }
 
@@ -158,31 +172,30 @@ namespace better_power
 
             if (sender.IsLoaded && !this.settings_locked_for_navigation)
             {
-                SettingStore setting = App.pub_setting_store_dict[sender.Tag.ToString()];
+                SettingStore setting = App.setting_data_dict[sender.Tag.ToString()];
 
                 string selected_scheme_guid = this.current_display_scheme_guid;
                                 
                 var curr_vals = setting.curr_setting_vals_by_scheme[selected_scheme_guid];
                 setting.curr_setting_vals_by_scheme[selected_scheme_guid] = ((int)sender.SelectedIndex, curr_vals.dc_val);
 
-                bool result = (App.Current as App).set_powersetting(selected_scheme_guid, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.SelectedIndex);
+                bool success = (App.Current as App).set_powersetting(selected_scheme_guid, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.SelectedIndex);
 
-                if (result) FireSuccessFlash(setting);
+                FireSettingSuccessFlash(setting, success);
             }
         }
 
-
-        private void FireSuccessFlash(SettingStore setting)
+        private void FireSettingSuccessFlash(SettingStore setting, bool success)
         {
-            (this.setting_item_dict[setting._setting_guid].Resources["storyboard"] as Storyboard).Begin();
+            if (success)
+                (this.setting_element_dict[setting._setting_guid].Resources["success_animation"] as Storyboard).Begin();
+            else
+                (this.setting_element_dict[setting._setting_guid].Resources["fail_animation"] as Storyboard).Begin();
         }
 
 
 
-        private void Page1_GridLoaded(object sender, RoutedEventArgs e)
-        {
-            App.Window.SetTitleBar(AppTitleBar);
-        }
+
 
 
         // Add navigationviewitems to navigationview
@@ -190,57 +203,78 @@ namespace better_power
         {
             this.SchemeNavigationView.MenuItems.Add(new NavigationViewItemHeader() { Content = "Installed Schemes", FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Colors.SlateBlue) });
 
-            foreach (var scheme in App.pub_scheme_store_dict)
+            foreach (var scheme in App.scheme_data_dict)
             {
                 var scheme_menuitem = new NavigationViewItem();
                 scheme_menuitem.Tag = scheme.Key;
                 scheme_menuitem.ContentTemplate = (DataTemplate)this.Resources["NavSchemeItem"];
                 scheme_menuitem.DataContext = scheme.Value;
 
+                // register animators
+                Color background_gray = (Application.Current.Resources["AppTitleBar_Grey"] as SolidColorBrush).Color;
+                SolidColorBrush background_brush = new SolidColorBrush(background_gray);
+                scheme_menuitem.Background = background_brush;
+
+                register_animation(scheme_menuitem, background_brush, Colors.MediumSpringGreen, "success_animation");
+                register_animation(scheme_menuitem, background_brush, Colors.MediumVioletRed, "fail_animation");
+
+                // add flyouts for contextmenu
                 var flyout_setactive = new MenuFlyoutItem() { Text = "Set Active", Tag = scheme.Key };
                 flyout_setactive.Click += SchemeSetActiveFlyout_Clicked;
                 scheme_menuitem.ContextFlyout = new MenuFlyout() { Items = { flyout_setactive } };
 
                 scheme_menuitem.MenuItems.Add(new NavigationViewItemHeader() { Content = "Setting Groups", FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Colors.SlateBlue) });
 
-                foreach (var group in App.pub_subgroup_store_dict)
+                foreach (var group in App.group_data_dict)
                 {
-                    // note: subgroup menuitems have key of parent's scheme guid! needed for navigation selectionchanged
                     scheme_menuitem.MenuItems.Add(new NavigationViewItem() { Content = group.Value._group_name, Tag = group.Key });
                 }
+
                 this.SchemeNavigationView.MenuItems.Add(scheme_menuitem);
+                this.scheme_element_dict[scheme.Key] = scheme_menuitem;
             }
 
-            NavSetSchemeItemActive(App.pub_curr_scheme_guid, true);
+            NavSetSchemeItemActive(App.curr_system_applied_scheme_guid);
+            this.SchemeNavigationView.SelectedItem = this.scheme_element_dict[App.curr_system_applied_scheme_guid];
         }
 
         private void SchemeSetActiveFlyout_Clicked(object sender, RoutedEventArgs e)
         {
             string scheme_guid = (sender as MenuFlyoutItem).Tag.ToString();
 
-            bool result = (App.Current as App).set_powerscheme(scheme_guid);
+            bool success = (App.Current as App).set_powerscheme(scheme_guid);
 
-            NavSetSchemeItemActive(scheme_guid, false);
+            NavSetSchemeItemActive(scheme_guid);
+            FireSchemeSuccessFlash(scheme_guid, success);
         }
 
-        private void NavSetSchemeItemActive(string target_guid, bool nav_to_active)
+        private void FireSchemeSuccessFlash(string scheme_guid, bool success)
         {
-            foreach (object _schemeitem in this.SchemeNavigationView.MenuItems)
+            var applied_scheme_elem = (NavigationViewItem)this.scheme_element_dict[scheme_guid];
+
+            //SolidColorBrush default_selected_brush = (SolidColorBrush)this.SchemeNavigationView.Resources["NavigationViewItemBackgroundSelected"];
+            //Color background_gray = (Application.Current.Resources["AppTitleBar_Grey"] as SolidColorBrush).Color;
+            //this.SchemeNavigationView.Resources["NavigationViewItemBackgroundSelected"] = new SolidColorBrush(background_gray);
+
+            if (success)
+                (applied_scheme_elem.Resources["success_animation"] as Storyboard).Begin();
+            else
+                (applied_scheme_elem.Resources["fail_animation"] as Storyboard).Begin();
+
+            //this.SchemeNavigationView.Resources["NavigationViewItemBackgroundSelected"] = default_selected_brush;
+        }
+
+        private void NavSetSchemeItemActive(string active_scheme_guid)
+        {
+            foreach (var kvp in this.scheme_element_dict)
             {
-                if (_schemeitem is NavigationViewItem)
+                if (kvp.Key == active_scheme_guid)
                 {
-                    NavigationViewItem schemeitem = _schemeitem as NavigationViewItem;
-                    string nav_scheme_guid = schemeitem.Tag.ToString();
-                    if (nav_scheme_guid == target_guid)
-                    {
-                        App.pub_scheme_store_dict[nav_scheme_guid].is_active_scheme = "Visible";
-                        if (nav_to_active) 
-                            this.SchemeNavigationView.SelectedItem = schemeitem;                        
-                    }
-                    else
-                    {
-                        App.pub_scheme_store_dict[nav_scheme_guid].is_active_scheme = "Collapsed";
-                    }
+                    App.scheme_data_dict[kvp.Key].is_active_scheme = "Visible";
+                }
+                else
+                {
+                    App.scheme_data_dict[kvp.Key].is_active_scheme = "Collapsed";
                 }
             }
         }
@@ -259,14 +293,14 @@ namespace better_power
                 string selected_scheme_guid;
 
                 // selected is a scheme. update settings cards current values in listview
-                if (App.pub_scheme_store_dict.ContainsKey(selected_guid))
+                if (App.scheme_data_dict.ContainsKey(selected_guid))
                 {
                     selected_scheme_guid = selected_guid;                    
                     update_settings_to_scheme(selected_scheme_guid);
 
-                    this.setting_items.Clear();
-                    foreach (var item in this.all_setting_items) 
-                        this.setting_items.Add(item);
+                    this.setting_elements.Clear();
+                    foreach (var item in this.all_setting_elements) 
+                        this.setting_elements.Add(item);
                 }
                 // else selected_guid is a groupid. get selected scheme. check for scheme change. filter settings in view.
                 else
@@ -276,19 +310,19 @@ namespace better_power
                     if (selected_scheme_guid != this.current_display_scheme_guid)
                         update_settings_to_scheme(selected_scheme_guid);
 
-                    this.setting_items.Clear();
+                    this.setting_elements.Clear();
 
-                    foreach (var setting_item in this.all_setting_items)
+                    foreach (var setting_item in this.all_setting_elements)
                     {
                         string setting_guid = setting_item.Tag.ToString();
 
-                        if (App.pub_setting_store_dict.ContainsKey(setting_guid))
+                        if (App.setting_data_dict.ContainsKey(setting_guid))
                         {
-                            if (App.pub_setting_store_dict[setting_guid]._parent_groupguid == selected_guid)
-                                this.setting_items.Add(setting_item);
+                            if (App.setting_data_dict[setting_guid]._parent_groupguid == selected_guid)
+                                this.setting_elements.Add(setting_item);
                         }
                         else if (setting_guid == selected_guid)
-                            this.setting_items.Add(setting_item);                                             
+                            this.setting_elements.Add(setting_item);                                             
                     }
                 }
 

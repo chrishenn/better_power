@@ -142,17 +142,17 @@ namespace better_power
         public static Window Window { get { return m_window; } }
         private static Window m_window;
 
-        public static Dictionary<string, SettingStore> pub_setting_store_dict { get { return setting_store_dict; } }
-        private static Dictionary<string, SettingStore> setting_store_dict = new Dictionary<string, SettingStore>();
+        public static Dictionary<string, SettingStore> setting_data_dict { get { return _setting_data_dict; } }
+        private static Dictionary<string, SettingStore> _setting_data_dict = new Dictionary<string, SettingStore>();
 
-        public static Dictionary<string, GroupStore> pub_subgroup_store_dict { get { return subgroup_store_dict; } }
-        private static Dictionary<string, GroupStore> subgroup_store_dict = new Dictionary<string, GroupStore>();
+        public static Dictionary<string, GroupStore> group_data_dict { get { return _group_data_dict; } }
+        private static Dictionary<string, GroupStore> _group_data_dict = new Dictionary<string, GroupStore>();
 
-        public static Dictionary<string, SchemeStore> pub_scheme_store_dict { get { return scheme_store_dict; } }
-        private static Dictionary<string, SchemeStore> scheme_store_dict = new Dictionary<string, SchemeStore>();
+        public static Dictionary<string, SchemeStore> scheme_data_dict { get { return _scheme_data_dict; } }
+        private static Dictionary<string, SchemeStore> _scheme_data_dict = new Dictionary<string, SchemeStore>();
 
-        public static string pub_curr_scheme_guid { get { return curr_scheme_guid; } }
-        private static string curr_scheme_guid;
+        public static string curr_system_applied_scheme_guid { get { return _curr_system_applied_scheme_guid; } }
+        private static string _curr_system_applied_scheme_guid;
 
         private PowerShell ps = PowerShell.Create();
 
@@ -198,9 +198,8 @@ namespace better_power
         public void get_current_scheme_guid()
         {
             this.ps.AddCommand("powercfg").AddArgument("getactivescheme");
-            App.curr_scheme_guid = this.ps.Invoke()[0].ToString().Trim().Substring(19, 36);
+            App._curr_system_applied_scheme_guid = this.ps.Invoke()[0].ToString().Trim().Substring(19, 36);
         }
-
 
 
         private void get_scheme_guids()
@@ -221,7 +220,7 @@ namespace better_power
                     string name = tmp.Substring(58);
                     name = name.TrimEnd( new char[] {')', '*', ' '} );
 
-                    App.scheme_store_dict[guid] = new SchemeStore(name, guid);
+                    App._scheme_data_dict[guid] = new SchemeStore(name, guid);
                 }
             }
         }
@@ -257,7 +256,7 @@ namespace better_power
 
         private void get_powersettings()
         {
-            string curr_powerscheme = App.curr_scheme_guid;
+            string curr_powerscheme = App._curr_system_applied_scheme_guid;
             var all_settings = powercfg_query(curr_powerscheme, "");
 
 
@@ -294,7 +293,7 @@ namespace better_power
                     string group_name = line.Substring(54, line.Length-1-54);
 
                     curr_group = new GroupStore(group_guid, group_name);
-                    subgroup_store_dict[group_guid] = curr_group;
+                    _group_data_dict[group_guid] = curr_group;
 
                     i++;
                 }
@@ -304,7 +303,7 @@ namespace better_power
                     string setting_name = line.Substring(59, line.Length-1-59); 
 
                     curr_setting = new SettingStore(setting_guid, setting_name, "", curr_group._group_guid);
-                    setting_store_dict[setting_guid] = curr_setting;
+                    _setting_data_dict[setting_guid] = curr_setting;
 
                     curr_group._child_guids.Add(setting_guid);
 
@@ -364,7 +363,7 @@ namespace better_power
         // populate the existing settings objs in the settings dict with current setting values
         private void get_all_setting_vals_by_scheme()
         {
-            foreach (var kvp in App.scheme_store_dict)
+            foreach (var kvp in App._scheme_data_dict)
             {
                 string curr_scheme_guid = kvp.Key;
                 var res_objs = powercfg_query(curr_scheme_guid, "");
@@ -391,7 +390,7 @@ namespace better_power
                         int ac_value = str16_toint( line.Substring(32) );
                         int dc_value = str16_toint( res_objs[i+1].ToString().Trim().Substring(32) );
 
-                        App.setting_store_dict[curr_setting_guid].curr_setting_vals_by_scheme[curr_scheme_guid] = (ac_val: ac_value, dc_val: dc_value);
+                        App._setting_data_dict[curr_setting_guid].curr_setting_vals_by_scheme[curr_scheme_guid] = (ac_val: ac_value, dc_val: dc_value);
 
                         i += 2;
                     }
