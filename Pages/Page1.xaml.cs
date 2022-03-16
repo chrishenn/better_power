@@ -26,9 +26,6 @@ namespace better_power
     public sealed partial class Page1 : Page
     {
 
-
-
-
         ObservableCollection<FrameworkElement> setting_items = new ObservableCollection<FrameworkElement>();
         ObservableCollection<SettingStore> setting_data = new ObservableCollection<SettingStore>();
 
@@ -47,10 +44,10 @@ namespace better_power
         }
 
 
-        
+
         // Add power setting cards to main ListView
         private void ListView_Loaded(object sender, RoutedEventArgs e)
-        {            
+        {
             var setting_dict = App.pub_setting_store_dict;
 
             foreach (var setting in this.setting_data)
@@ -144,22 +141,22 @@ namespace better_power
         // Add navigationviewitems to navigationview
         private void SchemeNavigationView_Loaded(object sender, RoutedEventArgs e)
         {
-            var group_dict = App.pub_subgroup_store_dict;
-            var scheme_dict = App.pub_scheme_guids;
-
-
             this.SchemeNavigationView.MenuItems.Add(new NavigationViewItemHeader() { Content = "Installed Schemes", FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Colors.SlateBlue) });
 
-            foreach (var scheme in scheme_dict)
+            foreach (var scheme in App.pub_scheme_store_dict)
             {
                 var scheme_menuitem = new NavigationViewItem();
                 scheme_menuitem.Tag = scheme.Key;
                 scheme_menuitem.ContentTemplate = (DataTemplate)this.Resources["NavSchemeItem"];
-                scheme_menuitem.DataContext = scheme.Value;                
+                scheme_menuitem.DataContext = scheme.Value;
+
+                var flyout_setactive = new MenuFlyoutItem() { Text = "Set Active", Tag = scheme.Key };
+                flyout_setactive.Click += SchemeSetActiveFlyout_Clicked;
+                scheme_menuitem.ContextFlyout = new MenuFlyout() { Items = { flyout_setactive } };
 
                 scheme_menuitem.MenuItems.Add(new NavigationViewItemHeader() { Content = "Setting Groups", FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Colors.SlateBlue) });
 
-                foreach (var group in group_dict)
+                foreach (var group in App.pub_subgroup_store_dict)
                 {
                     scheme_menuitem.MenuItems.Add(new NavigationViewItem() { Content = group.Value._group_name, Tag = group.Key });
                 }
@@ -169,32 +166,102 @@ namespace better_power
             NavSetSchemeItemActive(App.pub_curr_scheme_guid, true);
         }
 
-
-        private void NavSetSchemeItemActive(string guid, bool nav_to_active)
+        private void SchemeSetActiveFlyout_Clicked(object sender, RoutedEventArgs e)
         {
-            var scheme_dict = App.pub_scheme_guids;
+            string scheme_guid = (sender as MenuFlyoutItem).Tag.ToString();
 
+            bool result = (App.Current as App).set_powerscheme(scheme_guid);
+
+            NavSetSchemeItemActive(scheme_guid, false);
+        }
+
+
+        // Add items to navigationTreeView
+        //private void TreeViewNavigation_Loaded(object sender, RoutedEventArgs e)
+        //{
+        //    this.navigation_items.Add(new TreeViewItem() { Content = "Installed Schemes", FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Colors.SlateBlue), Tag = "Header" });
+
+        //    foreach (var scheme in App.pub_scheme_guids)
+        //    {
+        //        var scheme_menuitem = new TreeViewItem();
+        //        scheme_menuitem.Tag = scheme.Key;
+        //        scheme_menuitem.ContentTemplate = (DataTemplate)this.Resources["NavSchemeItem"];
+        //        scheme_menuitem.DataContext = scheme.Value;
+        //        scheme_menuitem.AddHandler(TappedEvent, new TappedEventHandler(TreeView_SchemeItem_Clicked), true);
+
+        //        var scheme_items = new List<FrameworkElement>();
+
+        //        scheme_items.Add(new TreeViewItem() {Content = "Setting Groups", FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Colors.SlateBlue), Tag="Header" });
+
+        //        foreach (var group in App.pub_subgroup_store_dict)
+        //        {
+        //            var groupitem = new TreeViewItem() { Content = group.Value._group_name, Tag = group.Key };
+        //            groupitem.AddHandler(TappedEvent, new TappedEventHandler(TreeView_GroupItem_Clicked), true);
+
+        //            scheme_items.Add(groupitem);
+        //        }
+
+        //        scheme_menuitem.ItemsSource = scheme_items;
+        //        this.navigation_items.Add(scheme_menuitem);
+        //    }
+
+        //    this.TreeViewNavigation.ItemsSource = this.navigation_items;
+
+        //    NavSetSchemeItemActive(App.pub_curr_scheme_guid, true);
+        //}
+
+        //private void TreeView_SchemeItem_Clicked(object sender, TappedRoutedEventArgs args)
+        //{
+
+        //}
+
+        //private void TreeView_GroupItem_Clicked(object sender, TappedRoutedEventArgs args)
+        //{
+
+        //}
+
+
+        private void NavSetSchemeItemActive(string target_guid, bool nav_to_active)
+        {
             foreach (object _schemeitem in this.SchemeNavigationView.MenuItems)
             {
                 if (_schemeitem is NavigationViewItem)
                 {
                     NavigationViewItem schemeitem = _schemeitem as NavigationViewItem;
-                    string scheme_guid = schemeitem.Tag.ToString();
-                    if (scheme_guid == guid)
+                    string nav_scheme_guid = schemeitem.Tag.ToString();
+                    if (nav_scheme_guid == target_guid)
                     {
-                        scheme_dict[scheme_guid].active_indicator = "(Active)";
-                        if (nav_to_active) this.SchemeNavigationView.SelectedItem = schemeitem;
-                        break;
+                        App.pub_scheme_store_dict[nav_scheme_guid].is_active_scheme = "Visible";
+                        if (nav_to_active) this.SchemeNavigationView.SelectedItem = schemeitem;                        
                     }
-                }                
+                    else
+                    {
+                        App.pub_scheme_store_dict[nav_scheme_guid].is_active_scheme = "Collapsed";
+                    }
+                }
             }
         }
 
+        ////navigationtreeview set item active
+        //private void NavSetSchemeItemActive(string guid, bool nav_to_active)
+        //{
+        //    foreach (object _schemeitem in this.TreeViewNavigation.RootNodes)
+        //    {
+        //        string scheme_guid = ((_schemeitem as TreeViewNode).Content as TreeViewItem).Tag.ToString();
+        //        if (scheme_guid == guid)
+        //        {
+        //            App.pub_scheme_guids[scheme_guid].active_indicator = "(Active)";
+        //            if (nav_to_active) this.TreeViewNavigation.SelectedItem = _schemeitem;
+        //            break;
+        //        }                
+        //    }
+        //}
 
 
 
 
         // "navigate" to a new page
+        
         private void SchemeNavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
             if (args.IsSettingsSelected)
@@ -205,8 +272,7 @@ namespace better_power
             {
                 this.settings_locked_for_navigation = true;
 
-                var sel_menuitem = args.SelectedItemContainer;
-                string scheme_guid = sel_menuitem.Tag.ToString();
+                string scheme_guid = args.SelectedItemContainer.Tag.ToString();
 
                 foreach (var setting_data in this.setting_data)
                 {
@@ -223,8 +289,19 @@ namespace better_power
 
 
 
+        private void SchemeNavigationView_DisplayModeChanged(object sender, NavigationViewDisplayModeChangedEventArgs e)
+        {
 
-        private void SchemeNavigationView_SearchBoxTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+        }
+        private void SchemeNavigationView_SelectionChanged(object sender, NavigationViewSelectionChangedEventArgs e)
+        {
+
+        }
+
+
+
+
+        private void SearchBoxTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
             if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
             {
@@ -267,19 +344,13 @@ namespace better_power
             }
         }
 
-        private void SchemeNavigationView_SearchBoxQuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args) { }
-
-
-
+        private void SearchBoxQuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args) { }
 
         private void OnMenuFlyoutItemClick(object sender, RoutedEventArgs e) { }
 
-        // todo: check for compact and morph Active indicator to circle
-        private void SchemeNavigationView_DisplayModeChanged(NavigationView sender, NavigationViewDisplayModeChangedEventArgs args) { }
-
         private void CtrlF_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
         {
-            SchemeNavigationView_SearchBox.Focus(FocusState.Programmatic);
+            SearchBox.Focus(FocusState.Programmatic);
         }
     }
 

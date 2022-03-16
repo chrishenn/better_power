@@ -28,8 +28,7 @@
                                TextWrapping="WrapWholeWords"
                                Margin="10,5,0,5" 
                                
-                               x:Phase="0"
-                               />
+                               x:Phase="0" />
                 </Grid>
             </DataTemplate>
 
@@ -45,8 +44,7 @@
                     ItemsSource="{x:Bind possible_settings_index_dict.Values}"
                     SelectedIndex="{x:Bind curr_ac_val, Mode=TwoWay}"
                     
-                    x:Phase="1"
-                    />
+                    x:Phase="1" />
             </DataTemplate>
 
             <DataTemplate x:Key="NumberBoxTemplate" x:DataType="local:SettingStore">
@@ -57,40 +55,35 @@
                     HorizontalAlignment="Left"
                     Margin="0,5,10,5" 
                     
-                    Value="{x:Bind curr_ac_val, Mode=TwoWay}"
-                    
-                    x:Phase="1"
-                    />                
+                    Value="{x:Bind curr_ac_val, Mode=TwoWay}"                    
+                    x:Phase="1" />                
             </DataTemplate>
 
 
             <DataTemplate x:Key="NavSchemeItem" x:DataType="local:SchemeStore">
-                <Grid HorizontalAlignment="Stretch">
-                    <Grid.ColumnDefinitions >
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
                     <TextBlock Text="{x:Bind scheme_name}"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"
-                               />
-                    <!--<TextBlock x:Name="ActiveText" 
-                               Grid.Column="1"
-                               HorizontalAlignment="Center"
-                               Text="{x:Bind active_indicator, Mode=OneWay}"
-                               FontWeight="Bold" 
-                               Foreground="MediumSpringGreen"/>-->
-                    <ToggleButton x:Name="SetActiveSchemeButton" 
-                               Grid.Column="1"
-                            Margin="8"
-                               HorizontalAlignment="Center"
-                               Content="Active"
-                               FontWeight="Bold" 
-                               Foreground="MediumSpringGreen"
-                    />
-                    
-                </Grid>
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Center" />
+                    <Grid 
+                            CornerRadius="2" BorderThickness="2" Padding="0" Margin="10" 
+                            BorderBrush="MediumSpringGreen" 
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Visibility="{x:Bind is_active_scheme, Mode=OneWay}">
+                        <TextBlock  
+                            Text="Active"
+                            Margin="8"                           
+                            FontWeight="Bold" 
+                            Foreground="MediumSpringGreen" />
+                    </Grid>
+                                        
+                </StackPanel>
+                
+            </DataTemplate>
+
+            <DataTemplate x:Key="NavSchemeActiveBadge" >
+                
             </DataTemplate>
   
                 
@@ -152,21 +145,19 @@
 
             <NavigationView.AutoSuggestBox>
                 <AutoSuggestBox
-                    x:Name="SchemeNavigationView_SearchBox"
-                    VerticalAlignment="Center"
+                    x:Name="SearchBox"
                     x:FieldModifier="public"
                     PlaceholderText="Search Settings in Selected Scheme"
                     QueryIcon="Find"
-                    QuerySubmitted="SchemeNavigationView_SearchBoxQuerySubmitted"
+                    QuerySubmitted="SearchBoxQuerySubmitted"
                     MinWidth="200"
                     KeyboardAcceleratorPlacementMode="Hidden"
-                    TextChanged="SchemeNavigationView_SearchBoxTextChanged">
+                    TextChanged="SearchBoxTextChanged">
                     <AutoSuggestBox.KeyboardAccelerators>
                         <KeyboardAccelerator Modifiers="Control" Key="F" Invoked="CtrlF_Invoked" />
                     </AutoSuggestBox.KeyboardAccelerators>
                 </AutoSuggestBox>
             </NavigationView.AutoSuggestBox>
-
             
             <ListView x:Name="ListView_main"
                       Loaded="ListView_Loaded"
@@ -175,11 +166,54 @@
                     IsTabStop="False" 
                     SelectionMode="None"
                     IsItemClickEnabled="False">
-            </ListView> 
-            
+            </ListView>             
         </NavigationView>
 
-        
+        <!--<StackPanel
+            Grid.Row="1"
+            Grid.Column="0"
+            Orientation="Vertical" >
+
+            <AutoSuggestBox
+                x:Name="SearchBox"
+                HorizontalAlignment="Center"
+                x:FieldModifier="public"
+                PlaceholderText="Search Settings in Selected Scheme"
+                QueryIcon="Find"
+                MinWidth="200"
+                KeyboardAcceleratorPlacementMode="Hidden"
+                
+                TextChanged="SearchBoxTextChanged"
+                QuerySubmitted="SearchBoxQuerySubmitted"
+                >
+                <AutoSuggestBox.KeyboardAccelerators>
+                    <KeyboardAccelerator Modifiers="Control" Key="F" Invoked="CtrlF_Invoked" />
+                </AutoSuggestBox.KeyboardAccelerators>
+            </AutoSuggestBox>
+            
+            <TreeView
+                x:Name="TreeViewNavigation"      
+                IsTabStop="False"
+            
+                Background="{StaticResource AppTitleBar_Grey}"
+                                              
+                Loaded="TreeViewNavigation_Loaded">
+            </TreeView>
+
+        </StackPanel>-->
+                
+        <!--<ListView x:Name="ListView_main"
+                  Grid.Row="1"
+                  Grid.Column="1"
+                  
+                  Loaded="ListView_Loaded"          
+                  Padding="0,5,0,5"
+                  IsTabStop="False" 
+                  SelectionMode="None"
+                  IsItemClickEnabled="False">
+        </ListView>-->
+
+
     </Grid>   
 
 </Page>

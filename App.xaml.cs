@@ -116,15 +116,21 @@ namespace better_power
         public List<string> _child_guids { get; set; }
     }
 
-    public class SchemeStore
+    public class SchemeStore : BindableBase
     {
         public string scheme_name;
-        public string active_indicator;
+        private string _is_active_scheme;
 
         public SchemeStore(string scheme_name)
         {
             this.scheme_name = scheme_name;
-            this.active_indicator = "";
+            this._is_active_scheme = "Collapsed";
+        }
+
+        public string is_active_scheme
+        {
+            get { return this._is_active_scheme; }
+            set { this.SetProperty(ref this._is_active_scheme, value); }
         }
     }
 
@@ -147,8 +153,8 @@ namespace better_power
         public static Dictionary<string, GroupStore> pub_subgroup_store_dict { get { return subgroup_store_dict; } }
         private static Dictionary<string, GroupStore> subgroup_store_dict = new Dictionary<string, GroupStore>();
 
-        public static Dictionary<string, SchemeStore> pub_scheme_guids { get { return scheme_guids; } }
-        private static Dictionary<string, SchemeStore> scheme_guids = new Dictionary<string, SchemeStore>();
+        public static Dictionary<string, SchemeStore> pub_scheme_store_dict { get { return scheme_store_dict; } }
+        private static Dictionary<string, SchemeStore> scheme_store_dict = new Dictionary<string, SchemeStore>();
 
         public static string pub_curr_scheme_guid { get { return curr_scheme_guid; } }
         private static string curr_scheme_guid;
@@ -220,7 +226,7 @@ namespace better_power
                     string name = tmp.Substring(58);
                     name = name.TrimEnd( new char[] {')', '*', ' '} );
 
-                    App.scheme_guids[guid] = new SchemeStore(name);
+                    App.scheme_store_dict[guid] = new SchemeStore(name);
                 }
             }
         }
@@ -242,8 +248,13 @@ namespace better_power
             this.ps.AddCommand("powercfg").AddArgument("setacvalueindex").AddArgument(scheme_guid).AddArgument(group_guid).AddArgument(setting_guid).AddArgument(value);
             var result = this.ps.Invoke();
 
-            //this.ps.AddCommand("powercfg").AddArgument("setdcvalueindex").AddArgument(scheme_guid).AddArgument(group_guid).AddArgument(setting_guid).AddArgument(value);
-            //result = this.ps.Invoke();
+            return (result.Count == 0);
+        }
+
+        public bool set_powerscheme(string scheme_guid)
+        {
+            this.ps.AddCommand("powercfg").AddArgument("setactive").AddArgument(scheme_guid);
+            var result = this.ps.Invoke();
 
             return (result.Count == 0);
         }
@@ -358,7 +369,7 @@ namespace better_power
         // populate the existing settings objs in the settings dict with current setting values
         private void get_all_setting_vals_by_scheme()
         {
-            foreach (var kvp in App.scheme_guids)
+            foreach (var kvp in App.scheme_store_dict)
             {
                 string curr_scheme_guid = kvp.Key;
                 var res_objs = powercfg_query(curr_scheme_guid, "");
