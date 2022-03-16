@@ -48,11 +48,19 @@ namespace better_power
         // Add power setting cards to main ListView
         private void ListView_Loaded(object sender, RoutedEventArgs e)
         {
-            var setting_dict = App.pub_setting_store_dict;
+            string curr_groupid = "";
 
             foreach (var setting in this.setting_data)
             {
                 string setting_guid = setting._setting_guid;
+
+                if (setting._parent_groupguid != curr_groupid)
+                {
+                    curr_groupid = setting._parent_groupguid;
+                    string curr_groupname = App.pub_subgroup_store_dict[curr_groupid]._group_name;
+
+                    this.setting_items.Add(new ListViewHeaderItem() {Content=curr_groupname, Tag=curr_groupid} );                                       
+                }
 
                 Control box_elem;
                 if (setting.is_range)
@@ -97,10 +105,7 @@ namespace better_power
                 SettingStore setting = App.pub_setting_store_dict[sender.Tag.ToString()];
 
                 string selected_scheme_guid = (SchemeNavigationView.SelectedItem as NavigationViewItemBase).Tag.ToString();
-
-                // propogate changed values into setting_vals_by_scheme dict for this setting.
-                // todo: will not be needed if the application watches system settings changes
-                // todo: update either AC or DC setting
+   
                 var curr_vals = setting.curr_setting_vals_by_scheme[selected_scheme_guid];
                 setting.curr_setting_vals_by_scheme[selected_scheme_guid] = ((int)sender.Value, curr_vals.dc_val);
 
@@ -117,10 +122,7 @@ namespace better_power
                 SettingStore setting = App.pub_setting_store_dict[sender.Tag.ToString()];
 
                 string selected_scheme_guid = (SchemeNavigationView.SelectedItem as NavigationViewItemBase).Tag.ToString();
-
-                // propogate changed values into setting_vals_by_scheme dict for this setting.
-                // todo: will not be needed if the application watches system settings changes
-                // todo: update either AC or DC setting
+                                
                 var curr_vals = setting.curr_setting_vals_by_scheme[selected_scheme_guid];
                 setting.curr_setting_vals_by_scheme[selected_scheme_guid] = ((int)sender.SelectedIndex, curr_vals.dc_val);
 
@@ -175,52 +177,6 @@ namespace better_power
             NavSetSchemeItemActive(scheme_guid, false);
         }
 
-
-        // Add items to navigationTreeView
-        //private void TreeViewNavigation_Loaded(object sender, RoutedEventArgs e)
-        //{
-        //    this.navigation_items.Add(new TreeViewItem() { Content = "Installed Schemes", FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Colors.SlateBlue), Tag = "Header" });
-
-        //    foreach (var scheme in App.pub_scheme_guids)
-        //    {
-        //        var scheme_menuitem = new TreeViewItem();
-        //        scheme_menuitem.Tag = scheme.Key;
-        //        scheme_menuitem.ContentTemplate = (DataTemplate)this.Resources["NavSchemeItem"];
-        //        scheme_menuitem.DataContext = scheme.Value;
-        //        scheme_menuitem.AddHandler(TappedEvent, new TappedEventHandler(TreeView_SchemeItem_Clicked), true);
-
-        //        var scheme_items = new List<FrameworkElement>();
-
-        //        scheme_items.Add(new TreeViewItem() {Content = "Setting Groups", FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Colors.SlateBlue), Tag="Header" });
-
-        //        foreach (var group in App.pub_subgroup_store_dict)
-        //        {
-        //            var groupitem = new TreeViewItem() { Content = group.Value._group_name, Tag = group.Key };
-        //            groupitem.AddHandler(TappedEvent, new TappedEventHandler(TreeView_GroupItem_Clicked), true);
-
-        //            scheme_items.Add(groupitem);
-        //        }
-
-        //        scheme_menuitem.ItemsSource = scheme_items;
-        //        this.navigation_items.Add(scheme_menuitem);
-        //    }
-
-        //    this.TreeViewNavigation.ItemsSource = this.navigation_items;
-
-        //    NavSetSchemeItemActive(App.pub_curr_scheme_guid, true);
-        //}
-
-        //private void TreeView_SchemeItem_Clicked(object sender, TappedRoutedEventArgs args)
-        //{
-
-        //}
-
-        //private void TreeView_GroupItem_Clicked(object sender, TappedRoutedEventArgs args)
-        //{
-
-        //}
-
-
         private void NavSetSchemeItemActive(string target_guid, bool nav_to_active)
         {
             foreach (object _schemeitem in this.SchemeNavigationView.MenuItems)
@@ -242,26 +198,6 @@ namespace better_power
             }
         }
 
-        ////navigationtreeview set item active
-        //private void NavSetSchemeItemActive(string guid, bool nav_to_active)
-        //{
-        //    foreach (object _schemeitem in this.TreeViewNavigation.RootNodes)
-        //    {
-        //        string scheme_guid = ((_schemeitem as TreeViewNode).Content as TreeViewItem).Tag.ToString();
-        //        if (scheme_guid == guid)
-        //        {
-        //            App.pub_scheme_guids[scheme_guid].active_indicator = "(Active)";
-        //            if (nav_to_active) this.TreeViewNavigation.SelectedItem = _schemeitem;
-        //            break;
-        //        }                
-        //    }
-        //}
-
-
-
-
-        // "navigate" to a new page
-        
         private void SchemeNavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
             if (args.IsSettingsSelected)
@@ -289,17 +225,10 @@ namespace better_power
 
 
 
-        private void SchemeNavigationView_DisplayModeChanged(object sender, NavigationViewDisplayModeChangedEventArgs e)
-        {
-
-        }
-        private void SchemeNavigationView_SelectionChanged(object sender, NavigationViewSelectionChangedEventArgs e)
-        {
-
-        }
 
 
 
+        private void SchemeNavigationView_DisplayModeChanged(object sender, NavigationViewDisplayModeChangedEventArgs e) { }
 
         private void SearchBoxTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
@@ -345,8 +274,6 @@ namespace better_power
         }
 
         private void SearchBoxQuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args) { }
-
-        private void OnMenuFlyoutItemClick(object sender, RoutedEventArgs e) { }
 
         private void CtrlF_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
         {

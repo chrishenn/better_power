@@ -39,23 +39,19 @@ namespace better_power
 
     // TODO
 
-    // group headers in list view
-    // switch system power scheme
-
-    // observe settings changes from the OS 
+    // group selection in navvigation view
+    // flash green on success, red on failure (setting applied, scheme applied)
     // create a new scheme by copying an existing one
+    // application icon and name in taskbar
+    // search box
 
     // setting cards:
     //      indicate possible values to which we can set the setting
-
     //      data units + format     
     //      range checking
-    //      indicate if setting was applied or failed (green flash / red error icon)
     //      ac + dc menus
 
-    // turn off: clicking on a scheme opens group list 
-    // application icon and name in taskbar
-
+    // (?) observe settings changes from the OS 
     // (?) change settings via registry key
     // (?) install the classic schemes - from "power saving" to "ultimate perf"
     // (?) pull power setting info from system objects
@@ -69,7 +65,6 @@ namespace better_power
             _setting_name = setting_name;
             _setting_descr = setting_descr;
             _parent_groupguid = parent_groupguid;
-
         }
 
         public string _setting_guid { get; set; }

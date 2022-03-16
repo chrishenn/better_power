@@ -70,7 +70,7 @@
                             BorderBrush="MediumSpringGreen" 
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
-                                                                  >
+                                                                               >
                         <TextBlock  
                             Text="Active"
                             Margin="8"                           
