@@ -113,8 +113,8 @@ namespace better_power
             {
                 SettingStore setting = App.pub_setting_store_dict[sender.Tag.ToString()];
 
-                string selected_scheme_guid = (SchemeNavigationView.SelectedItem as NavigationViewItemBase).Tag.ToString();
-   
+                string selected_scheme_guid = this.current_display_scheme_guid;
+
                 var curr_vals = setting.curr_setting_vals_by_scheme[selected_scheme_guid];
                 setting.curr_setting_vals_by_scheme[selected_scheme_guid] = ((int)sender.Value, curr_vals.dc_val);
 
@@ -130,7 +130,7 @@ namespace better_power
             {
                 SettingStore setting = App.pub_setting_store_dict[sender.Tag.ToString()];
 
-                string selected_scheme_guid = (SchemeNavigationView.SelectedItem as NavigationViewItemBase).Tag.ToString();
+                string selected_scheme_guid = this.current_display_scheme_guid;
                                 
                 var curr_vals = setting.curr_setting_vals_by_scheme[selected_scheme_guid];
                 setting.curr_setting_vals_by_scheme[selected_scheme_guid] = ((int)sender.SelectedIndex, curr_vals.dc_val);
