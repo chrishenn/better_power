@@ -29,17 +29,14 @@ using System.Text.RegularExpressions;
 using System.Collections.ObjectModel;
 using System.Management.Automation;
 
-using ORMi;
 using better_power.Common;
 
 
 namespace better_power
 {
 
-
     // TODO
 
-    // group selection in navvigation view
     // flash green on success, red on failure (setting applied, scheme applied)
     // create a new scheme by copying an existing one
     // application icon and name in taskbar

@@ -16,9 +16,8 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-
-
-
+using Microsoft.UI.Xaml.Media.Animation;
+using Windows.UI;
 
 namespace better_power
 {
@@ -28,6 +27,8 @@ namespace better_power
 
         ObservableCollection<FrameworkElement> setting_items = new ObservableCollection<FrameworkElement>();
         ObservableCollection<FrameworkElement> all_setting_items;
+
+        Dictionary<string, FrameworkElement> setting_item_dict = new Dictionary<string, FrameworkElement>();
 
         ObservableCollection<SettingStore> setting_data = new ObservableCollection<SettingStore>();
 
@@ -84,6 +85,7 @@ namespace better_power
                     box_elem = cb_elem;
                 }
 
+                // compose the setting element from constituents
                 DataTemplate setting_template = (DataTemplate)this.Resources["SettingTemplate"];
                 Grid setting_elem = (Grid)setting_template.LoadContent();
 
@@ -91,9 +93,35 @@ namespace better_power
                 setting_elem.DataContext = setting;
                 setting_elem.Tag = setting_guid;
 
+                // Success animation
+                Color background_gray = (Application.Current.Resources["AppTitleBar_Grey"] as SolidColorBrush).Color;
+                Duration duration = new Duration(TimeSpan.FromSeconds(1));
+
+                SolidColorBrush background_brush = new SolidColorBrush(background_gray);
+                setting_elem.Background = background_brush;
+
+                var color_togreen = new LinearColorKeyFrame() { Value = Colors.MediumSpringGreen, KeyTime=TimeSpan.FromSeconds(0.025) };
+                var color_green = new LinearColorKeyFrame() { Value = Colors.MediumSpringGreen, KeyTime=TimeSpan.FromSeconds(0.1) };
+                var color_togray = new LinearColorKeyFrame() { Value = background_gray, KeyTime = TimeSpan.FromSeconds(0.25) };
+
+                var animation = new ColorAnimationUsingKeyFrames();
+                animation.KeyFrames.Add(color_togreen);
+                animation.KeyFrames.Add(color_green);
+                animation.KeyFrames.Add(color_togray);
+
+                Storyboard.SetTarget(animation, background_brush);
+                Storyboard.SetTargetProperty(animation, "Color");
+
+                Storyboard story_board = new Storyboard() { Children={ animation } };
+                
+                setting_elem.Resources.Add("storyboard", story_board);
+
+                // add setting element to instance collections to find later
                 this.setting_items.Add(setting_elem);
+                this.setting_item_dict[setting_guid] = setting_elem;
             }
 
+            // copy all setting items; this.setting_items is observed by the listview
             this.all_setting_items = new ObservableCollection<FrameworkElement>(this.setting_items);
         }
 
@@ -119,6 +147,8 @@ namespace better_power
                 setting.curr_setting_vals_by_scheme[selected_scheme_guid] = ((int)sender.Value, curr_vals.dc_val);
 
                 bool result = (App.Current as App).set_powersetting(selected_scheme_guid, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.Value);
+
+                if (result) FireSuccessFlash(setting);
             }
         }
 
@@ -136,10 +166,16 @@ namespace better_power
                 setting.curr_setting_vals_by_scheme[selected_scheme_guid] = ((int)sender.SelectedIndex, curr_vals.dc_val);
 
                 bool result = (App.Current as App).set_powersetting(selected_scheme_guid, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.SelectedIndex);
+
+                if (result) FireSuccessFlash(setting);
             }
         }
 
 
+        private void FireSuccessFlash(SettingStore setting)
+        {
+            (this.setting_item_dict[setting._setting_guid].Resources["storyboard"] as Storyboard).Begin();
+        }
 
 
 

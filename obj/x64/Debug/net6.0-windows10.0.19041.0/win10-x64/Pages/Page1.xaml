@@ -14,7 +14,7 @@
             
             <DataTemplate x:Key="SettingTemplate"                                >
 
-                <Grid x:ConnectionId='11' CornerRadius="2" BorderThickness="1" Padding="5" Margin="25,5,25,5"  Background="{StaticResource AppTitleBar_Grey}">
+                <Grid x:ConnectionId='11' CornerRadius="2" BorderThickness="1" Padding="5" Margin="25,5,25,5" >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
