@@ -12,9 +12,9 @@
         <ResourceDictionary>
 
             
-            <DataTemplate x:Key="SettingTemplate"                                >  
-                
-                <Grid x:ConnectionId='11' CornerRadius="2" BorderThickness="1" Padding="5" Margin="5" BorderBrush="Gray">
+            <DataTemplate x:Key="SettingTemplate"                                >
+
+                <Grid x:ConnectionId='11' CornerRadius="2" BorderThickness="1" Padding="5" Margin="25,5,25,5"  Background="{StaticResource AppTitleBar_Grey}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
@@ -36,7 +36,7 @@
             <DataTemplate x:Key="ComboBoxTemplate"                                >
                 <ComboBox x:ConnectionId='9'     
                     Grid.Column="1" 
-                    Width="200"
+                    Width="250"
                     VerticalAlignment="Center"
                     HorizontalAlignment="Left"
                     Margin="0,5,10,5" 
@@ -50,7 +50,7 @@
             <DataTemplate x:Key="NumberBoxTemplate"                                >
                 <NumberBox x:ConnectionId='7'     
                     Grid.Column="1" 
-                    Width="200"
+                    Width="250"
                     VerticalAlignment="Center"
                     HorizontalAlignment="Left"
                     Margin="0,5,10,5" 

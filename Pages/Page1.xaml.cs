@@ -27,8 +27,12 @@ namespace better_power
     {
 
         ObservableCollection<FrameworkElement> setting_items = new ObservableCollection<FrameworkElement>();
+        ObservableCollection<FrameworkElement> all_setting_items;
+
         ObservableCollection<SettingStore> setting_data = new ObservableCollection<SettingStore>();
 
+        string current_display_scheme_guid;
+        
         bool settings_locked_for_navigation = false;
 
 
@@ -41,13 +45,9 @@ namespace better_power
             {
                 this.setting_data.Add( kvp.Value );
             }
-        }
 
 
-
-        // Add power setting cards to main ListView
-        private void ListView_Loaded(object sender, RoutedEventArgs e)
-        {
+            // generate collections for listview settings elements
             string curr_groupid = "";
 
             foreach (var setting in this.setting_data)
@@ -59,7 +59,7 @@ namespace better_power
                     curr_groupid = setting._parent_groupguid;
                     string curr_groupname = App.pub_subgroup_store_dict[curr_groupid]._group_name;
 
-                    this.setting_items.Add(new ListViewHeaderItem() {Content=curr_groupname, Tag=curr_groupid} );                                       
+                    this.setting_items.Add(new ListViewHeaderItem() { Content = curr_groupname, Tag = curr_groupid });
                 }
 
                 Control box_elem;
@@ -89,11 +89,20 @@ namespace better_power
 
                 setting_elem.Children.Add(box_elem);
                 setting_elem.DataContext = setting;
+                setting_elem.Tag = setting_guid;
 
                 this.setting_items.Add(setting_elem);
             }
 
-            this.ListView_main.ItemsSource = this.setting_items;
+            this.all_setting_items = new ObservableCollection<FrameworkElement>(this.setting_items);
+        }
+
+
+
+        // Add power setting cards collection to main ListView
+        private void ListView_Loaded(object sender, RoutedEventArgs e)
+        {
+            this.ListView_main.ItemsSource = this.setting_items;            
         }
 
 
@@ -160,6 +169,7 @@ namespace better_power
 
                 foreach (var group in App.pub_subgroup_store_dict)
                 {
+                    // note: subgroup menuitems have key of parent's scheme guid! needed for navigation selectionchanged
                     scheme_menuitem.MenuItems.Add(new NavigationViewItem() { Content = group.Value._group_name, Tag = group.Key });
                 }
                 this.SchemeNavigationView.MenuItems.Add(scheme_menuitem);
@@ -188,7 +198,8 @@ namespace better_power
                     if (nav_scheme_guid == target_guid)
                     {
                         App.pub_scheme_store_dict[nav_scheme_guid].is_active_scheme = "Visible";
-                        if (nav_to_active) this.SchemeNavigationView.SelectedItem = schemeitem;                        
+                        if (nav_to_active) 
+                            this.SchemeNavigationView.SelectedItem = schemeitem;                        
                     }
                     else
                     {
@@ -208,17 +219,56 @@ namespace better_power
             {
                 this.settings_locked_for_navigation = true;
 
-                string scheme_guid = args.SelectedItemContainer.Tag.ToString();
+                string selected_guid = args.SelectedItemContainer.Tag.ToString();
+                string selected_scheme_guid;
 
-                foreach (var setting_data in this.setting_data)
+                // selected is a scheme. update settings cards current values in listview
+                if (App.pub_scheme_store_dict.ContainsKey(selected_guid))
                 {
-                    var vals = setting_data.curr_setting_vals_by_scheme[scheme_guid];
+                    selected_scheme_guid = selected_guid;                    
+                    update_settings_to_scheme(selected_scheme_guid);
 
-                    setting_data.curr_ac_val = vals.ac_val;
-                    setting_data.curr_dc_val = vals.dc_val;
+                    this.setting_items.Clear();
+                    foreach (var item in this.all_setting_items) 
+                        this.setting_items.Add(item);
+                }
+                // else selected_guid is a groupid. get selected scheme. check for scheme change. filter settings in view.
+                else
+                {
+                    selected_scheme_guid = (args.SelectedItemContainer.DataContext as SchemeStore).scheme_guid;
+
+                    if (selected_scheme_guid != this.current_display_scheme_guid)
+                        update_settings_to_scheme(selected_scheme_guid);
+
+                    this.setting_items.Clear();
+
+                    foreach (var setting_item in this.all_setting_items)
+                    {
+                        string setting_guid = setting_item.Tag.ToString();
+
+                        if (App.pub_setting_store_dict.ContainsKey(setting_guid))
+                        {
+                            if (App.pub_setting_store_dict[setting_guid]._parent_groupguid == selected_guid)
+                                this.setting_items.Add(setting_item);
+                        }
+                        else if (setting_guid == selected_guid)
+                            this.setting_items.Add(setting_item);                                             
+                    }
                 }
 
+                this.current_display_scheme_guid = selected_scheme_guid;
                 this.settings_locked_for_navigation = false;
+            }
+        }
+
+        private void update_settings_to_scheme(string selected_scheme_guid)
+        {
+            foreach (var setting_data in this.setting_data)
+            {
+                var vals = setting_data.curr_setting_vals_by_scheme[selected_scheme_guid];
+
+                setting_data.curr_ac_val = vals.ac_val;
+                setting_data.curr_dc_val = vals.dc_val;
             }
         }
 

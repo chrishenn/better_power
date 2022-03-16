@@ -178,6 +178,7 @@ C:\Users\Admin\source\repos\better_power\bin\x64\Debug\net6.0-windows10.0.19041.
 C:\Users\Admin\source\repos\better_power\bin\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\App.xbf
 C:\Users\Admin\source\repos\better_power\bin\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\MainWindow.xbf
 C:\Users\Admin\source\repos\better_power\bin\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\Pages\Page1.xbf
+C:\Users\Admin\source\repos\better_power\bin\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\Pages\Page2.xbf
 C:\Users\Admin\source\repos\better_power\bin\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\better_power.deps.json
 C:\Users\Admin\source\repos\better_power\bin\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\better_power.runtimeconfig.json
 C:\Users\Admin\source\repos\better_power\bin\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\better_power.dll
@@ -544,13 +545,17 @@ C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\MainWindow.g.cs
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\Pages\Page1.g.i.cs
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\Pages\Page1.g.cs
+C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\Pages\Page2.g.i.cs
+C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\Pages\Page2.g.cs
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\XamlTypeInfo.g.cs
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\App.xaml
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\MainWindow.xaml
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\Pages\Page1.xaml
+C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\Pages\Page2.xaml
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\App.xbf
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\MainWindow.xbf
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\Pages\Page1.xbf
+C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\Pages\Page2.xbf
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\XamlSaveStateFile.xml
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\better_power.GeneratedMSBuildEditorConfig.editorconfig
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\better_power.AssemblyInfoInputs.cache
@@ -578,8 +583,3 @@ C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\qualifiers.txt.intermediate
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\MultipleQualifiersPerDimensionFound.txt
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\ProjectArchitectures.txt
-C:\Users\Admin\source\repos\better_power\bin\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\Pages\Page2.xbf
-C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\Pages\Page2.g.i.cs
-C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\Pages\Page2.g.cs
-C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\Pages\Page2.xaml
-C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\Pages\Page2.xbf

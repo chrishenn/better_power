@@ -44,6 +44,7 @@ namespace better_power
     // create a new scheme by copying an existing one
     // application icon and name in taskbar
     // search box
+    // error handling
 
     // setting cards:
     //      indicate possible values to which we can set the setting
@@ -114,11 +115,13 @@ namespace better_power
     public class SchemeStore : BindableBase
     {
         public string scheme_name;
+        public string scheme_guid;
         private string _is_active_scheme;
 
-        public SchemeStore(string scheme_name)
+        public SchemeStore(string scheme_name, string scheme_guid)
         {
             this.scheme_name = scheme_name;
+            this.scheme_guid = scheme_guid;
             this._is_active_scheme = "Collapsed";
         }
 
@@ -221,7 +224,7 @@ namespace better_power
                     string name = tmp.Substring(58);
                     name = name.TrimEnd( new char[] {')', '*', ' '} );
 
-                    App.scheme_store_dict[guid] = new SchemeStore(name);
+                    App.scheme_store_dict[guid] = new SchemeStore(name, guid);
                 }
             }
         }
