@@ -32,8 +32,7 @@ namespace better_power
 
         Dictionary<string, FrameworkElement> setting_element_dict = new Dictionary<string, FrameworkElement>();
         Dictionary<string, FrameworkElement> scheme_element_dict = new Dictionary<string, FrameworkElement>();
-
-        // todo: add group_item_dict
+        Dictionary<string, List<FrameworkElement>> setting_elements_by_group_dict = new Dictionary<string, List<FrameworkElement>>();
 
         // todo: may not need to be observablecollection
         ObservableCollection<SettingStore> setting_data = new ObservableCollection<SettingStore>();
@@ -54,7 +53,6 @@ namespace better_power
             }
 
             string curr_groupid = "";
-
             foreach (var setting in this.setting_data)
             {
                 string setting_guid = setting._setting_guid;
@@ -64,7 +62,11 @@ namespace better_power
                     curr_groupid = setting._parent_groupguid;
                     string curr_groupname = App.group_data_dict[curr_groupid]._group_name;
 
-                    this.setting_elements.Add(new ListViewHeaderItem() { Content = curr_groupname, Tag = curr_groupid });
+                    var header = new ListViewHeaderItem() { Content = curr_groupname, Tag = curr_groupid };
+                    this.setting_elements.Add(header);
+
+                    this.setting_elements_by_group_dict[curr_groupid] = new List<FrameworkElement>();
+                    this.setting_elements_by_group_dict[curr_groupid].Add(header); 
                 }
 
                 Control box_elem;
@@ -108,6 +110,7 @@ namespace better_power
                 // add setting element to instance collections to find later
                 this.setting_elements.Add(setting_elem);
                 this.setting_element_dict[setting_guid] = setting_elem;
+                this.setting_elements_by_group_dict[curr_groupid].Add(setting_elem);
             }
 
             // copy all setting items; this.setting_items is observed by the listview
@@ -140,6 +143,7 @@ namespace better_power
 
             element.Resources.Add(animation_name, story_board);
         }
+
 
 
 
@@ -218,7 +222,7 @@ namespace better_power
                 register_animation(scheme_menuitem, background_brush, Colors.MediumSpringGreen, "success_animation");
                 register_animation(scheme_menuitem, background_brush, Colors.MediumVioletRed, "fail_animation");
 
-                // add flyouts for contextmenu
+                // add flyout for contextmenu
                 var flyout_setactive = new MenuFlyoutItem() { Text = "Set Active", Tag = scheme.Key };
                 flyout_setactive.Click += SchemeSetActiveFlyout_Clicked;
                 scheme_menuitem.ContextFlyout = new MenuFlyout() { Items = { flyout_setactive } };
@@ -248,20 +252,15 @@ namespace better_power
             FireSchemeSuccessFlash(scheme_guid, success);
         }
 
+        // todo: bug. doesn't flash when flashing on currently-selected scheme
         private void FireSchemeSuccessFlash(string scheme_guid, bool success)
         {
             var applied_scheme_elem = (NavigationViewItem)this.scheme_element_dict[scheme_guid];
-
-            //SolidColorBrush default_selected_brush = (SolidColorBrush)this.SchemeNavigationView.Resources["NavigationViewItemBackgroundSelected"];
-            //Color background_gray = (Application.Current.Resources["AppTitleBar_Grey"] as SolidColorBrush).Color;
-            //this.SchemeNavigationView.Resources["NavigationViewItemBackgroundSelected"] = new SolidColorBrush(background_gray);
 
             if (success)
                 (applied_scheme_elem.Resources["success_animation"] as Storyboard).Begin();
             else
                 (applied_scheme_elem.Resources["fail_animation"] as Storyboard).Begin();
-
-            //this.SchemeNavigationView.Resources["NavigationViewItemBackgroundSelected"] = default_selected_brush;
         }
 
         private void NavSetSchemeItemActive(string active_scheme_guid)
@@ -305,6 +304,7 @@ namespace better_power
                 // else selected_guid is a groupid. get selected scheme. check for scheme change. filter settings in view.
                 else
                 {
+                    string selected_group_guid = selected_guid;
                     selected_scheme_guid = (args.SelectedItemContainer.DataContext as SchemeStore).scheme_guid;
 
                     if (selected_scheme_guid != this.current_display_scheme_guid)
@@ -312,18 +312,8 @@ namespace better_power
 
                     this.setting_elements.Clear();
 
-                    foreach (var setting_item in this.all_setting_elements)
-                    {
-                        string setting_guid = setting_item.Tag.ToString();
-
-                        if (App.setting_data_dict.ContainsKey(setting_guid))
-                        {
-                            if (App.setting_data_dict[setting_guid]._parent_groupguid == selected_guid)
-                                this.setting_elements.Add(setting_item);
-                        }
-                        else if (setting_guid == selected_guid)
-                            this.setting_elements.Add(setting_item);                                             
-                    }
+                    foreach (var setting_element in this.setting_elements_by_group_dict[selected_group_guid])                    
+                        this.setting_elements.Add(setting_element);                    
                 }
 
                 this.current_display_scheme_guid = selected_scheme_guid;
