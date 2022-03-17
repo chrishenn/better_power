@@ -37,11 +37,12 @@ namespace better_power
 
     // TODO
 
-    // flash green on success, red on failure (setting applied, scheme applied)
     // create a new scheme by copying an existing one
     // application icon and name in taskbar
     // search box
     // error handling
+    // packaging - modern install, portable install
+    // compatibility testing
 
     // setting cards:
     //      indicate possible values to which we can set the setting
@@ -49,10 +50,10 @@ namespace better_power
     //      range checking
     //      ac + dc menus
 
-    // (?) observe settings changes from the OS 
-    // (?) change settings via registry key
     // (?) install the classic schemes - from "power saving" to "ultimate perf"
+    // (?) change settings via registry key    
     // (?) pull power setting info from system objects
+    // (?) observe settings changes from the OS 
 
 
     public class SettingStore : BindableBase

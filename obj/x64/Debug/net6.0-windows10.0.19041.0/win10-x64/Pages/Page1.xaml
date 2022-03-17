@@ -101,13 +101,12 @@
 
         <Grid Grid.Row="1" Background="{StaticResource AppPageBackground}"/>
 
-
         <Grid x:ConnectionId='14' x:Name="AppTitleBar" 
               Margin="0,0,120,0" 
               Grid.Row="0" 
               Background="{StaticResource AppTitleBar_Grey}" >
             
-            <Image Source="C:\Users\Admin\source\repos\better_power\Assets\power_icon.png"
+            <Image Source="../Assets/Square44x44Logo.altform-unplated_targetsize-48.png"
                 HorizontalAlignment="Left" 
                 Width="30" Height="30"
                 Margin="8,0"/>

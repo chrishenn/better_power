@@ -37,6 +37,7 @@ namespace better_power
         bool settings_locked_for_navigation = false;
 
 
+
         // generate listview settings elements
         public Page1()
         {
