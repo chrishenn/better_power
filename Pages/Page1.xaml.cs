@@ -26,16 +26,11 @@ namespace better_power
     {
 
         ObservableCollection<FrameworkElement> setting_elements = new ObservableCollection<FrameworkElement>();
-
-        // todo: may not need to be observablecollection
-        ObservableCollection<FrameworkElement> all_setting_elements;
+        List<FrameworkElement> all_setting_elements;
 
         Dictionary<string, FrameworkElement> setting_element_dict = new Dictionary<string, FrameworkElement>();
         Dictionary<string, FrameworkElement> scheme_element_dict = new Dictionary<string, FrameworkElement>();
         Dictionary<string, List<FrameworkElement>> setting_elements_by_group_dict = new Dictionary<string, List<FrameworkElement>>();
-
-        // todo: may not need to be observablecollection
-        ObservableCollection<SettingStore> setting_data = new ObservableCollection<SettingStore>();
 
         string current_display_scheme_guid;
         
@@ -47,15 +42,11 @@ namespace better_power
         {
             this.InitializeComponent();
 
+            string curr_groupid = "";
             foreach (var kvp in App.setting_data_dict)
             {
-                this.setting_data.Add( kvp.Value );
-            }
-
-            string curr_groupid = "";
-            foreach (var setting in this.setting_data)
-            {
-                string setting_guid = setting._setting_guid;
+                string setting_guid = kvp.Key;
+                SettingStore setting = kvp.Value;
 
                 if (setting._parent_groupguid != curr_groupid)
                 {
@@ -114,7 +105,7 @@ namespace better_power
             }
 
             // copy all setting items; this.setting_items is observed by the listview
-            this.all_setting_elements = new ObservableCollection<FrameworkElement>(this.setting_elements);
+            this.all_setting_elements = new List<FrameworkElement>(this.setting_elements);
         }
 
         private void Page1_GridLoaded(object sender, RoutedEventArgs e)
@@ -323,7 +314,7 @@ namespace better_power
 
         private void update_settings_to_scheme(string selected_scheme_guid)
         {
-            foreach (var setting_data in this.setting_data)
+            foreach (SettingStore setting_data in App.setting_data_dict.Values)
             {
                 var vals = setting_data.curr_setting_vals_by_scheme[selected_scheme_guid];
 
