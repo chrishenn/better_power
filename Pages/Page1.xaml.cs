@@ -24,13 +24,15 @@ namespace better_power
 
     public sealed partial class Page1 : Page
     {
-
-        ObservableCollection<FrameworkElement> setting_elements = new ObservableCollection<FrameworkElement>();
+        // required list to enforce the ordering of headers and setting elements in the listView
         List<FrameworkElement> all_setting_elements;
+        ObservableCollection<FrameworkElement> setting_elements = new ObservableCollection<FrameworkElement>();                
 
         Dictionary<string, FrameworkElement> setting_element_dict = new Dictionary<string, FrameworkElement>();
         Dictionary<string, FrameworkElement> scheme_element_dict = new Dictionary<string, FrameworkElement>();
         Dictionary<string, List<FrameworkElement>> setting_elements_by_group_dict = new Dictionary<string, List<FrameworkElement>>();
+
+        Dictionary<string, FrameworkElement> group_headerelements_dict = new Dictionary<string, FrameworkElement>();
 
         string current_display_scheme_guid;
         
@@ -44,6 +46,7 @@ namespace better_power
             this.InitializeComponent();
 
             string curr_groupid = "";
+            ListViewHeaderItem curr_groupheader = null;
             foreach (var kvp in App.setting_data_dict)
             {
                 string setting_guid = kvp.Key;
@@ -54,11 +57,11 @@ namespace better_power
                     curr_groupid = setting._parent_groupguid;
                     string curr_groupname = App.group_data_dict[curr_groupid]._group_name;
 
-                    var header = new ListViewHeaderItem() { Content = curr_groupname, Tag = curr_groupid };
-                    this.setting_elements.Add(header);
+                    curr_groupheader = new ListViewHeaderItem() { Content = curr_groupname, Tag = curr_groupid };
+                    this.setting_elements.Add(curr_groupheader);
 
                     this.setting_elements_by_group_dict[curr_groupid] = new List<FrameworkElement>();
-                    this.setting_elements_by_group_dict[curr_groupid].Add(header); 
+                    this.setting_elements_by_group_dict[curr_groupid].Add(curr_groupheader); 
                 }
 
                 Control box_elem;
@@ -103,6 +106,7 @@ namespace better_power
                 this.setting_elements.Add(setting_elem);
                 this.setting_element_dict[setting_guid] = setting_elem;
                 this.setting_elements_by_group_dict[curr_groupid].Add(setting_elem);
+                this.group_headerelements_dict[curr_groupid] = curr_groupheader;
             }
 
             // copy all setting items; this.setting_items is observed by the listview
@@ -336,42 +340,41 @@ namespace better_power
         {
             if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
             {
-                //    var suggestions = new List<ControlInfoDataItem>();
+                this.setting_elements.Clear();
 
-                //    var querySplit = sender.Text.Split(" ");
-                //    foreach (var group in ControlInfoDataSource.Instance.Groups)
-                //    {
-                //        var matchingItems = group.Items.Where(
-                //            item =>
-                //            {
-                //                // Idea: check for every word entered (separated by space) if it is in the name, 
-                //                // e.g. for query "split button" the only result should "SplitButton" since its the only query to contain "split" and "button"
-                //                // If any of the sub tokens is not in the string, we ignore the item. So the search gets more precise with more words
-                //                bool flag = true;
-                //                foreach (string queryToken in querySplit)
-                //                {
-                //                    // Check if token is not in string
-                //                    if (item.Title.IndexOf(queryToken, StringComparison.CurrentCultureIgnoreCase) < 0)
-                //                    {
-                //                        // Token is not in string, so we ignore this item.
-                //                        flag = false;
-                //                    }
-                //                }
-                //                return flag;
-                //            });
-                //        foreach (var item in matchingItems)
-                //        {
-                //            suggestions.Add(item);
-                //        }
-                //    }
-                //    if (suggestions.Count > 0)
-                //    {
-                //        controlsSearchBox.ItemsSource = suggestions.OrderByDescending(i => i.Title.StartsWith(sender.Text, StringComparison.CurrentCultureIgnoreCase)).ThenBy(i => i.Title);
-                //    }
-                //    else
-                //    {
-                //        controlsSearchBox.ItemsSource = new string[] { "No results found" };
-                //    }
+                var query = sender.Text.ToLower().Trim();
+                bool header_added = false;
+                FrameworkElement curr_groupheader_elem = null;
+
+                foreach (var setting_elem in this.all_setting_elements)
+                {
+                    string elem_guid = setting_elem.Tag.ToString();
+
+                    if (this.group_headerelements_dict.ContainsKey(elem_guid))
+                    {
+                        curr_groupheader_elem = this.group_headerelements_dict[elem_guid];
+                        header_added = false;
+                    }
+                    else
+                    {
+                        var setting_data = App.setting_data_dict[elem_guid];
+                        string setting_name = setting_data._setting_name.ToLower();
+                        string setting_groupguid = setting_data._parent_groupguid;
+
+                        if (setting_name.Contains(query))
+                        {
+                            if (!header_added)
+                            {
+                                this.setting_elements.Add(curr_groupheader_elem);
+                                header_added = true;
+                            }
+
+                            this.setting_elements.Add(this.setting_element_dict[elem_guid]);
+                        }
+                    }
+                }
+
+                if (this.setting_elements.Count == 0) { } // show "none found" element
             }
         }
 

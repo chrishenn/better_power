@@ -37,11 +37,10 @@ namespace better_power
 
     // TODO
 
-    // create a new scheme by copying an existing one
-    // application icon and name in taskbar
+    // create a new scheme by copying an existing one   
     // search box
     // error handling
-    // packaging - modern install, portable install
+    // packaging - modern install, portable install, taskbar icon, taskbar app name
     // compatibility testing
 
     // setting cards:
