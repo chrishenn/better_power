@@ -14,13 +14,13 @@
             
             <DataTemplate x:Key="SettingTemplate"                                >
 
-                <Grid x:ConnectionId='11' CornerRadius="2" BorderThickness="1" Padding="5" Margin="25,5,25,5" >
+                <Grid x:ConnectionId='12' CornerRadius="2" BorderThickness="1" Padding="5" Margin="25,5,25,5" >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock x:ConnectionId='12'                                                              
+                    <TextBlock x:ConnectionId='13'                                                              
                                Grid.Column="0" 
                                Width="300"
                                VerticalAlignment="Center" 
@@ -34,7 +34,7 @@
 
             
             <DataTemplate x:Key="ComboBoxTemplate"                                >
-                <ComboBox x:ConnectionId='9'     
+                <ComboBox x:ConnectionId='10'     
                     Grid.Column="1" 
                     Width="250"
                     VerticalAlignment="Center"
@@ -48,7 +48,7 @@
             </DataTemplate>
 
             <DataTemplate x:Key="NumberBoxTemplate"                                >
-                <NumberBox x:ConnectionId='7'     
+                <NumberBox x:ConnectionId='8'     
                     Grid.Column="1" 
                     Width="250"
                     VerticalAlignment="Center"
@@ -62,10 +62,18 @@
 
             <DataTemplate x:Key="NavSchemeItem"                               >
                 <StackPanel x:ConnectionId='3' Orientation="Horizontal" HorizontalAlignment="Stretch">
-                    <TextBlock x:ConnectionId='4'                            
+                    <TextBlock x:ConnectionId='4'                                         
+                                                                                   
+                               Name="TextBlock"
                                HorizontalAlignment="Left"
                                VerticalAlignment="Center" />
-                    <Grid x:ConnectionId='5' 
+                    <TextBox x:ConnectionId='5'                                         
+                                                                                 
+                               Name="EditBox"
+                                                                        
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Center" />
+                    <Grid x:ConnectionId='6' 
                             CornerRadius="2" BorderThickness="2" Padding="0" Margin="10" 
                             BorderBrush="MediumSpringGreen" 
                             HorizontalAlignment="Left"
@@ -92,7 +100,7 @@
 
     
 
-    <Grid x:ConnectionId='13'                          >
+    <Grid x:ConnectionId='14'                          >
                   
         <Grid.RowDefinitions>
             <RowDefinition Height="32"/>
@@ -101,7 +109,7 @@
 
         <Grid Grid.Row="1" Background="{StaticResource AppPageBackground}"/>
 
-        <Grid x:ConnectionId='14' x:Name="AppTitleBar" 
+        <Grid x:ConnectionId='15' x:Name="AppTitleBar" 
               Margin="0,0,120,0" 
               Grid.Row="0" 
               Background="{StaticResource AppTitleBar_Grey}" >
@@ -111,7 +119,7 @@
                 Width="30" Height="30"
                 Margin="8,0"/>
             
-            <TextBlock x:ConnectionId='19' x:Name="AppTitleTextBlock" Text="Better Power"
+            <TextBlock x:ConnectionId='20' x:Name="AppTitleTextBlock" Text="Better Power"
                 TextWrapping="NoWrap"                       
                 Style="{StaticResource CaptionTextBlockStyle}" 
                 VerticalAlignment="Center"
@@ -119,7 +127,7 @@
         </Grid>
 
 
-        <NavigationView x:ConnectionId='15'
+        <NavigationView x:ConnectionId='16'
             x:Name="SchemeNavigationView"             
             Grid.Row="1"
             PaneDisplayMode="Left"
@@ -143,22 +151,21 @@
                                                 >
 
             <NavigationView.AutoSuggestBox>
-                <AutoSuggestBox x:ConnectionId='16'
+                <AutoSuggestBox x:ConnectionId='17'
                     x:Name="SearchBox"
                     x:FieldModifier="public"
                     PlaceholderText="Search Settings in Selected Scheme"
                     QueryIcon="Find"
-                                                            
                     MinWidth="200"
                     KeyboardAcceleratorPlacementMode="Hidden"
                                                       >
                     <AutoSuggestBox.KeyboardAccelerators>
-                        <KeyboardAccelerator x:ConnectionId='17' Modifiers="Control" Key="F"                         />
+                        <KeyboardAccelerator x:ConnectionId='18' Modifiers="Control" Key="F"                         />
                     </AutoSuggestBox.KeyboardAccelerators>
                 </AutoSuggestBox>
             </NavigationView.AutoSuggestBox>
             
-            <ListView x:ConnectionId='18' x:Name="ListView_main"
+            <ListView x:ConnectionId='19' x:Name="ListView_main"
                                               
                     Grid.Row="1"                         
                     Padding="0,5,0,5"

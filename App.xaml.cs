@@ -38,7 +38,6 @@ namespace better_power
     // TODO
 
     // create a new scheme by copying an existing one   
-    // search box
     // error handling
     // packaging - modern install, portable install, taskbar icon, taskbar app name
     // compatibility testing
@@ -114,18 +113,32 @@ namespace better_power
         public string scheme_name;
         public string scheme_guid;
         private string _is_active_scheme;
+        private string _textblock_visible;
+        private string _textbox_visible;
 
         public SchemeStore(string scheme_name, string scheme_guid)
         {
             this.scheme_name = scheme_name;
             this.scheme_guid = scheme_guid;
             this._is_active_scheme = "Collapsed";
+            this._textblock_visible = "Visible";
+            this._textbox_visible = "Collapsed";
         }
 
         public string is_active_scheme
         {
             get { return this._is_active_scheme; }
             set { this.SetProperty(ref this._is_active_scheme, value); }
+        }
+        public string textblock_visible
+        {
+            get { return this._textblock_visible; }
+            set { this.SetProperty(ref this._textblock_visible, value); }
+        }
+        public string textbox_visible
+        {
+            get { return this._textbox_visible; }
+            set { this.SetProperty(ref this._textbox_visible, value); }
         }
     }
 

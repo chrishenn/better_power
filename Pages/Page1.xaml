@@ -62,7 +62,15 @@
 
             <DataTemplate x:Key="NavSchemeItem" x:DataType="local:SchemeStore">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
-                    <TextBlock Text="{x:Bind scheme_name}"
+                    <TextBlock Text="{x:Bind scheme_name, Mode=OneWay}"
+                               Visibility="{x:Bind textblock_visible, Mode=OneWay}"
+                               Name="TextBlock"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Center" />
+                    <TextBox Text="{x:Bind scheme_name, Mode=TwoWay}"
+                               Visibility="{x:Bind textbox_visible, Mode=OneWay}"
+                               Name="EditBox"
+                               LostFocus="SchemeRenameFlyout_RenameDone"
                                HorizontalAlignment="Left"
                                VerticalAlignment="Center" />
                     <Grid 
@@ -148,7 +156,6 @@
                     x:FieldModifier="public"
                     PlaceholderText="Search Settings in Selected Scheme"
                     QueryIcon="Find"
-                    QuerySubmitted="SearchBoxQuerySubmitted"
                     MinWidth="200"
                     KeyboardAcceleratorPlacementMode="Hidden"
                     TextChanged="SearchBoxTextChanged">

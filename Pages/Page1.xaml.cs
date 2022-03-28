@@ -31,22 +31,24 @@ namespace better_power
         Dictionary<string, FrameworkElement> setting_element_dict = new Dictionary<string, FrameworkElement>();
         Dictionary<string, FrameworkElement> scheme_element_dict = new Dictionary<string, FrameworkElement>();
         Dictionary<string, List<FrameworkElement>> setting_elements_by_group_dict = new Dictionary<string, List<FrameworkElement>>();
-
         Dictionary<string, FrameworkElement> group_headerelements_dict = new Dictionary<string, FrameworkElement>();
 
+        // current scheme guid being displayed in the main ListView UI
         string current_display_scheme_guid;
         
         bool settings_locked_for_navigation = false;
 
 
 
-        // generate listview settings elements
+        // generate listview settings elements; build instance lists and dicts
         public Page1()
         {
             this.InitializeComponent();
 
             string curr_groupid = "";
             ListViewHeaderItem curr_groupheader = null;
+
+            // todo: relies on stable ordering in the setting_data_dict. use ordereddict
             foreach (var kvp in App.setting_data_dict)
             {
                 string setting_guid = kvp.Key;
@@ -218,11 +220,24 @@ namespace better_power
                 register_animation(scheme_menuitem, background_brush, Colors.MediumSpringGreen, "success_animation");
                 register_animation(scheme_menuitem, background_brush, Colors.MediumVioletRed, "fail_animation");
 
-                // add flyout for contextmenu
+                // create flyouts for scheme menuitem's contextmenu
                 var flyout_setactive = new MenuFlyoutItem() { Text = "Set Active", Tag = scheme.Key };
                 flyout_setactive.Click += SchemeSetActiveFlyout_Clicked;
-                scheme_menuitem.ContextFlyout = new MenuFlyout() { Items = { flyout_setactive } };
 
+                var flyout_separator = new MenuFlyoutSeparator();
+
+                var flyout_rename = new MenuFlyoutItem() { Text = "Rename Scheme", Tag = scheme.Key };
+                flyout_rename.Click += SchemeRenameFlyout_Clicked;
+
+                var flyout_copy = new MenuFlyoutItem() { Text = "Copy Scheme", Tag = scheme.Key };
+                flyout_copy.Click += SchemeCopyFlyout_Clicked;
+
+                var flyout_del = new MenuFlyoutItem() { Text = "Delete Scheme", Tag = scheme.Key };
+                flyout_del.Click += SchemeDeleteFlyout_Clicked;
+
+                scheme_menuitem.ContextFlyout = new MenuFlyout() { Items = { flyout_setactive, flyout_separator, flyout_rename, flyout_copy, flyout_del } };
+
+                // each scheme menuitem gets a complete list of all groups as submenu items
                 scheme_menuitem.MenuItems.Add(new NavigationViewItemHeader() { Content = "Setting Groups", FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Colors.SlateBlue) });
 
                 foreach (var group in App.group_data_dict)
@@ -230,6 +245,7 @@ namespace better_power
                     scheme_menuitem.MenuItems.Add(new NavigationViewItem() { Content = group.Value._group_name, Tag = group.Key });
                 }
 
+                // add the menuitem to the navigationview's menuitems
                 this.SchemeNavigationView.MenuItems.Add(scheme_menuitem);
                 this.scheme_element_dict[scheme.Key] = scheme_menuitem;
             }
@@ -247,6 +263,44 @@ namespace better_power
             NavSetSchemeItemActive(scheme_guid);
             FireSchemeSuccessFlash(scheme_guid, success);
         }
+
+        private void SchemeRenameFlyout_Clicked(object sender, RoutedEventArgs e)
+        {
+            var senderitem = sender as MenuFlyoutItem;
+            SchemeStore scheme_data = senderitem.DataContext as SchemeStore;
+
+            scheme_data.textblock_visible = "Collapsed";
+            scheme_data.textbox_visible = "Visible";
+        }
+
+        private void SchemeRenameFlyout_RenameDone(object sender, RoutedEventArgs e)
+        {
+            var senderitem = sender as TextBox;
+            SchemeStore scheme_data = senderitem.DataContext as SchemeStore;
+                      
+            // todo: textblock is not reflecting the update to the scheme name in data obj
+            scheme_data.textbox_visible = "Collapsed";
+            scheme_data.textblock_visible = "Visible";
+            
+            string scheme_guid = scheme_data.scheme_guid;
+            string scheme_name = scheme_data.scheme_name;
+
+            // fire system rename of this scheme
+        }
+
+        private void SchemeCopyFlyout_Clicked(object sender, RoutedEventArgs e)
+        {
+            // ask for a new scheme name with default in menu like "copy of Ultimate Performance"
+            // copy the scheme with given scheme_guid through windows ps
+            // create a scheme menuitem for the new scheme
+        }
+
+        private void SchemeDeleteFlyout_Clicked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+
 
         // todo: bug. doesn't flash when flashing on currently-selected scheme
         private void FireSchemeSuccessFlash(string scheme_guid, bool success)
@@ -336,6 +390,7 @@ namespace better_power
 
         private void SchemeNavigationView_DisplayModeChanged(object sender, NavigationViewDisplayModeChangedEventArgs e) { }
 
+
         private void SearchBoxTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
             if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
@@ -374,17 +429,15 @@ namespace better_power
                     }
                 }
 
-                if (this.setting_elements.Count == 0) { } // show "none found" element
+                // todo: show "none found" element
+                if (this.setting_elements.Count == 0) { } 
             }
         }
-
-        private void SearchBoxQuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args) { }
 
         private void CtrlF_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
         {
             SearchBox.Focus(FocusState.Programmatic);
         }
     }
-
 
 }
