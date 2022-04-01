@@ -1956,6 +1956,7 @@
     <Import Project="$(NuGetPackageRoot)microsoft.windowsappsdk\1.0.0\build\Microsoft.WindowsAppSDK.props" Condition="Exists('$(NuGetPackageRoot)microsoft.windowsappsdk\1.0.0\build\Microsoft.WindowsAppSDK.props')" />
   </ImportGroup>
   <PropertyGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <PkgMicrosoft_Xaml_Behaviors_Wpf Condition=" '$(PkgMicrosoft_Xaml_Behaviors_Wpf)' == '' ">C:\Users\Admin\.nuget\packages\microsoft.xaml.behaviors.wpf\1.1.37</PkgMicrosoft_Xaml_Behaviors_Wpf>
     <PkgMicrosoft_WindowsAppSDK Condition=" '$(PkgMicrosoft_WindowsAppSDK)' == '' ">C:\Users\Admin\.nuget\packages\microsoft.windowsappsdk\1.0.0</PkgMicrosoft_WindowsAppSDK>
     <PkgMicrosoft_CodeAnalysis_Analyzers Condition=" '$(PkgMicrosoft_CodeAnalysis_Analyzers)' == '' ">C:\Users\Admin\.nuget\packages\microsoft.codeanalysis.analyzers\3.3.2</PkgMicrosoft_CodeAnalysis_Analyzers>
   </PropertyGroup>

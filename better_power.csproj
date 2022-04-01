@@ -34,6 +34,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Catel.MVVM" Version="5.12.22" />
+    <PackageReference Include="Expression.Blend.Sdk" Version="1.0.2" />
     <PackageReference Include="Microsoft.Management.Infrastructure" Version="2.0.0" />
     <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.2.1" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.0.0" />

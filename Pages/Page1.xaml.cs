@@ -30,6 +30,7 @@ namespace better_power
 
         Dictionary<string, FrameworkElement> setting_element_dict = new Dictionary<string, FrameworkElement>();
         Dictionary<string, FrameworkElement> scheme_element_dict = new Dictionary<string, FrameworkElement>();
+        Dictionary<string, List<FrameworkElement>> scheme_subelements_dict = new Dictionary<string, List<FrameworkElement>>();
         Dictionary<string, List<FrameworkElement>> setting_elements_by_group_dict = new Dictionary<string, List<FrameworkElement>>();
         Dictionary<string, FrameworkElement> group_headerelements_dict = new Dictionary<string, FrameworkElement>();
 
@@ -200,16 +201,26 @@ namespace better_power
 
 
 
-        // Add navigationviewitems to navigationview
+        // Generate and Add navigationviewitems to navigationview
         private void SchemeNavigationView_Loaded(object sender, RoutedEventArgs e)
         {
             this.SchemeNavigationView.MenuItems.Add(new NavigationViewItemHeader() { Content = "Installed Schemes", FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Colors.SlateBlue) });
 
             foreach (var scheme in App.scheme_data_dict)
             {
+                // create elements to compose the scheme menuitem
+                var displaybox = (this.Resources["DisplayBox"] as DataTemplate).LoadContent() as TextBlock;
+                var editbox = (this.Resources["EditBox"] as DataTemplate).LoadContent() as TextBox;
+                var activebox = (this.Resources["SchemeActiveBox"] as DataTemplate).LoadContent() as Grid;
+                displaybox.Tag = scheme.Key;
+                editbox.Tag = scheme.Key;
+                activebox.Tag = scheme.Key;
+
+                var stackpanel = new StackPanel() { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Stretch, Children = {displaybox, editbox, activebox} };
+
                 var scheme_menuitem = new NavigationViewItem();
+                scheme_menuitem.Content = stackpanel;
                 scheme_menuitem.Tag = scheme.Key;
-                scheme_menuitem.ContentTemplate = (DataTemplate)this.Resources["NavSchemeItem"];
                 scheme_menuitem.DataContext = scheme.Value;
 
                 // register animators
@@ -247,13 +258,18 @@ namespace better_power
 
                 // add the menuitem to the navigationview's menuitems
                 this.SchemeNavigationView.MenuItems.Add(scheme_menuitem);
+
+                // store references to FrameworkElements for later use
                 this.scheme_element_dict[scheme.Key] = scheme_menuitem;
+                this.scheme_subelements_dict[scheme.Key] = new List<FrameworkElement> { displaybox, editbox, activebox };
+
             }
 
             NavSetSchemeItemActive(App.curr_system_applied_scheme_guid);
             this.SchemeNavigationView.SelectedItem = this.scheme_element_dict[App.curr_system_applied_scheme_guid];
         }
 
+        // Set a scheme active via its context flyout
         private void SchemeSetActiveFlyout_Clicked(object sender, RoutedEventArgs e)
         {
             string scheme_guid = (sender as MenuFlyoutItem).Tag.ToString();
@@ -264,30 +280,69 @@ namespace better_power
             FireSchemeSuccessFlash(scheme_guid, success);
         }
 
+
+        // Rename a scheme via its context flyout
         private void SchemeRenameFlyout_Clicked(object sender, RoutedEventArgs e)
         {
             var senderitem = sender as MenuFlyoutItem;
             SchemeStore scheme_data = senderitem.DataContext as SchemeStore;
 
-            scheme_data.textblock_visible = "Collapsed";
-            scheme_data.textbox_visible = "Visible";
+            scheme_data.displaybox_visible = "Collapsed";
+            scheme_data.editbox_visible = "Visible";
+
+
+            string scheme_guid = senderitem.Tag.ToString();
+            FrameworkElement selected_schemeitem = this.scheme_element_dict[scheme_guid];
+
+            var subelements_list = this.scheme_subelements_dict[scheme_guid];
+            var editbox = subelements_list[1];
+            editbox.Focus(FocusState.Programmatic);    
+            (editbox as TextBox).SelectAll();
         }
 
-        private void SchemeRenameFlyout_RenameDone(object sender, RoutedEventArgs e)
+        private void SchemeRenameTextBox_KeyUp(object sender, KeyRoutedEventArgs e)
+        {
+            if (e.Key == Windows.System.VirtualKey.Enter)
+            {
+                SchemeRenameFlyout_RenameConfirm(sender, e);
+            }
+            else if (e.Key == Windows.System.VirtualKey.Escape)
+            {
+                SchemeRenameFlyout_RenameCancel(sender, e);
+            }
+        }        
+
+        private void SchemeRenameFlyout_RenameConfirm(object sender, RoutedEventArgs e)
+        {
+            SchemeStore scheme_data;
+            string scheme_name;
+
+            var senderitem = sender as TextBox;
+            scheme_data = senderitem.DataContext as SchemeStore;
+            scheme_name = senderitem.Text;
+                 
+            scheme_data.scheme_name = scheme_name;
+            string scheme_guid = scheme_data.scheme_guid;
+            
+            scheme_data.editbox_visible = "Collapsed";
+            scheme_data.displaybox_visible = "Visible";
+                       
+            // do system rename of this scheme
+            //(App.Current as App).set_powerscheme_name(scheme_guid, scheme_name);
+        }
+
+        private void SchemeRenameFlyout_RenameCancel(object sender, RoutedEventArgs e)
         {
             var senderitem = sender as TextBox;
             SchemeStore scheme_data = senderitem.DataContext as SchemeStore;
-                      
-            // todo: textblock is not reflecting the update to the scheme name in data obj
-            scheme_data.textbox_visible = "Collapsed";
-            scheme_data.textblock_visible = "Visible";
-            
-            string scheme_guid = scheme_data.scheme_guid;
-            string scheme_name = scheme_data.scheme_name;
 
-            // fire system rename of this scheme
+            scheme_data.editbox_visible = "Collapsed";
+            scheme_data.displaybox_visible = "Visible";
         }
 
+
+
+        // Copy a scheme
         private void SchemeCopyFlyout_Clicked(object sender, RoutedEventArgs e)
         {
             // ask for a new scheme name with default in menu like "copy of Ultimate Performance"
@@ -295,6 +350,7 @@ namespace better_power
             // create a scheme menuitem for the new scheme
         }
 
+        // delete a scheme
         private void SchemeDeleteFlyout_Clicked(object sender, RoutedEventArgs e)
         {
 
@@ -319,11 +375,11 @@ namespace better_power
             {
                 if (kvp.Key == active_scheme_guid)
                 {
-                    App.scheme_data_dict[kvp.Key].is_active_scheme = "Visible";
+                    App.scheme_data_dict[kvp.Key].activebox_visible = "Visible";
                 }
                 else
                 {
-                    App.scheme_data_dict[kvp.Key].is_active_scheme = "Collapsed";
+                    App.scheme_data_dict[kvp.Key].activebox_visible = "Collapsed";
                 }
             }
         }
@@ -389,7 +445,6 @@ namespace better_power
 
 
         private void SchemeNavigationView_DisplayModeChanged(object sender, NavigationViewDisplayModeChangedEventArgs e) { }
-
 
         private void SearchBoxTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {

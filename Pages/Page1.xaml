@@ -60,41 +60,45 @@
             </DataTemplate>
 
 
-            <DataTemplate x:Key="NavSchemeItem" x:DataType="local:SchemeStore">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
-                    <TextBlock Text="{x:Bind scheme_name, Mode=OneWay}"
-                               Visibility="{x:Bind textblock_visible, Mode=OneWay}"
-                               Name="TextBlock"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Center" />
-                    <TextBox Text="{x:Bind scheme_name, Mode=TwoWay}"
-                               Visibility="{x:Bind textbox_visible, Mode=OneWay}"
-                               Name="EditBox"
-                               LostFocus="SchemeRenameFlyout_RenameDone"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Center" />
-                    <Grid 
-                            CornerRadius="2" BorderThickness="2" Padding="0" Margin="10" 
-                            BorderBrush="MediumSpringGreen" 
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
-                            Visibility="{x:Bind is_active_scheme, Mode=OneWay}">
-                        <TextBlock  
+            <DataTemplate x:Key="DisplayBox" x:DataType="local:SchemeStore">
+                <TextBlock 
+                        Margin="18"
+                        
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center" 
+                        
+                        Text="{x:Bind scheme_name, Mode=OneWay}"
+                        Visibility="{x:Bind displaybox_visible, Mode=OneWay}" />
+            </DataTemplate>
+            <DataTemplate x:Key="EditBox" x:DataType="local:SchemeStore">
+                <TextBox Name="EditBox"
+                        Margin="18"
+                        MinWidth="200"
+                        
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Center" 
+                        
+                        KeyUp="SchemeRenameTextBox_KeyUp"                                 
+                                                
+                        PlaceholderText="{x:Bind scheme_name, Mode=OneWay}"
+                        Text="{x:Bind scheme_name, Mode=OneWay}"
+                        Visibility="{x:Bind editbox_visible, Mode=OneWay}" />
+            </DataTemplate>
+            <DataTemplate x:Key="SchemeActiveBox" x:DataType="local:SchemeStore">
+                <Grid 
+                        CornerRadius="2" BorderThickness="2" Padding="0" Margin="10" BorderBrush="MediumSpringGreen" 
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        Visibility="{x:Bind activebox_visible, Mode=OneWay}">
+                    <TextBlock  
                             Text="Active"
                             Margin="8"                           
                             FontWeight="Bold" 
                             Foreground="MediumSpringGreen" />
-                    </Grid>
-                                        
-                </StackPanel>
-                
+                </Grid>
             </DataTemplate>
 
-            <DataTemplate x:Key="NavSchemeActiveBadge" >
-                
-            </DataTemplate>
-  
-                
+            
         </ResourceDictionary>            
     </Page.Resources>
 
@@ -174,51 +178,6 @@
                     IsItemClickEnabled="False">
             </ListView>             
         </NavigationView>
-
-        <!--<StackPanel
-            Grid.Row="1"
-            Grid.Column="0"
-            Orientation="Vertical" >
-
-            <AutoSuggestBox
-                x:Name="SearchBox"
-                HorizontalAlignment="Center"
-                x:FieldModifier="public"
-                PlaceholderText="Search Settings in Selected Scheme"
-                QueryIcon="Find"
-                MinWidth="200"
-                KeyboardAcceleratorPlacementMode="Hidden"
-                
-                TextChanged="SearchBoxTextChanged"
-                QuerySubmitted="SearchBoxQuerySubmitted"
-                >
-                <AutoSuggestBox.KeyboardAccelerators>
-                    <KeyboardAccelerator Modifiers="Control" Key="F" Invoked="CtrlF_Invoked" />
-                </AutoSuggestBox.KeyboardAccelerators>
-            </AutoSuggestBox>
-            
-            <TreeView
-                x:Name="TreeViewNavigation"      
-                IsTabStop="False"
-            
-                Background="{StaticResource AppTitleBar_Grey}"
-                                              
-                Loaded="TreeViewNavigation_Loaded">
-            </TreeView>
-
-        </StackPanel>-->
-                
-        <!--<ListView x:Name="ListView_main"
-                  Grid.Row="1"
-                  Grid.Column="1"
-                  
-                  Loaded="ListView_Loaded"          
-                  Padding="0,5,0,5"
-                  IsTabStop="False" 
-                  SelectionMode="None"
-                  IsItemClickEnabled="False">
-        </ListView>-->
-
 
     </Grid>   
 

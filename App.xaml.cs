@@ -110,35 +110,40 @@ namespace better_power
 
     public class SchemeStore : BindableBase
     {
-        public string scheme_name;
         public string scheme_guid;
+        private string _scheme_name;        
         private string _is_active_scheme;
         private string _textblock_visible;
-        private string _textbox_visible;
+        private string _editbox_visible;
 
         public SchemeStore(string scheme_name, string scheme_guid)
         {
-            this.scheme_name = scheme_name;
             this.scheme_guid = scheme_guid;
+            this._scheme_name = scheme_name;            
             this._is_active_scheme = "Collapsed";
             this._textblock_visible = "Visible";
-            this._textbox_visible = "Collapsed";
+            this._editbox_visible = "Collapsed";
         }
 
-        public string is_active_scheme
+        public string scheme_name
+        {
+            get { return this._scheme_name; }
+            set { this.SetProperty(ref this._scheme_name, value); }
+        }
+        public string activebox_visible
         {
             get { return this._is_active_scheme; }
             set { this.SetProperty(ref this._is_active_scheme, value); }
         }
-        public string textblock_visible
+        public string displaybox_visible
         {
             get { return this._textblock_visible; }
             set { this.SetProperty(ref this._textblock_visible, value); }
         }
-        public string textbox_visible
+        public string editbox_visible
         {
-            get { return this._textbox_visible; }
-            set { this.SetProperty(ref this._textbox_visible, value); }
+            get { return this._editbox_visible; }
+            set { this.SetProperty(ref this._editbox_visible, value); }
         }
     }
 
@@ -265,6 +270,16 @@ namespace better_power
 
             return (result.Count == 0);
         }
+
+        public bool set_powerscheme_name(string scheme_guid, string name)
+        {
+            this.ps.AddCommand("powercfg").AddArgument("changename").AddArgument(scheme_guid).AddArgument(name);
+            var result = this.ps.Invoke();
+
+            return (result.Count == 0);
+        }
+
+
 
 
         private void get_powersettings()
