@@ -15,7 +15,7 @@
     <None Update="App.xaml">
       <SubType>Designer</SubType>
     </None>
-    <Page Update="Pages\Page2.xaml">
+    <Page Update="Pages\SignInContentDialog.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="MainWindow.xaml">

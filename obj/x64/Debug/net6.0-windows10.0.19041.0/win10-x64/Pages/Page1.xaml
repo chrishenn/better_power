@@ -14,13 +14,13 @@
             
             <DataTemplate x:Key="SettingTemplate"                                >
 
-                <Grid x:ConnectionId='13' CornerRadius="2" BorderThickness="1" Padding="5" Margin="25,5,25,5" >
+                <Grid x:ConnectionId='11' CornerRadius="2" BorderThickness="1" Padding="5" Margin="25,5,25,5" >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock x:ConnectionId='14'                                                              
+                    <TextBlock x:ConnectionId='12'                                                              
                                Grid.Column="0" 
                                Width="300"
                                VerticalAlignment="Center" 
@@ -34,7 +34,7 @@
 
             
             <DataTemplate x:Key="ComboBoxTemplate"                                >
-                <ComboBox x:ConnectionId='11'     
+                <ComboBox x:ConnectionId='9'     
                     Grid.Column="1" 
                     Width="250"
                     VerticalAlignment="Center"
@@ -48,7 +48,7 @@
             </DataTemplate>
 
             <DataTemplate x:Key="NumberBoxTemplate"                                >
-                <NumberBox x:ConnectionId='9'     
+                <NumberBox x:ConnectionId='7'     
                     Grid.Column="1" 
                     Width="250"
                     VerticalAlignment="Center"
@@ -59,9 +59,8 @@
                                 />                
             </DataTemplate>
 
-
-            <DataTemplate x:Key="DisplayBox"                               >
-                <TextBlock x:ConnectionId='7' 
+            <DataTemplate x:Key="NameBoxTemplate"                               >
+                <TextBlock x:ConnectionId='5' 
                         Margin="18"
                         
                         HorizontalAlignment="Left"
@@ -70,22 +69,8 @@
                                                                 
                                                                               />
             </DataTemplate>
-            <DataTemplate x:Key="EditBox"                               >
-                <TextBox x:ConnectionId='5' Name="EditBox"
-                        Margin="18"
-                        MinWidth="200"
-                                                
-                        HorizontalAlignment="Stretch"
-                        VerticalAlignment="Center" 
-                        IsReadOnly="True"
-                        
-                                                                                          
-                                                
-                                                                           
-                                                                
-                                                                           />
-            </DataTemplate>
-            <DataTemplate x:Key="SchemeActiveBox"                               >
+
+            <DataTemplate x:Key="SchemeActiveBoxTemplate"                               >
                 <Grid x:ConnectionId='3' 
                         CornerRadius="2" BorderThickness="2" Padding="0" Margin="10" BorderBrush="MediumSpringGreen" 
                         HorizontalAlignment="Right"
@@ -105,7 +90,7 @@
 
     
 
-    <Grid x:ConnectionId='15'                          >
+    <Grid x:ConnectionId='13'                          >
                   
         <Grid.RowDefinitions>
             <RowDefinition Height="32"/>
@@ -114,17 +99,17 @@
 
         <Grid Grid.Row="1" Background="{StaticResource AppPageBackground}"/>
 
-        <Grid x:ConnectionId='16' x:Name="AppTitleBar" 
+        <Grid x:ConnectionId='14' x:Name="AppTitleBar" 
               Margin="0,0,120,0" 
               Grid.Row="0" 
               Background="{StaticResource AppTitleBar_Grey}" >
             
             <Image Source="../Assets/Square44x44Logo.altform-unplated_targetsize-48.png"
                 HorizontalAlignment="Left" 
-                Width="30" Height="30"
+                Width="25" Height="25"
                 Margin="8,0"/>
             
-            <TextBlock x:ConnectionId='21' x:Name="AppTitleTextBlock" Text="Better Power"
+            <TextBlock x:ConnectionId='19' x:Name="AppTitleTextBlock" Text="Better Power"
                 TextWrapping="NoWrap"                       
                 Style="{StaticResource CaptionTextBlockStyle}" 
                 VerticalAlignment="Center"
@@ -132,7 +117,7 @@
         </Grid>
 
 
-        <NavigationView x:ConnectionId='17'
+        <NavigationView x:ConnectionId='15'
             x:Name="SchemeNavigationView"             
             Grid.Row="1"
             PaneDisplayMode="Left"
@@ -157,21 +142,22 @@
                                                 >
 
             <NavigationView.AutoSuggestBox>
-                <AutoSuggestBox x:ConnectionId='18'
+                <AutoSuggestBox x:ConnectionId='16'
                     x:Name="SearchBox"
                     x:FieldModifier="public"
                     PlaceholderText="Search Settings in Selected Scheme"
                     QueryIcon="Find"
-                    MinWidth="200"
+                    MinWidth="100"
+                    Margin="10,8,10,0"
                     KeyboardAcceleratorPlacementMode="Hidden"
                                                       >
                     <AutoSuggestBox.KeyboardAccelerators>
-                        <KeyboardAccelerator x:ConnectionId='19' Modifiers="Control" Key="F"                         />
+                        <KeyboardAccelerator x:ConnectionId='17' Modifiers="Control" Key="F"                         />
                     </AutoSuggestBox.KeyboardAccelerators>
                 </AutoSuggestBox>
             </NavigationView.AutoSuggestBox>
             
-            <ListView x:ConnectionId='20' x:Name="ListView_main"
+            <ListView x:ConnectionId='18' x:Name="ListView_main"
                                               
                     Grid.Row="1"                         
                     Padding="0,5,0,5"
@@ -180,6 +166,34 @@
                     IsItemClickEnabled="False">
             </ListView>             
         </NavigationView>
+
+        <!--<ContentDialog 
+           x:Name="RenameDialog"
+                       
+           PrimaryButtonText="Apply"
+           DefaultButton="Primary"
+            
+           CloseButtonText="Cancel"  >
+            
+            <ContentDialog.TitleTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal" >
+                        <Image Source="../Assets/Square44x44Logo.altform-unplated_targetsize-48.png" 
+                               VerticalAlignment="Center"
+                               Width="40" Height="40" Margin="20"/>
+                        <TextBlock Text="Rename Power Scheme"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ContentDialog.TitleTemplate>
+
+            <TextBox Name="RenameDialogEditBox"
+                        Width="350"
+                        MaxHeight="200"
+                        Margin="10"
+                        TextWrapping="Wrap"
+                        ScrollViewer.VerticalScrollBarVisibility="Auto" />
+        </ContentDialog>-->
 
     </Grid>   
 

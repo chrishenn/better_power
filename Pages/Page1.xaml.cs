@@ -209,14 +209,12 @@ namespace better_power
             foreach (var scheme in App.scheme_data_dict)
             {
                 // create elements to compose the scheme menuitem
-                var displaybox = (this.Resources["DisplayBox"] as DataTemplate).LoadContent() as TextBlock;
-                var editbox = (this.Resources["EditBox"] as DataTemplate).LoadContent() as TextBox;
-                var activebox = (this.Resources["SchemeActiveBox"] as DataTemplate).LoadContent() as Grid;
-                displaybox.Tag = scheme.Key;
-                editbox.Tag = scheme.Key;
+                var namebox = (this.Resources["NameBoxTemplate"] as DataTemplate).LoadContent() as TextBlock;
+                var activebox = (this.Resources["SchemeActiveBoxTemplate"] as DataTemplate).LoadContent() as Grid;
+                namebox.Tag = scheme.Key;
                 activebox.Tag = scheme.Key;
 
-                var stackpanel = new StackPanel() { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Stretch, Children = {displaybox, editbox, activebox} };
+                var stackpanel = new StackPanel() { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Stretch, Children = {namebox, activebox} };
 
                 var scheme_menuitem = new NavigationViewItem();
                 scheme_menuitem.Content = stackpanel;
@@ -261,8 +259,7 @@ namespace better_power
 
                 // store references to FrameworkElements for later use
                 this.scheme_element_dict[scheme.Key] = scheme_menuitem;
-                this.scheme_subelements_dict[scheme.Key] = new List<FrameworkElement> { displaybox, editbox, activebox };
-
+                this.scheme_subelements_dict[scheme.Key] = new List<FrameworkElement> { namebox, activebox };
             }
 
             NavSetSchemeItemActive(App.curr_system_applied_scheme_guid);
@@ -287,73 +284,26 @@ namespace better_power
             var senderitem = sender as MenuFlyoutItem;
             SchemeStore scheme_data = senderitem.DataContext as SchemeStore;
 
-            scheme_data.displaybox_visible = "Collapsed";
-            scheme_data.editbox_visible = "Visible";
+            SignInContentDialog signInDialog = new SignInContentDialog(scheme_data.scheme_name);
+            signInDialog.XamlRoot = this.XamlRoot;
+            await signInDialog.ShowAsync();
 
-            string scheme_guid = senderitem.Tag.ToString();
-            FrameworkElement selected_schemeitem = this.scheme_element_dict[scheme_guid];
-
-            var subelements_list = this.scheme_subelements_dict[scheme_guid];
-
-
-            ContentDialog dialog = new ContentDialog();
-            dialog.Title = "Save your work?";
-            dialog.PrimaryButtonText = "Save";
-            dialog.SecondaryButtonText = "Don't Save";
-            dialog.CloseButtonText = "Cancel";
-            dialog.DefaultButton = ContentDialogButton.Primary;
-
-            var result = await dialog.ShowAsync();
-
-
-        }
-
-        private void SchemeRenameTextBox_KeyUp(object sender, KeyRoutedEventArgs e)
-        {
-            if (e.Key == Windows.System.VirtualKey.Enter)
+            if (signInDialog.result == RenameResult.RenameSuccess)
             {
-                SchemeRenameFlyout_RenameConfirm(sender, e);
+                string new_name = signInDialog.new_name;
+                string curr_name = scheme_data.scheme_name;
+                if (new_name != curr_name)
+                {
+                    // change scheme name in application state
+                    scheme_data.scheme_name = new_name;
+
+                    // do system rename of this scheme
+                    //(App.Current as App).set_powerscheme_name(scheme_data.scheme_guid, new_name);   
+                }
             }
-            else if (e.Key == Windows.System.VirtualKey.Escape)
-            {
-                SchemeRenameFlyout_RenameCancel(sender, e);
-            }
-        }        
-
-        private void SchemeRenameFlyout_RenameConfirm(object sender, RoutedEventArgs e)
-        {
-            SchemeStore scheme_data;
-            string scheme_name;
-
-            var senderitem = sender as TextBox;
-            scheme_data = senderitem.DataContext as SchemeStore;
-            scheme_name = senderitem.Text;
-                 
-            scheme_data.scheme_name = scheme_name;
-            string scheme_guid = scheme_data.scheme_guid;
-            
-            scheme_data.editbox_visible = "Collapsed";
-            scheme_data.displaybox_visible = "Visible";
-
-            // do system rename of this scheme
-            //(App.Current as App).set_powerscheme_name(scheme_guid, scheme_name);
-
-            FrameworkElement selected_schemeitem = this.scheme_element_dict[scheme_guid];
-            
         }
-
-        private void SchemeRenameFlyout_RenameCancel(object sender, RoutedEventArgs e)
-        {
-            var senderitem = sender as TextBox;
-            SchemeStore scheme_data = senderitem.DataContext as SchemeStore;
-            string scheme_guid = scheme_data.scheme_guid;
-
-            scheme_data.editbox_visible = "Collapsed";
-            scheme_data.displaybox_visible = "Visible";
-
-            FrameworkElement selected_schemeitem = this.scheme_element_dict[scheme_guid];
-            
-        }
+         
+    
 
 
 

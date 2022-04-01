@@ -160,12 +160,15 @@ namespace better_power
         public static Window Window { get { return m_window; } }
         private static Window m_window;
 
+        // todo: make ordereddict
         public static Dictionary<string, SettingStore> setting_data_dict { get { return _setting_data_dict; } }
         private static Dictionary<string, SettingStore> _setting_data_dict = new Dictionary<string, SettingStore>();
 
+        // todo: make ordereddict
         public static Dictionary<string, GroupStore> group_data_dict { get { return _group_data_dict; } }
         private static Dictionary<string, GroupStore> _group_data_dict = new Dictionary<string, GroupStore>();
 
+        // todo: make ordereddict
         public static Dictionary<string, SchemeStore> scheme_data_dict { get { return _scheme_data_dict; } }
         private static Dictionary<string, SchemeStore> _scheme_data_dict = new Dictionary<string, SchemeStore>();
 

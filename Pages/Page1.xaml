@@ -59,8 +59,7 @@
                     x:Phase="1" />                
             </DataTemplate>
 
-
-            <DataTemplate x:Key="DisplayBox" x:DataType="local:SchemeStore">
+            <DataTemplate x:Key="NameBoxTemplate" x:DataType="local:SchemeStore">
                 <TextBlock 
                         Margin="18"
                         
@@ -70,22 +69,8 @@
                         Text="{x:Bind scheme_name, Mode=OneWay}"
                         Visibility="{x:Bind displaybox_visible, Mode=OneWay}" />
             </DataTemplate>
-            <DataTemplate x:Key="EditBox" x:DataType="local:SchemeStore">
-                <TextBox Name="EditBox"
-                        Margin="18"
-                        MinWidth="200"
-                                                
-                        HorizontalAlignment="Stretch"
-                        VerticalAlignment="Center" 
-                        IsReadOnly="True"
-                        
-                        KeyUp="SchemeRenameTextBox_KeyUp"                                 
-                                                
-                        PlaceholderText="{x:Bind scheme_name, Mode=OneWay}"
-                        Text="{x:Bind scheme_name, Mode=OneWay}"
-                        Visibility="{x:Bind editbox_visible, Mode=OneWay}" />
-            </DataTemplate>
-            <DataTemplate x:Key="SchemeActiveBox" x:DataType="local:SchemeStore">
+
+            <DataTemplate x:Key="SchemeActiveBoxTemplate" x:DataType="local:SchemeStore">
                 <Grid 
                         CornerRadius="2" BorderThickness="2" Padding="0" Margin="10" BorderBrush="MediumSpringGreen" 
                         HorizontalAlignment="Right"
@@ -121,7 +106,7 @@
             
             <Image Source="../Assets/Square44x44Logo.altform-unplated_targetsize-48.png"
                 HorizontalAlignment="Left" 
-                Width="30" Height="30"
+                Width="25" Height="25"
                 Margin="8,0"/>
             
             <TextBlock x:Name="AppTitleTextBlock" Text="Better Power"
@@ -162,7 +147,8 @@
                     x:FieldModifier="public"
                     PlaceholderText="Search Settings in Selected Scheme"
                     QueryIcon="Find"
-                    MinWidth="200"
+                    MinWidth="100"
+                    Margin="10,8,10,0"
                     KeyboardAcceleratorPlacementMode="Hidden"
                     TextChanged="SearchBoxTextChanged">
                     <AutoSuggestBox.KeyboardAccelerators>
@@ -180,6 +166,34 @@
                     IsItemClickEnabled="False">
             </ListView>             
         </NavigationView>
+
+        <!--<ContentDialog 
+           x:Name="RenameDialog"
+                       
+           PrimaryButtonText="Apply"
+           DefaultButton="Primary"
+            
+           CloseButtonText="Cancel"  >
+            
+            <ContentDialog.TitleTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal" >
+                        <Image Source="../Assets/Square44x44Logo.altform-unplated_targetsize-48.png" 
+                               VerticalAlignment="Center"
+                               Width="40" Height="40" Margin="20"/>
+                        <TextBlock Text="Rename Power Scheme"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ContentDialog.TitleTemplate>
+
+            <TextBox Name="RenameDialogEditBox"
+                        Width="350"
+                        MaxHeight="200"
+                        Margin="10"
+                        TextWrapping="Wrap"
+                        ScrollViewer.VerticalScrollBarVisibility="Auto" />
+        </ContentDialog>-->
 
     </Grid>   
 

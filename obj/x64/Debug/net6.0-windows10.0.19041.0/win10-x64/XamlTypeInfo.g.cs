@@ -224,7 +224,7 @@ namespace better_power.better_power_XamlTypeInfo
 
         private void InitTypeTables()
         {
-            _typeNameTable = new string[40];
+            _typeNameTable = new string[42];
             _typeNameTable[0] = "Microsoft.UI.Xaml.Controls.XamlControlsResources";
             _typeNameTable[1] = "Microsoft.UI.Xaml.ResourceDictionary";
             _typeNameTable[2] = "Object";
@@ -264,9 +264,11 @@ namespace better_power.better_power_XamlTypeInfo
             _typeNameTable[36] = "better_power.Page1";
             _typeNameTable[37] = "Microsoft.UI.Xaml.Controls.Page";
             _typeNameTable[38] = "Microsoft.UI.Xaml.Controls.UserControl";
-            _typeNameTable[39] = "better_power.Page2";
+            _typeNameTable[39] = "better_power.SignInContentDialog";
+            _typeNameTable[40] = "Microsoft.UI.Xaml.Controls.ContentDialog";
+            _typeNameTable[41] = "better_power.RenameResult";
 
-            _typeTable = new global::System.Type[40];
+            _typeTable = new global::System.Type[42];
             _typeTable[0] = typeof(global::Microsoft.UI.Xaml.Controls.XamlControlsResources);
             _typeTable[1] = typeof(global::Microsoft.UI.Xaml.ResourceDictionary);
             _typeTable[2] = typeof(global::System.Object);
@@ -306,7 +308,9 @@ namespace better_power.better_power_XamlTypeInfo
             _typeTable[36] = typeof(global::better_power.Page1);
             _typeTable[37] = typeof(global::Microsoft.UI.Xaml.Controls.Page);
             _typeTable[38] = typeof(global::Microsoft.UI.Xaml.Controls.UserControl);
-            _typeTable[39] = typeof(global::better_power.Page2);
+            _typeTable[39] = typeof(global::better_power.SignInContentDialog);
+            _typeTable[40] = typeof(global::Microsoft.UI.Xaml.Controls.ContentDialog);
+            _typeTable[41] = typeof(global::better_power.RenameResult);
         }
 
         private int LookupTypeIndexByName(string typeName)
@@ -347,7 +351,6 @@ namespace better_power.better_power_XamlTypeInfo
         private object Activate_20_NavigationView() { return new global::Microsoft.UI.Xaml.Controls.NavigationView(); }
         private object Activate_34_NavigationViewTemplateSettings() { return new global::Microsoft.UI.Xaml.Controls.NavigationViewTemplateSettings(); }
         private object Activate_36_Page1() { return new global::better_power.Page1(); }
-        private object Activate_39_Page2() { return new global::better_power.Page2(); }
         private void MapAdd_0_XamlControlsResources(object instance, object key, object item)
         {
             var collection = (global::System.Collections.Generic.IDictionary<global::System.Object, global::System.Object>)instance;
@@ -643,9 +646,22 @@ namespace better_power.better_power_XamlTypeInfo
                 xamlType = new global::better_power.better_power_XamlTypeInfo.XamlSystemBaseType(typeName, type);
                 break;
 
-            case 39:   //  better_power.Page2
-                userType = new global::better_power.better_power_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Microsoft.UI.Xaml.Controls.Page"));
-                userType.Activator = Activate_39_Page2;
+            case 39:   //  better_power.SignInContentDialog
+                userType = new global::better_power.better_power_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Microsoft.UI.Xaml.Controls.ContentDialog"));
+                userType.AddMemberName("result");
+                userType.AddMemberName("new_name");
+                userType.SetIsLocalType();
+                xamlType = userType;
+                break;
+
+            case 40:   //  Microsoft.UI.Xaml.Controls.ContentDialog
+                xamlType = new global::better_power.better_power_XamlTypeInfo.XamlSystemBaseType(typeName, type);
+                break;
+
+            case 41:   //  better_power.RenameResult
+                userType = new global::better_power.better_power_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("System.Enum"));
+                userType.AddEnumValue("RenameSuccess", global::better_power.RenameResult.RenameSuccess);
+                userType.AddEnumValue("RenameCancel", global::better_power.RenameResult.RenameCancel);
                 userType.SetIsLocalType();
                 xamlType = userType;
                 break;
@@ -1293,6 +1309,16 @@ namespace better_power.better_power_XamlTypeInfo
             var that = (global::Microsoft.UI.Xaml.Controls.NavigationView)instance;
             return that.TemplateSettings;
         }
+        private object get_61_SignInContentDialog_result(object instance)
+        {
+            var that = (global::better_power.SignInContentDialog)instance;
+            return that.result;
+        }
+        private object get_62_SignInContentDialog_new_name(object instance)
+        {
+            var that = (global::better_power.SignInContentDialog)instance;
+            return that.new_name;
+        }
 
         private global::Microsoft.UI.Xaml.Markup.IXamlMember CreateXamlMember(string longMemberName)
         {
@@ -1722,6 +1748,18 @@ namespace better_power.better_power_XamlTypeInfo
                 xamlMember = new global::better_power.better_power_XamlTypeInfo.XamlMember(this, "TemplateSettings", "Microsoft.UI.Xaml.Controls.NavigationViewTemplateSettings");
                 xamlMember.SetIsDependencyProperty();
                 xamlMember.Getter = get_60_NavigationView_TemplateSettings;
+                xamlMember.SetIsReadOnly();
+                break;
+            case "better_power.SignInContentDialog.result":
+                userType = (global::better_power.better_power_XamlTypeInfo.XamlUserType)GetXamlTypeByName("better_power.SignInContentDialog");
+                xamlMember = new global::better_power.better_power_XamlTypeInfo.XamlMember(this, "result", "better_power.RenameResult");
+                xamlMember.Getter = get_61_SignInContentDialog_result;
+                xamlMember.SetIsReadOnly();
+                break;
+            case "better_power.SignInContentDialog.new_name":
+                userType = (global::better_power.better_power_XamlTypeInfo.XamlUserType)GetXamlTypeByName("better_power.SignInContentDialog");
+                xamlMember = new global::better_power.better_power_XamlTypeInfo.XamlMember(this, "new_name", "String");
+                xamlMember.Getter = get_62_SignInContentDialog_new_name;
                 xamlMember.SetIsReadOnly();
                 break;
             }
