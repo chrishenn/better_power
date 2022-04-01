@@ -282,7 +282,7 @@ namespace better_power
 
 
         // Rename a scheme via its context flyout
-        private void SchemeRenameFlyout_Clicked(object sender, RoutedEventArgs e)
+        private async void SchemeRenameFlyout_Clicked(object sender, RoutedEventArgs e)
         {
             var senderitem = sender as MenuFlyoutItem;
             SchemeStore scheme_data = senderitem.DataContext as SchemeStore;
@@ -290,14 +290,22 @@ namespace better_power
             scheme_data.displaybox_visible = "Collapsed";
             scheme_data.editbox_visible = "Visible";
 
-
             string scheme_guid = senderitem.Tag.ToString();
             FrameworkElement selected_schemeitem = this.scheme_element_dict[scheme_guid];
 
             var subelements_list = this.scheme_subelements_dict[scheme_guid];
-            var editbox = subelements_list[1];
-            editbox.Focus(FocusState.Programmatic);    
-            (editbox as TextBox).SelectAll();
+
+
+            ContentDialog dialog = new ContentDialog();
+            dialog.Title = "Save your work?";
+            dialog.PrimaryButtonText = "Save";
+            dialog.SecondaryButtonText = "Don't Save";
+            dialog.CloseButtonText = "Cancel";
+            dialog.DefaultButton = ContentDialogButton.Primary;
+
+            var result = await dialog.ShowAsync();
+
+
         }
 
         private void SchemeRenameTextBox_KeyUp(object sender, KeyRoutedEventArgs e)
@@ -326,18 +334,25 @@ namespace better_power
             
             scheme_data.editbox_visible = "Collapsed";
             scheme_data.displaybox_visible = "Visible";
-                       
+
             // do system rename of this scheme
             //(App.Current as App).set_powerscheme_name(scheme_guid, scheme_name);
+
+            FrameworkElement selected_schemeitem = this.scheme_element_dict[scheme_guid];
+            
         }
 
         private void SchemeRenameFlyout_RenameCancel(object sender, RoutedEventArgs e)
         {
             var senderitem = sender as TextBox;
             SchemeStore scheme_data = senderitem.DataContext as SchemeStore;
+            string scheme_guid = scheme_data.scheme_guid;
 
             scheme_data.editbox_visible = "Collapsed";
             scheme_data.displaybox_visible = "Visible";
+
+            FrameworkElement selected_schemeitem = this.scheme_element_dict[scheme_guid];
+            
         }
 
 

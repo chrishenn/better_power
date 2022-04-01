@@ -74,9 +74,10 @@
                 <TextBox Name="EditBox"
                         Margin="18"
                         MinWidth="200"
-                        
+                                                
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Center" 
+                        IsReadOnly="True"
                         
                         KeyUp="SchemeRenameTextBox_KeyUp"                                 
                                                 
@@ -136,6 +137,7 @@
             Grid.Row="1"
             PaneDisplayMode="Left"
             
+            IsPaneToggleButtonVisible="False"
             IsSettingsVisible="False"
             IsBackButtonVisible="Collapsed"
             IsBackEnabled="False"
