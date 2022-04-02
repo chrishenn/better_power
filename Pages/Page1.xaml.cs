@@ -274,21 +274,20 @@ namespace better_power
 
             var scheme_elem = (NavigationViewItem)this.scheme_element_dict[scheme_guid];
             var storyboard = (scheme_elem.Resources["success_animation"] as Storyboard);
-            storyboard.Completed -= SelectItem;
+            storyboard.Completed -= ReSelectItem;
 
             if (scheme_guid == current_display_scheme_guid)
             {
                 var selected_schemeitem = this.SchemeNavigationView.SelectedItem;
                 this.SchemeNavigationView.SelectedItem = null;
                                                
-                //storyboard.Completed += new EventHandler<object>(SelectItem);
-                storyboard.Completed += SelectItem;                
+                storyboard.Completed += ReSelectItem;                
                 storyboard.Begin();
             }
             else FireSchemeSuccessFlash(scheme_guid, success);
         }
 
-        private void SelectItem(object sender, object e) 
+        private void ReSelectItem(object sender, object e) 
         {
             string scheme_guid = Storyboard.GetTargetName(sender as Storyboard);
             this.SchemeNavigationView.SelectedItem = this.scheme_element_dict[scheme_guid];                        
@@ -384,12 +383,17 @@ namespace better_power
                 // selected is a scheme. update settings cards current values in listview
                 if (App.scheme_data_dict.ContainsKey(selected_guid))
                 {
-                    selected_scheme_guid = selected_guid;                    
-                    update_settings_to_scheme(selected_scheme_guid);
+                    selected_scheme_guid = selected_guid;
 
-                    this.setting_elements.Clear();
-                    foreach (var item in this.all_setting_elements) 
-                        this.setting_elements.Add(item);
+                    // if the application is already showing these scheme values, no need to change to them
+                    if (selected_scheme_guid != this.current_display_scheme_guid)
+                    { 
+                        update_settings_to_scheme(selected_scheme_guid);
+
+                        this.setting_elements.Clear();
+                        foreach (var item in this.all_setting_elements)
+                            this.setting_elements.Add(item);
+                    }
                 }
                 // else selected_guid is a groupid. get selected scheme. check for scheme change. filter settings in view.
                 else
