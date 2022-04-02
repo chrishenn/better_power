@@ -214,7 +214,8 @@ namespace better_power
                 namebox.Tag = scheme.Key;
                 activebox.Tag = scheme.Key;
 
-                var stackpanel = new StackPanel() { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Stretch, Children = {namebox, activebox} };
+                var stackpanel = new Grid() { HorizontalAlignment = HorizontalAlignment.Stretch, VerticalAlignment = VerticalAlignment.Center,
+                    Children = {namebox, activebox} };
 
                 var scheme_menuitem = new NavigationViewItem();
                 scheme_menuitem.Content = stackpanel;
@@ -284,13 +285,13 @@ namespace better_power
             var senderitem = sender as MenuFlyoutItem;
             SchemeStore scheme_data = senderitem.DataContext as SchemeStore;
 
-            SignInContentDialog signInDialog = new SignInContentDialog(scheme_data.scheme_name);
-            signInDialog.XamlRoot = this.XamlRoot;
-            await signInDialog.ShowAsync();
+            RenameDialog rename_dialog = new RenameDialog(scheme_data.scheme_name);
+            rename_dialog.XamlRoot = this.XamlRoot;
+            await rename_dialog.ShowAsync();
 
-            if (signInDialog.result == RenameResult.RenameSuccess)
+            if (rename_dialog.result == RenameResult.RenameSuccess)
             {
-                string new_name = signInDialog.new_name;
+                string new_name = rename_dialog.new_name;
                 string curr_name = scheme_data.scheme_name;
                 if (new_name != curr_name)
                 {
@@ -298,7 +299,7 @@ namespace better_power
                     scheme_data.scheme_name = new_name;
 
                     // do system rename of this scheme
-                    //(App.Current as App).set_powerscheme_name(scheme_data.scheme_guid, new_name);   
+                    (App.Current as App).set_powerscheme_name(scheme_data.scheme_guid, new_name);
                 }
             }
         }

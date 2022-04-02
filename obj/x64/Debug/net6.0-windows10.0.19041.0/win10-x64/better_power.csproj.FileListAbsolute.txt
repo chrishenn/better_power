@@ -851,8 +851,8 @@ C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\qualifiers.txt.intermediate
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\MultipleQualifiersPerDimensionFound.txt
 C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\ProjectArchitectures.txt
-C:\Users\Admin\source\repos\better_power\bin\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\Pages\SignInContentDialog.xbf
-C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\Pages\SignInContentDialog.g.i.cs
-C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\Pages\SignInContentDialog.g.cs
-C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\Pages\SignInContentDialog.xaml
-C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\Pages\SignInContentDialog.xbf
+C:\Users\Admin\source\repos\better_power\bin\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\Pages\RenameDialog.xbf
+C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\Pages\RenameDialog.g.i.cs
+C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\Pages\RenameDialog.g.cs
+C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\Pages\RenameDialog.xaml
+C:\Users\Admin\source\repos\better_power\obj\x64\Debug\net6.0-windows10.0.19041.0\win10-x64\Pages\RenameDialog.xbf

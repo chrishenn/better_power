@@ -13,7 +13,6 @@
 
             
             <DataTemplate x:Key="SettingTemplate"                                >
-
                 <Grid x:ConnectionId='11' CornerRadius="2" BorderThickness="1" Padding="5" Margin="25,5,25,5" >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -26,12 +25,9 @@
                                VerticalAlignment="Center" 
                                HorizontalAlignment="Left"
                                TextWrapping="WrapWholeWords"
-                               Margin="10,5,0,5" 
-                               
-                                           />
+                               Margin="10,5,0,5"  />
                 </Grid>
             </DataTemplate>
-
             
             <DataTemplate x:Key="ComboBoxTemplate"                                >
                 <ComboBox x:ConnectionId='9'     
@@ -42,9 +38,7 @@
                     Margin="0,5,10,5" 
                     
                                                                               
-                                                                     
-                    
-                                />
+                                                                      />
             </DataTemplate>
 
             <DataTemplate x:Key="NumberBoxTemplate"                                >
@@ -55,13 +49,12 @@
                     HorizontalAlignment="Left"
                     Margin="0,5,10,5" 
                     
-                                                                                 
-                                />                
+                                                              />                
             </DataTemplate>
 
             <DataTemplate x:Key="NameBoxTemplate"                               >
                 <TextBlock x:ConnectionId='5' 
-                        Margin="18"
+                        Margin="0,18,0,18"
                         
                         HorizontalAlignment="Left"
                         VerticalAlignment="Center" 
@@ -72,15 +65,20 @@
 
             <DataTemplate x:Key="SchemeActiveBoxTemplate"                               >
                 <Grid x:ConnectionId='3' 
-                        CornerRadius="2" BorderThickness="2" Padding="0" Margin="10" BorderBrush="MediumSpringGreen" 
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Center"
-                                                                            >
+                    CornerRadius="2" BorderThickness="2" 
+                    BorderBrush="MediumSpringGreen" 
+                    
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    
+                                                                        >
                     <TextBlock  
-                            Text="Active"
-                            Margin="8"                           
-                            FontWeight="Bold" 
-                            Foreground="MediumSpringGreen" />
+                        Text="Active"                      
+                        FontWeight="Bold" 
+                        Foreground="MediumSpringGreen" 
+                        VerticalAlignment="Center"
+                        Margin="8"
+                        />
                 </Grid>
             </DataTemplate>
 
@@ -166,34 +164,6 @@
                     IsItemClickEnabled="False">
             </ListView>             
         </NavigationView>
-
-        <!--<ContentDialog 
-           x:Name="RenameDialog"
-                       
-           PrimaryButtonText="Apply"
-           DefaultButton="Primary"
-            
-           CloseButtonText="Cancel"  >
-            
-            <ContentDialog.TitleTemplate>
-                <DataTemplate>
-                    <StackPanel Orientation="Horizontal" >
-                        <Image Source="../Assets/Square44x44Logo.altform-unplated_targetsize-48.png" 
-                               VerticalAlignment="Center"
-                               Width="40" Height="40" Margin="20"/>
-                        <TextBlock Text="Rename Power Scheme"
-                                   VerticalAlignment="Center"/>
-                    </StackPanel>
-                </DataTemplate>
-            </ContentDialog.TitleTemplate>
-
-            <TextBox Name="RenameDialogEditBox"
-                        Width="350"
-                        MaxHeight="200"
-                        Margin="10"
-                        TextWrapping="Wrap"
-                        ScrollViewer.VerticalScrollBarVisibility="Auto" />
-        </ContentDialog>-->
 
     </Grid>   
 

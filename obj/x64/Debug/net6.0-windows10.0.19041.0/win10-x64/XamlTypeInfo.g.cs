@@ -264,7 +264,7 @@ namespace better_power.better_power_XamlTypeInfo
             _typeNameTable[36] = "better_power.Page1";
             _typeNameTable[37] = "Microsoft.UI.Xaml.Controls.Page";
             _typeNameTable[38] = "Microsoft.UI.Xaml.Controls.UserControl";
-            _typeNameTable[39] = "better_power.SignInContentDialog";
+            _typeNameTable[39] = "better_power.RenameDialog";
             _typeNameTable[40] = "Microsoft.UI.Xaml.Controls.ContentDialog";
             _typeNameTable[41] = "better_power.RenameResult";
 
@@ -308,7 +308,7 @@ namespace better_power.better_power_XamlTypeInfo
             _typeTable[36] = typeof(global::better_power.Page1);
             _typeTable[37] = typeof(global::Microsoft.UI.Xaml.Controls.Page);
             _typeTable[38] = typeof(global::Microsoft.UI.Xaml.Controls.UserControl);
-            _typeTable[39] = typeof(global::better_power.SignInContentDialog);
+            _typeTable[39] = typeof(global::better_power.RenameDialog);
             _typeTable[40] = typeof(global::Microsoft.UI.Xaml.Controls.ContentDialog);
             _typeTable[41] = typeof(global::better_power.RenameResult);
         }
@@ -646,7 +646,7 @@ namespace better_power.better_power_XamlTypeInfo
                 xamlType = new global::better_power.better_power_XamlTypeInfo.XamlSystemBaseType(typeName, type);
                 break;
 
-            case 39:   //  better_power.SignInContentDialog
+            case 39:   //  better_power.RenameDialog
                 userType = new global::better_power.better_power_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Microsoft.UI.Xaml.Controls.ContentDialog"));
                 userType.AddMemberName("result");
                 userType.AddMemberName("new_name");
@@ -1309,14 +1309,14 @@ namespace better_power.better_power_XamlTypeInfo
             var that = (global::Microsoft.UI.Xaml.Controls.NavigationView)instance;
             return that.TemplateSettings;
         }
-        private object get_61_SignInContentDialog_result(object instance)
+        private object get_61_RenameDialog_result(object instance)
         {
-            var that = (global::better_power.SignInContentDialog)instance;
+            var that = (global::better_power.RenameDialog)instance;
             return that.result;
         }
-        private object get_62_SignInContentDialog_new_name(object instance)
+        private object get_62_RenameDialog_new_name(object instance)
         {
-            var that = (global::better_power.SignInContentDialog)instance;
+            var that = (global::better_power.RenameDialog)instance;
             return that.new_name;
         }
 
@@ -1750,16 +1750,16 @@ namespace better_power.better_power_XamlTypeInfo
                 xamlMember.Getter = get_60_NavigationView_TemplateSettings;
                 xamlMember.SetIsReadOnly();
                 break;
-            case "better_power.SignInContentDialog.result":
-                userType = (global::better_power.better_power_XamlTypeInfo.XamlUserType)GetXamlTypeByName("better_power.SignInContentDialog");
+            case "better_power.RenameDialog.result":
+                userType = (global::better_power.better_power_XamlTypeInfo.XamlUserType)GetXamlTypeByName("better_power.RenameDialog");
                 xamlMember = new global::better_power.better_power_XamlTypeInfo.XamlMember(this, "result", "better_power.RenameResult");
-                xamlMember.Getter = get_61_SignInContentDialog_result;
+                xamlMember.Getter = get_61_RenameDialog_result;
                 xamlMember.SetIsReadOnly();
                 break;
-            case "better_power.SignInContentDialog.new_name":
-                userType = (global::better_power.better_power_XamlTypeInfo.XamlUserType)GetXamlTypeByName("better_power.SignInContentDialog");
+            case "better_power.RenameDialog.new_name":
+                userType = (global::better_power.better_power_XamlTypeInfo.XamlUserType)GetXamlTypeByName("better_power.RenameDialog");
                 xamlMember = new global::better_power.better_power_XamlTypeInfo.XamlMember(this, "new_name", "String");
-                xamlMember.Getter = get_62_SignInContentDialog_new_name;
+                xamlMember.Getter = get_62_RenameDialog_new_name;
                 xamlMember.SetIsReadOnly();
                 break;
             }

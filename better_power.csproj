@@ -69,7 +69,7 @@
     <Folder Include="Themes\" />
   </ItemGroup>
   <ItemGroup>
-    <Page Update="Pages\SignInContentDialog.xaml">
+    <Page Update="Pages\RenameDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
