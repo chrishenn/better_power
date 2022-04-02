@@ -12,20 +12,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.UI.Xaml.Data;
-using Windows.ApplicationModel.Core;
 
 using System.Collections;
-using System.Management;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using System.Text.RegularExpressions;
 using System.Collections.ObjectModel;
 using System.Management.Automation;
 

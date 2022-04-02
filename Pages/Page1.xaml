@@ -119,6 +119,7 @@
             x:Name="SchemeNavigationView"             
             Grid.Row="1"
             PaneDisplayMode="Left"
+            Background="{StaticResource AppTitleBar_Grey}"
             
             IsPaneToggleButtonVisible="False"
             IsSettingsVisible="False"
@@ -133,8 +134,6 @@
             IsTabStop="False"
             IsTitleBarAutoPaddingEnabled="False"
             
-            Background="{StaticResource AppTitleBar_Grey}"
-                                              
             DisplayModeChanged="SchemeNavigationView_DisplayModeChanged"
             SelectionChanged="SchemeNavigationView_SelectionChanged"
             Loaded="SchemeNavigationView_Loaded">

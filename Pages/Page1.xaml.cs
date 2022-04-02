@@ -1,23 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Collections.ObjectModel;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
+
+using Windows.UI;
+
 using Microsoft.UI;
 using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
-using System.Collections.ObjectModel;
-using System.Threading.Tasks;
 using Microsoft.UI.Xaml.Media.Animation;
-using Windows.UI;
+
 
 namespace better_power
 {
@@ -139,7 +134,7 @@ namespace better_power
             Storyboard.SetTargetProperty(animation, "Color");
 
             Storyboard story_board = new Storyboard() { Children = { animation } };
-
+            
             element.Resources.Add(animation_name, story_board);
         }
 
@@ -228,6 +223,7 @@ namespace better_power
                 scheme_menuitem.Background = background_brush;
 
                 register_animation(scheme_menuitem, background_brush, Colors.MediumSpringGreen, "success_animation");
+                Storyboard.SetTargetName(scheme_menuitem.Resources["success_animation"] as Storyboard, scheme.Key);
                 register_animation(scheme_menuitem, background_brush, Colors.MediumVioletRed, "fail_animation");
 
                 // create flyouts for scheme menuitem's contextmenu
@@ -275,8 +271,30 @@ namespace better_power
             bool success = (App.Current as App).set_powerscheme(scheme_guid);
 
             NavSetSchemeItemActive(scheme_guid);
-            FireSchemeSuccessFlash(scheme_guid, success);
+
+            var scheme_elem = (NavigationViewItem)this.scheme_element_dict[scheme_guid];
+            var storyboard = (scheme_elem.Resources["success_animation"] as Storyboard);
+            storyboard.Completed -= SelectItem;
+
+            if (scheme_guid == current_display_scheme_guid)
+            {
+                var selected_schemeitem = this.SchemeNavigationView.SelectedItem;
+                this.SchemeNavigationView.SelectedItem = null;
+                                               
+                //storyboard.Completed += new EventHandler<object>(SelectItem);
+                storyboard.Completed += SelectItem;                
+                storyboard.Begin();
+            }
+            else FireSchemeSuccessFlash(scheme_guid, success);
         }
+
+        private void SelectItem(object sender, object e) 
+        {
+            string scheme_guid = Storyboard.GetTargetName(sender as Storyboard);
+            this.SchemeNavigationView.SelectedItem = this.scheme_element_dict[scheme_guid];                        
+        }
+
+        private void emptyfunc(object sender, object e) { }
 
 
         // Rename a scheme via its context flyout
@@ -450,7 +468,7 @@ namespace better_power
                     }
                 }
 
-                // todo: show "none found" element
+                // todo: show "none found" element (?)
                 if (this.setting_elements.Count == 0) { } 
             }
         }
