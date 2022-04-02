@@ -1,6 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections;
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 
 using Windows.UI;
@@ -25,7 +27,6 @@ namespace better_power
 
         Dictionary<string, FrameworkElement> setting_element_dict = new Dictionary<string, FrameworkElement>();
         Dictionary<string, FrameworkElement> scheme_element_dict = new Dictionary<string, FrameworkElement>();
-        Dictionary<string, List<FrameworkElement>> scheme_subelements_dict = new Dictionary<string, List<FrameworkElement>>();
         Dictionary<string, List<FrameworkElement>> setting_elements_by_group_dict = new Dictionary<string, List<FrameworkElement>>();
         Dictionary<string, FrameworkElement> group_headerelements_dict = new Dictionary<string, FrameworkElement>();
 
@@ -201,99 +202,123 @@ namespace better_power
         {
             this.SchemeNavigationView.MenuItems.Add(new NavigationViewItemHeader() { Content = "Installed Schemes", FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Colors.SlateBlue) });
 
-            foreach (var scheme in App.scheme_data_dict)
+            foreach (var scheme_kvp in App.scheme_data_dict)
             {
-                // create elements to compose the scheme menuitem
-                var namebox = (this.Resources["NameBoxTemplate"] as DataTemplate).LoadContent() as TextBlock;
-                var activebox = (this.Resources["SchemeActiveBoxTemplate"] as DataTemplate).LoadContent() as Grid;
-                namebox.Tag = scheme.Key;
-                activebox.Tag = scheme.Key;
-
-                var stackpanel = new Grid() { HorizontalAlignment = HorizontalAlignment.Stretch, VerticalAlignment = VerticalAlignment.Center,
-                    Children = {namebox, activebox} };
-
-                var scheme_menuitem = new NavigationViewItem();
-                scheme_menuitem.Content = stackpanel;
-                scheme_menuitem.Tag = scheme.Key;
-                scheme_menuitem.DataContext = scheme.Value;
-
-                // register animators
-                Color background_gray = (Application.Current.Resources["AppTitleBar_Grey"] as SolidColorBrush).Color;
-                SolidColorBrush background_brush = new SolidColorBrush(background_gray);
-                scheme_menuitem.Background = background_brush;
-
-                register_animation(scheme_menuitem, background_brush, Colors.MediumSpringGreen, "success_animation");
-                Storyboard.SetTargetName(scheme_menuitem.Resources["success_animation"] as Storyboard, scheme.Key);
-                register_animation(scheme_menuitem, background_brush, Colors.MediumVioletRed, "fail_animation");
-
-                // create flyouts for scheme menuitem's contextmenu
-                var flyout_setactive = new MenuFlyoutItem() { Text = "Set Active", Tag = scheme.Key };
-                flyout_setactive.Click += SchemeSetActiveFlyout_Clicked;
-
-                var flyout_separator = new MenuFlyoutSeparator();
-
-                var flyout_rename = new MenuFlyoutItem() { Text = "Rename Scheme", Tag = scheme.Key };
-                flyout_rename.Click += SchemeRenameFlyout_Clicked;
-
-                var flyout_copy = new MenuFlyoutItem() { Text = "Copy Scheme", Tag = scheme.Key };
-                flyout_copy.Click += SchemeCopyFlyout_Clicked;
-
-                var flyout_del = new MenuFlyoutItem() { Text = "Delete Scheme", Tag = scheme.Key };
-                flyout_del.Click += SchemeDeleteFlyout_Clicked;
-
-                scheme_menuitem.ContextFlyout = new MenuFlyout() { Items = { flyout_setactive, flyout_separator, flyout_rename, flyout_copy, flyout_del } };
-
-                // each scheme menuitem gets a complete list of all groups as submenu items
-                scheme_menuitem.MenuItems.Add(new NavigationViewItemHeader() { Content = "Setting Groups", FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Colors.SlateBlue) });
-
-                foreach (var group in App.group_data_dict)
-                {
-                    scheme_menuitem.MenuItems.Add(new NavigationViewItem() { Content = group.Value._group_name, Tag = group.Key });
-                }
+                // generate menuitem from bound data-backing scheme_data object
+                NavigationViewItem scheme_menuitem = Generate_SchemeMenuItem(scheme_kvp.Value);
 
                 // add the menuitem to the navigationview's menuitems
                 this.SchemeNavigationView.MenuItems.Add(scheme_menuitem);
 
-                // store references to FrameworkElements for later use
-                this.scheme_element_dict[scheme.Key] = scheme_menuitem;
-                this.scheme_subelements_dict[scheme.Key] = new List<FrameworkElement> { namebox, activebox };
+                // store references to elements for later use
+                this.scheme_element_dict[scheme_kvp.Key] = scheme_menuitem;
             }
 
-            NavSetSchemeItemActive(App.curr_system_applied_scheme_guid);
-            this.SchemeNavigationView.SelectedItem = this.scheme_element_dict[App.curr_system_applied_scheme_guid];
+            string systemactive_schemeguid = (App.Current as App).get_current_systemactive_schemeguid();
+            NavSetSchemeItemActive(systemactive_schemeguid);
+            this.SchemeNavigationView.SelectedItem = this.scheme_element_dict[systemactive_schemeguid];
         }
+
+        // generate menuitem from data-backing scheme_data object
+        private NavigationViewItem Generate_SchemeMenuItem(SchemeStore scheme_data)
+        {
+            string scheme_guid = scheme_data.scheme_guid;
+
+            // create elements to compose the scheme menuitem
+            var namebox = (this.Resources["NameBoxTemplate"] as DataTemplate).LoadContent() as TextBlock;
+            var activebox = (this.Resources["SchemeActiveBoxTemplate"] as DataTemplate).LoadContent() as Grid;
+            namebox.Tag = scheme_guid;
+            activebox.Tag = scheme_guid;
+
+            var stackpanel = new Grid()
+            {
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                VerticalAlignment = VerticalAlignment.Center,
+                Children = { namebox, activebox }
+            };
+
+            var scheme_menuitem = new NavigationViewItem();
+            scheme_menuitem.Content = stackpanel;
+            scheme_menuitem.Tag = scheme_data.scheme_guid;
+            scheme_menuitem.DataContext = scheme_data;
+
+            // register animators
+            Color background_gray = (Application.Current.Resources["AppTitleBar_Grey"] as SolidColorBrush).Color;
+            SolidColorBrush background_brush = new SolidColorBrush(background_gray);
+            scheme_menuitem.Background = background_brush;
+
+            register_animation(scheme_menuitem, background_brush, Colors.MediumSpringGreen, "success_animation");
+            Storyboard.SetTargetName(scheme_menuitem.Resources["success_animation"] as Storyboard, scheme_guid);
+            register_animation(scheme_menuitem, background_brush, Colors.MediumVioletRed, "fail_animation");
+
+            // create flyouts for scheme menuitem's contextmenu
+            var flyout_setactive = new MenuFlyoutItem() { Text = "Set Active", Tag = scheme_guid };
+            flyout_setactive.Click += SchemeSetActiveFlyout_Clicked;
+
+            var flyout_separator = new MenuFlyoutSeparator();
+
+            var flyout_rename = new MenuFlyoutItem() { Text = "Rename Scheme", Tag = scheme_guid };
+            flyout_rename.Click += SchemeRenameFlyout_Clicked;
+
+            var flyout_copy = new MenuFlyoutItem() { Text = "Copy Scheme", Tag = scheme_guid };
+            flyout_copy.Click += SchemeCopyFlyout_Clicked;
+
+            var flyout_del = new MenuFlyoutItem() { Text = "Delete Scheme", Tag = scheme_guid };
+            flyout_del.Click += SchemeDeleteFlyout_Clicked;
+
+            scheme_menuitem.ContextFlyout = new MenuFlyout() { Items = { flyout_setactive, flyout_separator, flyout_rename, flyout_copy, flyout_del } };
+
+            // each scheme menuitem gets a complete list of all groups as submenu items
+            scheme_menuitem.MenuItems.Add(new NavigationViewItemHeader() { Content = "Setting Groups", FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Colors.SlateBlue) });
+
+            foreach (var group_data in App.group_data_dict)
+            {
+                scheme_menuitem.MenuItems.Add(new NavigationViewItem() { Content = group_data.Value._group_name, Tag = group_data.Key });
+            }
+
+            return scheme_menuitem;
+        }
+
+
 
         // Set a scheme active via its context flyout
         private void SchemeSetActiveFlyout_Clicked(object sender, RoutedEventArgs e)
         {
             string scheme_guid = (sender as MenuFlyoutItem).Tag.ToString();
+            NavigationViewItem scheme_elem = (NavigationViewItem)this.scheme_element_dict[scheme_guid];
 
             bool success = (App.Current as App).set_powerscheme(scheme_guid);
-
             NavSetSchemeItemActive(scheme_guid);
 
-            var scheme_elem = (NavigationViewItem)this.scheme_element_dict[scheme_guid];
-            var storyboard = (scheme_elem.Resources["success_animation"] as Storyboard);
-            storyboard.Completed -= ReSelectItem;
+            var storyboard_success = (scheme_elem.Resources["success_animation"] as Storyboard);
+            var storyboard_fail = (scheme_elem.Resources["fail_animation"] as Storyboard);
 
-            if (scheme_guid == current_display_scheme_guid)
+            if (scheme_guid != this.current_display_scheme_guid)
             {
-                var selected_schemeitem = this.SchemeNavigationView.SelectedItem;
-                this.SchemeNavigationView.SelectedItem = null;
-                                               
-                storyboard.Completed += ReSelectItem;                
-                storyboard.Begin();
+                storyboard_success.Completed -= ReSelectItem;
+                storyboard_fail.Completed -= ReSelectItem;
+
+                FireSchemeSuccessFlash(scheme_elem, success);
             }
-            else FireSchemeSuccessFlash(scheme_guid, success);
+            else
+            {
+                // this scheme is selected in navigationview. must de-select for success flash to be visible                
+                this.SchemeNavigationView.SelectedItem = null;
+
+                // ReSelectItem will run when the success/fail animation is done running
+                storyboard_success.Completed += ReSelectItem;
+                storyboard_fail.Completed += ReSelectItem;
+
+                FireSchemeSuccessFlash(scheme_elem, success);
+            }
         }
 
         private void ReSelectItem(object sender, object e) 
         {
+            // we have to store the scheme_guid of this storyboard's owning menuitem because it doesn't have a tag
             string scheme_guid = Storyboard.GetTargetName(sender as Storyboard);
             this.SchemeNavigationView.SelectedItem = this.scheme_element_dict[scheme_guid];                        
         }
-
-        private void emptyfunc(object sender, object e) { }
 
 
         // Rename a scheme via its context flyout
@@ -320,17 +345,38 @@ namespace better_power
                 }
             }
         }
-         
-    
-
-
+             
 
         // Copy a scheme
-        private void SchemeCopyFlyout_Clicked(object sender, RoutedEventArgs e)
+        private async void SchemeCopyFlyout_Clicked(object sender, RoutedEventArgs e)
         {
-            // ask for a new scheme name with default in menu like "copy of Ultimate Performance"
-            // copy the scheme with given scheme_guid through windows ps
-            // create a scheme menuitem for the new scheme
+            // ask for a new scheme name with default 
+            var senderitem = sender as MenuFlyoutItem;
+            string scheme_guid = senderitem.Tag.ToString();
+            SchemeStore scheme_data = senderitem.DataContext as SchemeStore;
+
+            NavigationViewItem scheme_elem = (NavigationViewItem)this.scheme_element_dict[scheme_guid];
+
+            CopyDialog copy_dialog = new CopyDialog(scheme_data.scheme_name);
+            copy_dialog.XamlRoot = this.XamlRoot;
+            await copy_dialog.ShowAsync();
+
+            if (copy_dialog.result == CopyResult.CopySuccess)
+            {
+                string new_scheme_guid = Guid.NewGuid().ToString();
+                string new_scheme_name = copy_dialog.new_name;
+
+                // copy the system-registered scheme with given scheme_guid through windows ps
+                bool success = (App.Current as App).copy_powerscheme(scheme_guid, new_scheme_guid);
+
+                if (success) 
+                {
+                    // update Application datastructures for new scheme
+
+                    // update view elements for the new scheme
+                }
+            }
+
         }
 
         // delete a scheme
@@ -341,11 +387,9 @@ namespace better_power
 
 
 
-        // todo: bug. doesn't flash when flashing on currently-selected scheme
-        private void FireSchemeSuccessFlash(string scheme_guid, bool success)
-        {
-            var applied_scheme_elem = (NavigationViewItem)this.scheme_element_dict[scheme_guid];
 
+        private void FireSchemeSuccessFlash(NavigationViewItem applied_scheme_elem, bool success)
+        {
             if (success)
                 (applied_scheme_elem.Resources["success_animation"] as Storyboard).Begin();
             else
@@ -358,11 +402,11 @@ namespace better_power
             {
                 if (kvp.Key == active_scheme_guid)
                 {
-                    App.scheme_data_dict[kvp.Key].activebox_visible = "Visible";
+                    (App.scheme_data_dict[kvp.Key] as SchemeStore).activebox_visible = "Visible";
                 }
                 else
                 {
-                    App.scheme_data_dict[kvp.Key].activebox_visible = "Collapsed";
+                    (App.scheme_data_dict[kvp.Key] as SchemeStore).activebox_visible = "Collapsed";
                 }
             }
         }

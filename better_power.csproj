@@ -23,6 +23,7 @@
     <None Remove="MainWindow.xaml" />
     <None Remove="NavigationRootPage.xaml" />
     <None Remove="Page2.xaml" />
+    <None Remove="Pages\CopyDialog.xaml" />
     <None Remove="RenameDialog.xaml" />
     <None Remove="SignInContentDialog.xaml" />
   </ItemGroup>
@@ -41,8 +42,10 @@
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.0.1" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22000.197" />
     <PackageReference Include="System.Collections" Version="4.3.0" />
+    <PackageReference Include="System.Collections.Specialized" Version="4.3.0" />
     <PackageReference Include="System.Management" Version="6.0.0" />
     <PackageReference Include="System.Management.Automation" Version="7.2.2" />
+    <PackageReference Include="Truncon.Collections" Version="1.0.0" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 
@@ -66,6 +69,10 @@
     <Folder Include="Themes\" />
   </ItemGroup>
   <ItemGroup>
+    <Page Update="Pages\CopyDialog.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Pages\RenameDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>

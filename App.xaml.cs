@@ -6,16 +6,20 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Shapes;
-using Microsoft.Management.Infrastructure;
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using Truncon.Collections;
+
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
+using Windows.Foundation;
+using Windows.Foundation.Collections;
 
-using System.Collections;
-using System.Collections.ObjectModel;
 using System.Management.Automation;
+using Microsoft.Management.Infrastructure;
 
 using better_power.Common;
 
@@ -152,16 +156,19 @@ namespace better_power
         public static Dictionary<string, SettingStore> setting_data_dict { get { return _setting_data_dict; } }
         private static Dictionary<string, SettingStore> _setting_data_dict = new Dictionary<string, SettingStore>();
 
+        //public static OrderedDictionary setting_data_dict { get { return _setting_data_dict; } }
+        //private static OrderedDictionary _setting_data_dict = new OrderedDictionary();
+
         // todo: make ordereddict
         public static Dictionary<string, GroupStore> group_data_dict { get { return _group_data_dict; } }
         private static Dictionary<string, GroupStore> _group_data_dict = new Dictionary<string, GroupStore>();
 
         // todo: make ordereddict
-        public static Dictionary<string, SchemeStore> scheme_data_dict { get { return _scheme_data_dict; } }
-        private static Dictionary<string, SchemeStore> _scheme_data_dict = new Dictionary<string, SchemeStore>();
+        //public static Dictionary<string, SchemeStore> scheme_data_dict { get { return _scheme_data_dict; } }
+        //private static Dictionary<string, SchemeStore> _scheme_data_dict = new Dictionary<string, SchemeStore>();
 
-        public static string curr_system_applied_scheme_guid { get { return _curr_system_applied_scheme_guid; } }
-        private static string _curr_system_applied_scheme_guid;
+        public static OrderedDictionary<string, SchemeStore> scheme_data_dict { get { return _scheme_data_dict; } }
+        private static OrderedDictionary<string, SchemeStore> _scheme_data_dict = new OrderedDictionary<string, SchemeStore>();
 
         private PowerShell ps = PowerShell.Create();
 
@@ -171,8 +178,7 @@ namespace better_power
         {
             this.InitializeComponent();
 
-            // todo: storing values in static vars, correct to run in instance constructor?
-            this.get_current_scheme_guid();
+            // todo: storing values in static vars, correct to run in instance constructor? 
             this.get_scheme_guids();
             this.get_powersettings();
             this.get_all_setting_vals_by_scheme();
@@ -204,12 +210,11 @@ namespace better_power
 
 
 
-        public void get_current_scheme_guid()
+        public string get_current_systemactive_schemeguid()
         {
             this.ps.AddCommand("powercfg").AddArgument("getactivescheme");
-            App._curr_system_applied_scheme_guid = this.ps.Invoke()[0].ToString().Trim().Substring(19, 36);
+            return this.ps.Invoke()[0].ToString().Trim().Substring(19, 36);
         }
-
 
         private void get_scheme_guids()
         {
@@ -270,14 +275,20 @@ namespace better_power
             return (result.Count == 0);
         }
 
+        public bool copy_powerscheme(string scheme_guid, string new_guid)
+        {
+            this.ps.AddCommand("powercfg").AddArgument("duplicatescheme").AddArgument(scheme_guid).AddArgument(new_guid);
+            var result = this.ps.Invoke();
+
+            return (result.Count == 0);
+        }
+
 
 
 
         private void get_powersettings()
         {
-            string curr_powerscheme = App._curr_system_applied_scheme_guid;
-            var all_settings = powercfg_query(curr_powerscheme, "");
-
+            var all_settings = powercfg_query(get_current_systemactive_schemeguid(), "");
 
             string[] all_strings = new string[all_settings.Count];
             int all_strings_size = 0;

@@ -15,6 +15,9 @@
     <None Update="App.xaml">
       <SubType>Designer</SubType>
     </None>
+    <Page Update="Pages\CopyDialog.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Pages\RenameDialog.xaml">
       <SubType>Designer</SubType>
     </Page>
