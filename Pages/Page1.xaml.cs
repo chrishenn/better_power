@@ -52,7 +52,6 @@ namespace better_power
             string curr_groupid = "";
             ListViewHeaderItem curr_groupheader = null;
 
-            // todo: relies on stable ordering in the setting_data_dict. use ordereddict
             foreach (var kvp in App.setting_data_dict)
             {
                 string setting_guid = kvp.Key;
@@ -221,7 +220,7 @@ namespace better_power
                 this.scheme_element_dict[scheme_kvp.Key] = scheme_menuitem;
             }
 
-            string systemactive_schemeguid = (App.Current as App).get_current_systemactive_schemeguid();
+            string systemactive_schemeguid = (App.Current as App).get_systemactive_schemeguid();
             NavSetSchemeItemActive(systemactive_schemeguid);
             this.SchemeNavigationView.SelectedItem = this.scheme_element_dict[systemactive_schemeguid];
         }
@@ -294,7 +293,7 @@ namespace better_power
             string scheme_guid = (sender as MenuFlyoutItem).Tag.ToString();
             NavigationViewItem scheme_elem = (NavigationViewItem)this.scheme_element_dict[scheme_guid];
 
-            bool success = (App.Current as App).set_powerscheme(scheme_guid);
+            bool success = (App.Current as App).set_systemactive_powerscheme(scheme_guid);
             NavSetSchemeItemActive(scheme_guid);
 
             var storyboard_success = (scheme_elem.Resources["success_animation"] as Storyboard);
@@ -374,7 +373,7 @@ namespace better_power
                 string new_scheme_name = copy_dialog.new_name;
 
                 // copy the system-registered scheme with given scheme_guid through windows ps
-                bool success = (App.Current as App).copy_powerscheme(scheme_guid, new_scheme_guid);
+                bool success = (App.Current as App).powercfg_copy_powerscheme(scheme_guid, new_scheme_guid);
 
                 if (success) 
                 {
@@ -522,9 +521,6 @@ namespace better_power
                         }
                     }
                 }
-
-                // todo: show "none found" element (?)
-                if (this.setting_elements.Count == 0) { } 
             }
         }
 

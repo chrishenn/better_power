@@ -29,6 +29,8 @@ namespace better_power
 
     // TODO
 
+    // searchbox behavior while a group is selected
+    // orderedicts
     // create a new scheme by copying an existing one   
     // error handling
     // packaging - modern install, portable install, taskbar icon, taskbar app name
@@ -151,16 +153,11 @@ namespace better_power
         public static Window Window { get { return m_window; } }
         private static Window m_window;
 
-        // todo: make ordereddict
-        public static Dictionary<string, SettingStore> setting_data_dict { get { return _setting_data_dict; } }
-        private static Dictionary<string, SettingStore> _setting_data_dict = new Dictionary<string, SettingStore>();
+        public static OrderedDictionary<string, SettingStore> setting_data_dict { get { return _setting_data_dict; } }
+        private static OrderedDictionary<string, SettingStore> _setting_data_dict = new OrderedDictionary<string, SettingStore>();
 
-        //public static OrderedDictionary setting_data_dict { get { return _setting_data_dict; } }
-        //private static OrderedDictionary _setting_data_dict = new OrderedDictionary();
-
-        // todo: make ordereddict
-        public static Dictionary<string, GroupStore> group_data_dict { get { return _group_data_dict; } }
-        private static Dictionary<string, GroupStore> _group_data_dict = new Dictionary<string, GroupStore>();
+        public static OrderedDictionary<string, GroupStore> group_data_dict { get { return _group_data_dict; } }
+        private static OrderedDictionary<string, GroupStore> _group_data_dict = new OrderedDictionary<string, GroupStore>();
 
         public static OrderedDictionary<string, SchemeStore> scheme_data_dict { get { return _scheme_data_dict; } }
         private static OrderedDictionary<string, SchemeStore> _scheme_data_dict = new OrderedDictionary<string, SchemeStore>();
@@ -173,10 +170,9 @@ namespace better_power
         {
             this.InitializeComponent();
 
-            // todo: storing values in static vars, correct to run in instance constructor? 
-            this.get_scheme_guids();
-            this.get_powersettings();
-            this.get_all_setting_vals_by_scheme();
+            this.build_schemedata();
+            this.build_settingdata();
+            this.store_setting_values_by_scheme();
         }
 
         protected override void OnLaunched(LaunchActivatedEventArgs args)
@@ -192,94 +188,41 @@ namespace better_power
 
 
         //-------------------------------------------------------------------------------------------------
+        //Build App data structs and objects
+        //-------------------------------------------------------------------------------------------------
 
 
-
-
-
-        public string get_current_systemactive_schemeguid()
+        private void build_schemedata()
         {
-            this.ps.AddCommand("powercfg").AddArgument("getactivescheme");
-            return this.ps.Invoke()[0].ToString().Trim().Substring(19, 36);
-        }
+            var result = get_powercfg_list();
 
-        private void get_scheme_guids()
-        {
-            this.ps.AddCommand("powercfg").AddArgument("list");
-            var result = this.ps.Invoke();
-
-            foreach (var ps_ob in result) {
+            foreach (var ps_ob in result)
+            {
 
                 string tmp = ps_ob.ToString().Trim();
                 if (tmp.Length == 0) continue;
 
                 string stem = tmp.Substring(0, 8);
 
-                if (stem == "Power Sc") 
+                if (stem == "Power Sc")
                 {
                     string guid = tmp.Substring(19, 36);
                     string name = tmp.Substring(58);
-                    name = name.TrimEnd( new char[] {')', '*', ' '} );
+                    name = name.TrimEnd(new char[] { ')', '*', ' ' });
 
                     App._scheme_data_dict[guid] = new SchemeStore(name, guid);
                 }
             }
         }
 
-
-
-
-        private Collection<PSObject> powercfg_query(string scheme_guid, string group_guid)
+        private void build_settingdata()
         {
-            this.ps.AddCommand("powercfg").AddArgument("q").AddArgument(scheme_guid).AddArgument(group_guid);
-            var result = this.ps.Invoke();
-
-            return result;
-        }
-
-
-        public bool set_powersetting(string scheme_guid, string group_guid, string setting_guid, int value)
-        {
-            this.ps.AddCommand("powercfg").AddArgument("setacvalueindex").AddArgument(scheme_guid).AddArgument(group_guid).AddArgument(setting_guid).AddArgument(value);
-            var result = this.ps.Invoke();
-
-            return (result.Count == 0);
-        }
-
-        public bool set_powerscheme(string scheme_guid)
-        {
-            this.ps.AddCommand("powercfg").AddArgument("setactive").AddArgument(scheme_guid);
-            var result = this.ps.Invoke();
-
-            return (result.Count == 0);
-        }
-
-        public bool set_powerscheme_name(string scheme_guid, string name)
-        {
-            this.ps.AddCommand("powercfg").AddArgument("changename").AddArgument(scheme_guid).AddArgument(name);
-            var result = this.ps.Invoke();
-
-            return (result.Count == 0);
-        }
-
-        public bool copy_powerscheme(string scheme_guid, string new_guid)
-        {
-            this.ps.AddCommand("powercfg").AddArgument("duplicatescheme").AddArgument(scheme_guid).AddArgument(new_guid);
-            var result = this.ps.Invoke();
-
-            return (result.Count == 0);
-        }
-
-
-
-
-        private void get_powersettings()
-        {
-            var all_settings = powercfg_query(get_current_systemactive_schemeguid(), "");
+            var all_settings = get_powercfg_query(get_systemactive_schemeguid(), "");
 
             string[] all_strings = new string[all_settings.Count];
             int all_strings_size = 0;
-            foreach (PSObject setting_ob in all_settings) {
+            foreach (PSObject setting_ob in all_settings)
+            {
 
                 string tmp = setting_ob.ToString().Trim();
                 if (tmp.Length == 0) continue;
@@ -296,7 +239,7 @@ namespace better_power
             GroupStore curr_group = null;
             SettingStore curr_setting = null;
 
-            int i = 0; 
+            int i = 0;
             while (true)
             {
                 if (i >= all_strings_size) { break; }
@@ -307,7 +250,7 @@ namespace better_power
                 if (stem == "Subgroup") // new setting subgroup
                 {
                     string group_guid = line.Substring(15, 36);
-                    string group_name = line.Substring(54, line.Length-1-54);
+                    string group_name = line.Substring(54, line.Length - 1 - 54);
 
                     curr_group = new GroupStore(group_guid, group_name);
                     _group_data_dict[group_guid] = curr_group;
@@ -317,7 +260,7 @@ namespace better_power
                 else if (stem == "Power Se") // new power setting 
                 {
                     string setting_guid = line.Substring(20, 36);
-                    string setting_name = line.Substring(59, line.Length-1-59); 
+                    string setting_name = line.Substring(59, line.Length - 1 - 59);
 
                     curr_setting = new SettingStore(setting_guid, setting_name, "", curr_group._group_guid);
                     _setting_data_dict[setting_guid] = curr_setting;
@@ -330,16 +273,16 @@ namespace better_power
                 {
                     curr_setting.is_range = true;
 
-                    string min_val =    line.Substring(26);
-                    string max_val =    all_strings[i + 1].Substring(26);
-                    string increment =  all_strings[i + 2].Substring(29);
-                    string units =      all_strings[i + 3].Substring(25);
-                                        
+                    string min_val = line.Substring(26);
+                    string max_val = all_strings[i + 1].Substring(26);
+                    string increment = all_strings[i + 2].Substring(29);
+                    string units = all_strings[i + 3].Substring(25);
+
                     curr_setting.min_val = min_val;
                     curr_setting.max_val = max_val;
                     curr_setting.increment = increment;
-                    curr_setting.units = units;    
-                    
+                    curr_setting.units = units;
+
                     i += 4;
                 }
                 else if (stem == "Possible") // a setting's index-type value
@@ -354,7 +297,8 @@ namespace better_power
                         curr_setting.possible_settings_index_dict[subsetting_index] = subsetting_name;
 
                         i += 2;
-                        if (i < all_strings.Length) {
+                        if (i < all_strings.Length)
+                        {
                             line = all_strings[i];
                             stem = line.Substring(0, 8);
 
@@ -374,16 +318,15 @@ namespace better_power
                     i += 2;
                 }
             }
-                                        
         }
 
         // populate the existing settings objs in the settings dict with current setting values
-        private void get_all_setting_vals_by_scheme()
+        private void store_setting_values_by_scheme()
         {
             foreach (var kvp in App._scheme_data_dict)
             {
                 string curr_scheme_guid = kvp.Key;
-                var res_objs = powercfg_query(curr_scheme_guid, "");
+                var res_objs = get_powercfg_query(curr_scheme_guid, "");
 
                 string curr_setting_guid = null;
                 int i = 0;
@@ -392,7 +335,7 @@ namespace better_power
                     if (i >= res_objs.Count) break;
 
                     string line = res_objs[i].ToString().Trim();
-                    
+
                     if (line.Length == 0) { i++; continue; }
 
                     string stem = line.Substring(0, 8);
@@ -404,8 +347,8 @@ namespace better_power
                     }
                     else if (stem == "Current ")
                     {
-                        int ac_value = str16_toint( line.Substring(32) );
-                        int dc_value = str16_toint( res_objs[i+1].ToString().Trim().Substring(32) );
+                        int ac_value = str16_toint(line.Substring(32));
+                        int dc_value = str16_toint(res_objs[i + 1].ToString().Trim().Substring(32));
 
                         App._setting_data_dict[curr_setting_guid].curr_setting_vals_by_scheme[curr_scheme_guid] = (ac_val: ac_value, dc_val: dc_value);
 
@@ -415,6 +358,68 @@ namespace better_power
                 }
             }
         }
+
+
+
+
+
+
+        //-------------------------------------------------------------------------------------------------
+        // todo: move these to a powershell-function class
+        //-------------------------------------------------------------------------------------------------
+
+        private Collection<PSObject> get_powercfg_query(string scheme_guid, string group_guid)
+        {
+            this.ps.AddCommand("powercfg").AddArgument("q").AddArgument(scheme_guid).AddArgument(group_guid);
+            return this.ps.Invoke();
+        }
+
+        public string get_systemactive_schemeguid()
+        {
+            this.ps.AddCommand("powercfg").AddArgument("getactivescheme");
+            return this.ps.Invoke()[0].ToString().Trim().Substring(19, 36);
+        }
+
+        private Collection<PSObject> get_powercfg_list()
+        {
+            this.ps.AddCommand("powercfg").AddArgument("list");
+            return this.ps.Invoke();
+        }
+
+        public bool set_powersetting(string scheme_guid, string group_guid, string setting_guid, int value)
+        {
+            this.ps.AddCommand("powercfg").AddArgument("setacvalueindex").AddArgument(scheme_guid).AddArgument(group_guid).AddArgument(setting_guid).AddArgument(value);
+            var result = this.ps.Invoke();
+
+            return (result.Count == 0);
+        }
+
+        public bool set_systemactive_powerscheme(string scheme_guid)
+        {
+            this.ps.AddCommand("powercfg").AddArgument("setactive").AddArgument(scheme_guid);
+            var result = this.ps.Invoke();
+
+            return (result.Count == 0);
+        }
+
+        public bool set_powerscheme_name(string scheme_guid, string name)
+        {
+            this.ps.AddCommand("powercfg").AddArgument("changename").AddArgument(scheme_guid).AddArgument(name);
+            var result = this.ps.Invoke();
+
+            return (result.Count == 0);
+        }
+
+        public bool powercfg_copy_powerscheme(string scheme_guid, string new_guid)
+        {
+            this.ps.AddCommand("powercfg").AddArgument("duplicatescheme").AddArgument(scheme_guid).AddArgument(new_guid);
+            var result = this.ps.Invoke();
+
+            return (result.Count == 0);
+        }
+
+
+
 
 
 
