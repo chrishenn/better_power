@@ -1,0 +1,48 @@
+﻿   
+<ContentDialog
+    x:Class="better_power.RenameDialog"
+    
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:better_power"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    
+    PrimaryButtonText="Apply"
+    DefaultButton="Primary"            
+    CloseButtonText="Cancel"
+    
+    PrimaryButtonClick="RenameDialog_PrimaryButtonClick"
+    CloseButtonClick="RenameDialog_CloseButtonClick"
+    >
+
+    <ContentDialog.TitleTemplate>
+        <DataTemplate>
+            <StackPanel Orientation="Horizontal" >
+                <Image Source="../Assets/Square44x44Logo.altform-unplated_targetsize-48.png" 
+                               VerticalAlignment="Center"
+                               Width="40" Height="40" Margin="20"/>
+                <TextBlock Text="Rename Power Scheme"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+        </DataTemplate>
+    </ContentDialog.TitleTemplate>
+
+    <StackPanel Orientation="Vertical" HorizontalAlignment="Stretch">
+        
+        <TextBox Name="RenameDialogEditBox"
+                            Width="350"
+                            MaxHeight="100"
+                            Margin="10"
+                            TextWrapping="Wrap"
+                            ScrollViewer.VerticalScrollBarVisibility="Auto" />
+        <TextBlock Name="RenameDialogErrorMessageBox"
+                   Width="350"
+                   MaxHeight="100"
+                   Margin="10" 
+                   />
+    </StackPanel>
+
+</ContentDialog>
+    
