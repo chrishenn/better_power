@@ -29,11 +29,13 @@ namespace better_power
 
     // TODO
 
-    // searchbox behavior while a group is selected
-    // orderedicts
-    // create a new scheme by copying an existing one   
+    // searchbox behavior while a group is selected in navigationview
+    // create a new scheme by copying an existing one
+    // import/export scheme from file
+
     // error handling
     // packaging - modern install, portable install, taskbar icon, taskbar app name
+    // installer must run power unhide scripts
     // compatibility testing
 
     // setting cards:
@@ -162,8 +164,7 @@ namespace better_power
         public static OrderedDictionary<string, SchemeStore> scheme_data_dict { get { return _scheme_data_dict; } }
         private static OrderedDictionary<string, SchemeStore> _scheme_data_dict = new OrderedDictionary<string, SchemeStore>();
 
-        private PowerShell ps = PowerShell.Create();
-
+        public PowercfgManager power_manager = new PowercfgManager();
 
 
         public App()
@@ -194,11 +195,10 @@ namespace better_power
 
         private void build_schemedata()
         {
-            var result = get_powercfg_list();
+            var result = this.power_manager.get_powercfg_list();
 
             foreach (var ps_ob in result)
             {
-
                 string tmp = ps_ob.ToString().Trim();
                 if (tmp.Length == 0) continue;
 
@@ -217,7 +217,7 @@ namespace better_power
 
         private void build_settingdata()
         {
-            var all_settings = get_powercfg_query(get_systemactive_schemeguid(), "");
+            var all_settings = this.power_manager.get_powercfg_query(this.power_manager.get_systemactive_schemeguid(), "");
 
             string[] all_strings = new string[all_settings.Count];
             int all_strings_size = 0;
@@ -320,13 +320,13 @@ namespace better_power
             }
         }
 
-        // populate the existing settings objs in the settings dict with current setting values
+        // populate the existing settings objs in the settings dict with currently-set values
         private void store_setting_values_by_scheme()
         {
             foreach (var kvp in App._scheme_data_dict)
             {
                 string curr_scheme_guid = kvp.Key;
-                var res_objs = get_powercfg_query(curr_scheme_guid, "");
+                var res_objs = this.power_manager.get_powercfg_query(curr_scheme_guid, "");
 
                 string curr_setting_guid = null;
                 int i = 0;
@@ -368,55 +368,7 @@ namespace better_power
         // todo: move these to a powershell-function class
         //-------------------------------------------------------------------------------------------------
 
-        private Collection<PSObject> get_powercfg_query(string scheme_guid, string group_guid)
-        {
-            this.ps.AddCommand("powercfg").AddArgument("q").AddArgument(scheme_guid).AddArgument(group_guid);
-            return this.ps.Invoke();
-        }
-
-        public string get_systemactive_schemeguid()
-        {
-            this.ps.AddCommand("powercfg").AddArgument("getactivescheme");
-            return this.ps.Invoke()[0].ToString().Trim().Substring(19, 36);
-        }
-
-        private Collection<PSObject> get_powercfg_list()
-        {
-            this.ps.AddCommand("powercfg").AddArgument("list");
-            return this.ps.Invoke();
-        }
-
-        public bool set_powersetting(string scheme_guid, string group_guid, string setting_guid, int value)
-        {
-            this.ps.AddCommand("powercfg").AddArgument("setacvalueindex").AddArgument(scheme_guid).AddArgument(group_guid).AddArgument(setting_guid).AddArgument(value);
-            var result = this.ps.Invoke();
-
-            return (result.Count == 0);
-        }
-
-        public bool set_systemactive_powerscheme(string scheme_guid)
-        {
-            this.ps.AddCommand("powercfg").AddArgument("setactive").AddArgument(scheme_guid);
-            var result = this.ps.Invoke();
-
-            return (result.Count == 0);
-        }
-
-        public bool set_powerscheme_name(string scheme_guid, string name)
-        {
-            this.ps.AddCommand("powercfg").AddArgument("changename").AddArgument(scheme_guid).AddArgument(name);
-            var result = this.ps.Invoke();
-
-            return (result.Count == 0);
-        }
-
-        public bool powercfg_copy_powerscheme(string scheme_guid, string new_guid)
-        {
-            this.ps.AddCommand("powercfg").AddArgument("duplicatescheme").AddArgument(scheme_guid).AddArgument(new_guid);
-            var result = this.ps.Invoke();
-
-            return (result.Count == 0);
-        }
+        
 
 
 

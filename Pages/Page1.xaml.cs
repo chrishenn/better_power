@@ -16,6 +16,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using Truncon.Collections;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 
@@ -27,18 +28,18 @@ namespace better_power
 
     public sealed partial class Page1 : Page
     {
-        // required list to enforce the ordering of headers and setting elements in the listView
-        List<FrameworkElement> all_setting_elements;
-        ObservableCollection<FrameworkElement> setting_elements = new ObservableCollection<FrameworkElement>();                
+        // required ordereddict to maintain the ordering of headers and setting elements in the listView
+        ObservableCollection<FrameworkElement> setting_elements;
+        OrderedDictionary<string, FrameworkElement> setting_element_dict = new OrderedDictionary<string, FrameworkElement>();
 
-        Dictionary<string, FrameworkElement> setting_element_dict = new Dictionary<string, FrameworkElement>();
+        // ordering doesn't matter for these
         Dictionary<string, FrameworkElement> scheme_element_dict = new Dictionary<string, FrameworkElement>();
         Dictionary<string, List<FrameworkElement>> setting_elements_by_group_dict = new Dictionary<string, List<FrameworkElement>>();
-        Dictionary<string, FrameworkElement> group_headerelements_dict = new Dictionary<string, FrameworkElement>();
 
         // current scheme guid being displayed in the main ListView UI
         string current_display_scheme_guid;
         
+        // inidicate that settings' displayed values should not change while navigating
         bool settings_locked_for_navigation = false;
 
 
@@ -52,6 +53,7 @@ namespace better_power
             string curr_groupid = "";
             ListViewHeaderItem curr_groupheader = null;
 
+            // ordering of setting_data_dict elements matters; ordering of setting_element_dict must match
             foreach (var kvp in App.setting_data_dict)
             {
                 string setting_guid = kvp.Key;
@@ -63,10 +65,11 @@ namespace better_power
                     string curr_groupname = App.group_data_dict[curr_groupid]._group_name;
 
                     curr_groupheader = new ListViewHeaderItem() { Content = curr_groupname, Tag = curr_groupid };
-                    this.setting_elements.Add(curr_groupheader);
+
+                    this.setting_element_dict[curr_groupid] = curr_groupheader;
 
                     this.setting_elements_by_group_dict[curr_groupid] = new List<FrameworkElement>();
-                    this.setting_elements_by_group_dict[curr_groupid].Add(curr_groupheader); 
+                    this.setting_elements_by_group_dict[curr_groupid].Add(curr_groupheader);                                        
                 }
 
                 Control box_elem;
@@ -108,19 +111,11 @@ namespace better_power
                 register_animation(setting_elem, background_brush, Colors.MediumVioletRed, "fail_animation");
 
                 // add setting element to instance collections to find later
-                this.setting_elements.Add(setting_elem);
                 this.setting_element_dict[setting_guid] = setting_elem;
                 this.setting_elements_by_group_dict[curr_groupid].Add(setting_elem);
-                this.group_headerelements_dict[curr_groupid] = curr_groupheader;
             }
 
-            // copy all setting items; this.setting_items is observed by the listview
-            this.all_setting_elements = new List<FrameworkElement>(this.setting_elements);
-        }
-
-        private void Page1_GridLoaded(object sender, RoutedEventArgs e)
-        {
-            //App.Window.SetTitleBar(AppTitleBar);
+            this.setting_elements = new ObservableCollection<FrameworkElement>(this.setting_element_dict.Values);
         }
 
         // register animation to a settings element or a scheme menuitem in the navigationview
@@ -165,7 +160,7 @@ namespace better_power
                 var curr_vals = setting.curr_setting_vals_by_scheme[selected_scheme_guid];
                 setting.curr_setting_vals_by_scheme[selected_scheme_guid] = ((int)sender.Value, curr_vals.dc_val);
 
-                bool success = (App.Current as App).set_powersetting(selected_scheme_guid, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.Value);
+                bool success = (App.Current as App).power_manager.set_powersetting(selected_scheme_guid, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.Value);
 
                 FireSettingSuccessFlash(setting, success);
             }
@@ -184,7 +179,7 @@ namespace better_power
                 var curr_vals = setting.curr_setting_vals_by_scheme[selected_scheme_guid];
                 setting.curr_setting_vals_by_scheme[selected_scheme_guid] = ((int)sender.SelectedIndex, curr_vals.dc_val);
 
-                bool success = (App.Current as App).set_powersetting(selected_scheme_guid, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.SelectedIndex);
+                bool success = (App.Current as App).power_manager.set_powersetting(selected_scheme_guid, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.SelectedIndex);
 
                 FireSettingSuccessFlash(setting, success);
             }
@@ -206,7 +201,7 @@ namespace better_power
         // Generate and Add navigationviewitems to navigationview
         private void SchemeNavigationView_Loaded(object sender, RoutedEventArgs e)
         {
-            this.SchemeNavigationView.MenuItems.Add(new NavigationViewItemHeader() { Content = "Installed Schemes", FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Colors.SlateBlue) });
+            this.SchemeNavigationView.MenuItems.Add(new NavigationViewItemHeader() { Content = "Installed Power Schemes", FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Colors.SlateBlue) });
 
             foreach (var scheme_kvp in App.scheme_data_dict)
             {
@@ -220,7 +215,7 @@ namespace better_power
                 this.scheme_element_dict[scheme_kvp.Key] = scheme_menuitem;
             }
 
-            string systemactive_schemeguid = (App.Current as App).get_systemactive_schemeguid();
+            string systemactive_schemeguid = (App.Current as App).power_manager.get_systemactive_schemeguid();
             NavSetSchemeItemActive(systemactive_schemeguid);
             this.SchemeNavigationView.SelectedItem = this.scheme_element_dict[systemactive_schemeguid];
         }
@@ -293,7 +288,7 @@ namespace better_power
             string scheme_guid = (sender as MenuFlyoutItem).Tag.ToString();
             NavigationViewItem scheme_elem = (NavigationViewItem)this.scheme_element_dict[scheme_guid];
 
-            bool success = (App.Current as App).set_systemactive_powerscheme(scheme_guid);
+            bool success = (App.Current as App).power_manager.set_systemactive_powerscheme(scheme_guid);
             NavSetSchemeItemActive(scheme_guid);
 
             var storyboard_success = (scheme_elem.Resources["success_animation"] as Storyboard);
@@ -347,7 +342,7 @@ namespace better_power
                     scheme_data.scheme_name = new_name;
 
                     // do system rename of this scheme
-                    (App.Current as App).set_powerscheme_name(scheme_data.scheme_guid, new_name);
+                    (App.Current as App).power_manager.set_powerscheme_name(scheme_data.scheme_guid, new_name);
                 }
             }
         }
@@ -373,7 +368,7 @@ namespace better_power
                 string new_scheme_name = copy_dialog.new_name;
 
                 // copy the system-registered scheme with given scheme_guid through windows ps
-                bool success = (App.Current as App).powercfg_copy_powerscheme(scheme_guid, new_scheme_guid);
+                bool success = (App.Current as App).power_manager.powercfg_copy_powerscheme(scheme_guid, new_scheme_guid);
 
                 if (success) 
                 {
@@ -404,6 +399,7 @@ namespace better_power
 
         private void NavSetSchemeItemActive(string active_scheme_guid)
         {
+            // ordering doesn't matter here. All elements must be modified
             foreach (var kvp in this.scheme_element_dict)
             {
                 if (kvp.Key == active_scheme_guid)
@@ -441,8 +437,8 @@ namespace better_power
                         update_settings_to_scheme(selected_scheme_guid);
 
                         this.setting_elements.Clear();
-                        foreach (var item in this.all_setting_elements)
-                            this.setting_elements.Add(item);
+                        foreach (FrameworkElement elem in this.setting_element_dict.Values)
+                            this.setting_elements.Add(elem);
                     }
                 }
                 // else selected_guid is a groupid. get selected scheme. check for scheme change. filter settings in view.
@@ -494,13 +490,15 @@ namespace better_power
                 bool header_added = false;
                 FrameworkElement curr_groupheader_elem = null;
 
-                foreach (var setting_elem in this.all_setting_elements)
+                foreach (var setting_elem in this.setting_element_dict.Values)
                 {
                     string elem_guid = setting_elem.Tag.ToString();
 
-                    if (this.group_headerelements_dict.ContainsKey(elem_guid))
+                    //if (this.group_headerelements_dict.ContainsKey(elem_guid))
+                    if (App.group_data_dict.ContainsKey(elem_guid))
                     {
-                        curr_groupheader_elem = this.group_headerelements_dict[elem_guid];
+                        //curr_groupheader_elem = this.group_headerelements_dict[elem_guid];
+                        curr_groupheader_elem = this.setting_element_dict[elem_guid];
                         header_added = false;
                     }
                     else
