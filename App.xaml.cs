@@ -351,7 +351,11 @@ namespace better_power
             }
         }
 
-
+        public void remove_setting_values_one_scheme(string scheme_guid)
+        {
+            foreach (var setting_data in App._setting_data_dict.Values)            
+                setting_data.curr_setting_vals_by_scheme.Remove(scheme_guid);            
+        }
 
 
 

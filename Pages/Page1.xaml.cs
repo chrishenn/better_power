@@ -33,7 +33,7 @@ namespace better_power
         OrderedDictionary<string, FrameworkElement> setting_element_dict = new OrderedDictionary<string, FrameworkElement>();
 
         // ordering doesn't matter for these
-        Dictionary<string, FrameworkElement> scheme_element_dict = new Dictionary<string, FrameworkElement>();
+        Dictionary<string, NavigationViewItem> scheme_element_dict = new Dictionary<string, NavigationViewItem>();
         Dictionary<string, List<FrameworkElement>> setting_elements_by_group_dict = new Dictionary<string, List<FrameworkElement>>();
 
         // current scheme guid being displayed in the main ListView UI
@@ -366,10 +366,10 @@ namespace better_power
                 string new_scheme_name = copy_dialog.new_name;
 
                 // copy scheme in system. rename new scheme to new name.
-                bool success = App.Current.power_manager.powercfg_copy_powerscheme(scheme_guid, new_scheme_guid);
-                bool success1 = App.Current.power_manager.set_powerscheme_name(new_scheme_guid, new_scheme_name);
+                bool success1 = App.Current.power_manager.powercfg_copy_powerscheme(scheme_guid, new_scheme_guid);
+                bool success2 = App.Current.power_manager.set_powerscheme_name(new_scheme_guid, new_scheme_name);
 
-                if (success && success1) 
+                if (success1 && success2) 
                 {
                     // update Application datastructures for new scheme
                     SchemeStore new_scheme_data = new SchemeStore(new_scheme_name, new_scheme_guid);
@@ -379,16 +379,73 @@ namespace better_power
                     // update view elements for the new scheme
                     var new_scheme_elem = Generate_SchemeMenuItem(new_scheme_data);
                     this.SchemeNavigationView.MenuItems.Add(new_scheme_elem);
-                    this.scheme_element_dict[new_scheme_guid] = new_scheme_elem;                    
+                    this.scheme_element_dict[new_scheme_guid] = new_scheme_elem;
+
+                    FireSchemeSuccessFlash(new_scheme_elem, success1 && success2);
                 }
             }
 
         }
 
         // delete a scheme
-        private void SchemeDeleteFlyout_Clicked(object sender, RoutedEventArgs e)
+        private async void SchemeDeleteFlyout_Clicked(object sender, RoutedEventArgs e)
         {
+            var senderitem = sender as MenuFlyoutItem;
+            string scheme_guid = senderitem.Tag.ToString();
+            var scheme_elem = this.scheme_element_dict[scheme_guid];
+            string systemactive_schemeguid = App.Current.power_manager.get_systemactive_schemeguid();
 
+            if (scheme_guid == systemactive_schemeguid)
+            {
+                // flyout a dialog - active scheme cannot be deleted
+                ContentDialog no_delete_dialog = new ContentDialog()
+                {
+                    Title = "Cannot Delete",
+                    Content = "You cannot delete the system active power scheme",
+                    CloseButtonText = "Ok",
+                    DefaultButton = ContentDialogButton.Close
+                };
+
+                no_delete_dialog.XamlRoot = this.XamlRoot;
+                await no_delete_dialog.ShowAsync();
+                return;
+            }
+            
+            // dialog - confirm delete
+            ContentDialog confirm_delete_dialog = new ContentDialog()
+            {
+                Title = "Confirm Delete",
+                Content = "Are you sure you want to delete?",
+                PrimaryButtonText = "Confirm",
+                CloseButtonText = "Cancel",
+
+                DefaultButton = ContentDialogButton.Primary
+            };
+
+            confirm_delete_dialog.XamlRoot = this.XamlRoot;
+            ContentDialogResult result = await confirm_delete_dialog.ShowAsync();
+
+            if (result == ContentDialogResult.Primary)
+            {
+                // delete scheme in system
+                bool success = App.Current.power_manager.powercfg_del_powerscheme(scheme_guid);
+
+                if (success)
+                {
+                    // if deleted scheme is selected by navigationview, select the systemactive scheme 
+                    if (scheme_elem.IsSelected)
+                        this.SchemeNavigationView.SelectedItem = this.scheme_element_dict[systemactive_schemeguid];
+                    // todo: this highlights the header in the listview - why 
+
+                    // delete scheme from navigationview
+                    this.SchemeNavigationView.MenuItems.Remove(scheme_elem);
+                    this.scheme_element_dict.Remove(scheme_guid);
+
+                    // delete scheme from application data
+                    App.scheme_data_dict.Remove(scheme_guid);
+                    App.Current.remove_setting_values_one_scheme(scheme_guid);
+                }
+            }
         }
 
 

@@ -67,6 +67,14 @@ namespace better_power.Common
             return (result.Count == 1);
         }
 
+        public bool powercfg_del_powerscheme(string scheme_guid)
+        {
+            this.ps.AddCommand("powercfg").AddArgument("delete").AddArgument(scheme_guid);
+            var result = this.ps.Invoke();
+
+            return (result.Count == 0);
+        }
+
     }
     
 }
