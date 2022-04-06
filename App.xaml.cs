@@ -108,17 +108,13 @@ namespace better_power
     {
         public string scheme_guid;
         private string _scheme_name;        
-        private string _is_active_scheme;
-        private string _textblock_visible;
-        private string _editbox_visible;
+        private string _activebox_visible;
 
         public SchemeStore(string scheme_name, string scheme_guid)
         {
             this.scheme_guid = scheme_guid;
             this._scheme_name = scheme_name;            
-            this._is_active_scheme = "Collapsed";
-            this._textblock_visible = "Visible";
-            this._editbox_visible = "Collapsed";
+            this._activebox_visible = "Collapsed";
         }
 
         public string scheme_name
@@ -128,18 +124,8 @@ namespace better_power
         }
         public string activebox_visible
         {
-            get { return this._is_active_scheme; }
-            set { this.SetProperty(ref this._is_active_scheme, value); }
-        }
-        public string displaybox_visible
-        {
-            get { return this._textblock_visible; }
-            set { this.SetProperty(ref this._textblock_visible, value); }
-        }
-        public string editbox_visible
-        {
-            get { return this._editbox_visible; }
-            set { this.SetProperty(ref this._editbox_visible, value); }
+            get { return this._activebox_visible; }
+            set { this.SetProperty(ref this._activebox_visible, value); }
         }
     }
 
@@ -148,10 +134,12 @@ namespace better_power
     //-----------------------------------------------------------------------------------------------------------------------------------------------------------------
     //-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
+    
 
     public partial class App : Application
     {
+        public new static App Current => (App)Application.Current;
+
         public static Window Window { get { return m_window; } }
         private static Window m_window;
 
@@ -173,7 +161,7 @@ namespace better_power
 
             this.build_schemedata();
             this.build_settingdata();
-            this.store_setting_values_by_scheme();
+            this.store_setting_values_all_schemes();
         }
 
         protected override void OnLaunched(LaunchActivatedEventArgs args)
@@ -321,41 +309,45 @@ namespace better_power
         }
 
         // populate the existing settings objs in the settings dict with currently-set values
-        private void store_setting_values_by_scheme()
+        private void store_setting_values_all_schemes()
         {
             foreach (var kvp in App._scheme_data_dict)
             {
                 string curr_scheme_guid = kvp.Key;
-                var res_objs = this.power_manager.get_powercfg_query(curr_scheme_guid, "");
+                store_setting_values_one_scheme(curr_scheme_guid);
+            }
+        }
+        public void store_setting_values_one_scheme(string scheme_guid)
+        {
+            var res_objs = this.power_manager.get_powercfg_query(scheme_guid, "");
 
-                string curr_setting_guid = null;
-                int i = 0;
-                while (true)
+            string curr_setting_guid = null;
+            int i = 0;
+            while (true)
+            {
+                if (i >= res_objs.Count) break;
+
+                string line = res_objs[i].ToString().Trim();
+
+                if (line.Length == 0) { i++; continue; }
+
+                string stem = line.Substring(0, 8);
+
+                if (stem == "Power Se")
                 {
-                    if (i >= res_objs.Count) break;
-
-                    string line = res_objs[i].ToString().Trim();
-
-                    if (line.Length == 0) { i++; continue; }
-
-                    string stem = line.Substring(0, 8);
-
-                    if (stem == "Power Se")
-                    {
-                        curr_setting_guid = line.Substring(20, 36);
-                        i++;
-                    }
-                    else if (stem == "Current ")
-                    {
-                        int ac_value = str16_toint(line.Substring(32));
-                        int dc_value = str16_toint(res_objs[i + 1].ToString().Trim().Substring(32));
-
-                        App._setting_data_dict[curr_setting_guid].curr_setting_vals_by_scheme[curr_scheme_guid] = (ac_val: ac_value, dc_val: dc_value);
-
-                        i += 2;
-                    }
-                    else i++;
+                    curr_setting_guid = line.Substring(20, 36);
+                    i++;
                 }
+                else if (stem == "Current ")
+                {
+                    int ac_value = str16_toint(line.Substring(32));
+                    int dc_value = str16_toint(res_objs[i + 1].ToString().Trim().Substring(32));
+
+                    App._setting_data_dict[curr_setting_guid].curr_setting_vals_by_scheme[scheme_guid] = (ac_val: ac_value, dc_val: dc_value);
+
+                    i += 2;
+                }
+                else i++;
             }
         }
 

@@ -160,7 +160,7 @@ namespace better_power
                 var curr_vals = setting.curr_setting_vals_by_scheme[selected_scheme_guid];
                 setting.curr_setting_vals_by_scheme[selected_scheme_guid] = ((int)sender.Value, curr_vals.dc_val);
 
-                bool success = (App.Current as App).power_manager.set_powersetting(selected_scheme_guid, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.Value);
+                bool success = App.Current.power_manager.set_powersetting(selected_scheme_guid, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.Value);
 
                 FireSettingSuccessFlash(setting, success);
             }
@@ -179,7 +179,7 @@ namespace better_power
                 var curr_vals = setting.curr_setting_vals_by_scheme[selected_scheme_guid];
                 setting.curr_setting_vals_by_scheme[selected_scheme_guid] = ((int)sender.SelectedIndex, curr_vals.dc_val);
 
-                bool success = (App.Current as App).power_manager.set_powersetting(selected_scheme_guid, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.SelectedIndex);
+                bool success = App.Current.power_manager.set_powersetting(selected_scheme_guid, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.SelectedIndex);
 
                 FireSettingSuccessFlash(setting, success);
             }
@@ -215,7 +215,7 @@ namespace better_power
                 this.scheme_element_dict[scheme_kvp.Key] = scheme_menuitem;
             }
 
-            string systemactive_schemeguid = (App.Current as App).power_manager.get_systemactive_schemeguid();
+            string systemactive_schemeguid = App.Current.power_manager.get_systemactive_schemeguid();
             NavSetSchemeItemActive(systemactive_schemeguid);
             this.SchemeNavigationView.SelectedItem = this.scheme_element_dict[systemactive_schemeguid];
         }
@@ -288,7 +288,7 @@ namespace better_power
             string scheme_guid = (sender as MenuFlyoutItem).Tag.ToString();
             NavigationViewItem scheme_elem = (NavigationViewItem)this.scheme_element_dict[scheme_guid];
 
-            bool success = (App.Current as App).power_manager.set_systemactive_powerscheme(scheme_guid);
+            bool success = App.Current.power_manager.set_systemactive_powerscheme(scheme_guid);
             NavSetSchemeItemActive(scheme_guid);
 
             var storyboard_success = (scheme_elem.Resources["success_animation"] as Storyboard);
@@ -342,7 +342,7 @@ namespace better_power
                     scheme_data.scheme_name = new_name;
 
                     // do system rename of this scheme
-                    (App.Current as App).power_manager.set_powerscheme_name(scheme_data.scheme_guid, new_name);
+                    App.Current.power_manager.set_powerscheme_name(scheme_data.scheme_guid, new_name);
                 }
             }
         }
@@ -356,8 +356,6 @@ namespace better_power
             string scheme_guid = senderitem.Tag.ToString();
             SchemeStore scheme_data = senderitem.DataContext as SchemeStore;
 
-            NavigationViewItem scheme_elem = (NavigationViewItem)this.scheme_element_dict[scheme_guid];
-
             CopyDialog copy_dialog = new CopyDialog(scheme_data.scheme_name);
             copy_dialog.XamlRoot = this.XamlRoot;
             await copy_dialog.ShowAsync();
@@ -367,14 +365,21 @@ namespace better_power
                 string new_scheme_guid = Guid.NewGuid().ToString();
                 string new_scheme_name = copy_dialog.new_name;
 
-                // copy the system-registered scheme with given scheme_guid through windows ps
-                bool success = (App.Current as App).power_manager.powercfg_copy_powerscheme(scheme_guid, new_scheme_guid);
+                // copy scheme in system. rename new scheme to new name.
+                bool success = App.Current.power_manager.powercfg_copy_powerscheme(scheme_guid, new_scheme_guid);
+                bool success1 = App.Current.power_manager.set_powerscheme_name(new_scheme_guid, new_scheme_name);
 
-                if (success) 
+                if (success && success1) 
                 {
                     // update Application datastructures for new scheme
+                    SchemeStore new_scheme_data = new SchemeStore(new_scheme_name, new_scheme_guid);
+                    App.scheme_data_dict[new_scheme_guid] = new_scheme_data;
+                    App.Current.store_setting_values_one_scheme(new_scheme_guid);
 
                     // update view elements for the new scheme
+                    var new_scheme_elem = Generate_SchemeMenuItem(new_scheme_data);
+                    this.SchemeNavigationView.MenuItems.Add(new_scheme_elem);
+                    this.scheme_element_dict[new_scheme_guid] = new_scheme_elem;                    
                 }
             }
 

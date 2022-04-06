@@ -59,8 +59,7 @@
                         HorizontalAlignment="Left"
                         VerticalAlignment="Center" 
                         
-                        Text="{x:Bind scheme_name, Mode=OneWay}"
-                        Visibility="{x:Bind displaybox_visible, Mode=OneWay}" />
+                        Text="{x:Bind scheme_name, Mode=OneWay}" />
             </DataTemplate>
 
             <DataTemplate x:Key="SchemeActiveBoxTemplate" x:DataType="local:SchemeStore">
@@ -100,17 +99,6 @@
         <Grid x:Name="AppTitleBar" 
               Grid.Row="0" 
               Background="{StaticResource AppTitleBar_Grey}" >
-            
-            <!--<Image Source="../Assets/Square44x44Logo.altform-unplated_targetsize-48.png"
-                HorizontalAlignment="Left" 
-                Width="25" Height="25"
-                Margin="8,0"/>
-            
-            <TextBlock x:Name="AppTitleTextBlock" Text="Better Power"
-                TextWrapping="NoWrap"                       
-                Style="{StaticResource CaptionTextBlockStyle}" 
-                VerticalAlignment="Center"
-                Margin="46,0,0,0"/>-->
         </Grid>
 
 

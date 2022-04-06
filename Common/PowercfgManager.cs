@@ -64,7 +64,7 @@ namespace better_power.Common
             this.ps.AddCommand("powercfg").AddArgument("duplicatescheme").AddArgument(scheme_guid).AddArgument(new_guid);
             var result = this.ps.Invoke();
 
-            return (result.Count == 0);
+            return (result.Count == 1);
         }
 
     }
