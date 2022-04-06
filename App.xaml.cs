@@ -29,14 +29,10 @@ namespace better_power
 
     // TODO
 
-    // searchbox behavior while a group is selected in navigationview
-    // create a new scheme by copying an existing one
     // import/export scheme from file
-
-    // error handling
-    // packaging - modern install, portable install, taskbar icon, taskbar app name
-    // installer must run power unhide scripts
-    // compatibility testing
+    // flyout styles with icons
+    // override single-pixel theme border
+    // install the classic schemes - from "power saving" to "ultimate perf"
 
     // setting cards:
     //      indicate possible values to which we can set the setting
@@ -44,7 +40,11 @@ namespace better_power
     //      range checking
     //      ac + dc menus
 
-    // (?) install the classic schemes - from "power saving" to "ultimate perf"
+    // error handling
+    // packaging - modern install, portable install, taskbar icon, taskbar app name
+    // installer must run power unhide scripts
+    // compatibility testing
+
     // (?) change settings via registry key    
     // (?) pull power setting info from system objects
     // (?) observe settings changes from the OS 
@@ -140,8 +140,10 @@ namespace better_power
     {
         public new static App Current => (App)Application.Current;
 
-        public static Window Window { get { return m_window; } }
-        private static Window m_window;
+        public static Window Window { get { return _window; } }
+        private static Window _window;
+
+        public IntPtr _hwnd;
 
         public static OrderedDictionary<string, SettingStore> setting_data_dict { get { return _setting_data_dict; } }
         private static OrderedDictionary<string, SettingStore> _setting_data_dict = new OrderedDictionary<string, SettingStore>();
@@ -166,10 +168,12 @@ namespace better_power
 
         protected override void OnLaunched(LaunchActivatedEventArgs args)
         {
-            App.m_window = new MainWindow();
-            App.m_window.ExtendsContentIntoTitleBar = true;
-            App.m_window.Content = new Page1();
-            App.m_window.Activate();
+            App._window = new MainWindow();
+            App._window.ExtendsContentIntoTitleBar = true;
+            App._window.Content = new Page1();
+            App._window.Activate();
+
+            this._hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App._window);
         }
 
         public static int str16_toint(string hex_string) { return Convert.ToInt32(hex_string, 16); }
@@ -308,6 +312,7 @@ namespace better_power
             }
         }
 
+
         // populate the existing settings objs in the settings dict with currently-set values
         private void store_setting_values_all_schemes()
         {
@@ -317,6 +322,7 @@ namespace better_power
                 store_setting_values_one_scheme(curr_scheme_guid);
             }
         }
+        
         public void store_setting_values_one_scheme(string scheme_guid)
         {
             var res_objs = this.power_manager.get_powercfg_query(scheme_guid, "");

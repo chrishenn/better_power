@@ -75,6 +75,14 @@ namespace better_power.Common
             return (result.Count == 0);
         }
 
+        public bool powercfg_export_scheme(string scheme_guid, string export_filename)
+        {
+            this.ps.AddCommand("powercfg").AddArgument("export").AddArgument(export_filename).AddArgument(scheme_guid);
+            var result = this.ps.Invoke();
+
+            return (result.Count == 0);
+        }
+
     }
     
 }

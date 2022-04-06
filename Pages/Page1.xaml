@@ -121,7 +121,6 @@
             IsTabStop="False"
             IsTitleBarAutoPaddingEnabled="False"
             
-            DisplayModeChanged="SchemeNavigationView_DisplayModeChanged"
             SelectionChanged="SchemeNavigationView_SelectionChanged"
             Loaded="SchemeNavigationView_Loaded">
 

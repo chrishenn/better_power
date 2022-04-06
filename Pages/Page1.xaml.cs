@@ -38,7 +38,9 @@ namespace better_power
 
         // current scheme guid being displayed in the main ListView UI
         string current_display_scheme_guid;
-        
+
+        string systemactive_schemeguid;
+
         // inidicate that settings' displayed values should not change while navigating
         bool settings_locked_for_navigation = false;
 
@@ -49,6 +51,8 @@ namespace better_power
         {
             this.InitializeComponent();
             App.Window.SetTitleBar(this.AppTitleBar);
+
+            this.systemactive_schemeguid = App.Current.power_manager.get_systemactive_schemeguid();
 
             string curr_groupid = "";
             ListViewHeaderItem curr_groupheader = null;
@@ -215,9 +219,8 @@ namespace better_power
                 this.scheme_element_dict[scheme_kvp.Key] = scheme_menuitem;
             }
 
-            string systemactive_schemeguid = App.Current.power_manager.get_systemactive_schemeguid();
-            NavSetSchemeItemActive(systemactive_schemeguid);
-            this.SchemeNavigationView.SelectedItem = this.scheme_element_dict[systemactive_schemeguid];
+            ShowSchemeSystemActive(this.systemactive_schemeguid);
+            this.SchemeNavigationView.SelectedItem = this.scheme_element_dict[this.systemactive_schemeguid];
         }
 
         // generate menuitem from data-backing scheme_data object
@@ -253,21 +256,26 @@ namespace better_power
             register_animation(scheme_menuitem, background_brush, Colors.MediumVioletRed, "fail_animation");
 
             // create flyouts for scheme menuitem's contextmenu
-            var flyout_setactive = new MenuFlyoutItem() { Text = "Set Active", Tag = scheme_guid };
-            flyout_setactive.Click += SchemeSetActiveFlyout_Clicked;
+            var setactive = new MenuFlyoutItem() { Text = "Set Active", Icon=new SymbolIcon(){Symbol=Symbol.Accept}, Tag=scheme_guid };
+            setactive.Click += SchemeSetActiveFlyout_Clicked;
 
-            var flyout_separator = new MenuFlyoutSeparator();
+            var separate1 = new MenuFlyoutSeparator();
 
-            var flyout_rename = new MenuFlyoutItem() { Text = "Rename Scheme", Tag = scheme_guid };
-            flyout_rename.Click += SchemeRenameFlyout_Clicked;
+            var export = new MenuFlyoutItem() { Text = "Export", Icon = new SymbolIcon(){Symbol=Symbol.Save}, Tag=scheme_guid };
+            export.Click += SchemeExportFlyout_Clicked;
 
-            var flyout_copy = new MenuFlyoutItem() { Text = "Copy Scheme", Tag = scheme_guid };
-            flyout_copy.Click += SchemeCopyFlyout_Clicked;
+            var separate2 = new MenuFlyoutSeparator();
 
-            var flyout_del = new MenuFlyoutItem() { Text = "Delete Scheme", Tag = scheme_guid };
-            flyout_del.Click += SchemeDeleteFlyout_Clicked;
+            var rename = new MenuFlyoutItem() { Text = "Rename", Icon = new SymbolIcon(){Symbol=Symbol.Edit}, Tag =scheme_guid };
+            rename.Click += SchemeRenameFlyout_Clicked;
 
-            scheme_menuitem.ContextFlyout = new MenuFlyout() { Items = { flyout_setactive, flyout_separator, flyout_rename, flyout_copy, flyout_del } };
+            var copy = new MenuFlyoutItem() { Text = "Copy", Icon = new SymbolIcon() {Symbol=Symbol.Copy}, Tag = scheme_guid };
+            copy.Click += SchemeCopyFlyout_Clicked;
+
+            var delete = new MenuFlyoutItem() { Text = "Delete", Icon = new SymbolIcon() {Symbol = Symbol.Delete }, Tag = scheme_guid };
+            delete.Click += SchemeDeleteFlyout_Clicked;
+
+            scheme_menuitem.ContextFlyout = new MenuFlyout() { Items = { setactive, separate1, export, separate2, rename, copy, delete } };
 
             // each scheme menuitem gets a complete list of all groups as submenu items
             scheme_menuitem.MenuItems.Add(new NavigationViewItemHeader() { Content = "Setting Groups", FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Colors.SlateBlue) });
@@ -282,6 +290,7 @@ namespace better_power
 
 
 
+        // -----------------------------------------------------------------------------------------------------------------------------------------------------
         // Set a scheme active via its context flyout
         private void SchemeSetActiveFlyout_Clicked(object sender, RoutedEventArgs e)
         {
@@ -289,7 +298,11 @@ namespace better_power
             NavigationViewItem scheme_elem = (NavigationViewItem)this.scheme_element_dict[scheme_guid];
 
             bool success = App.Current.power_manager.set_systemactive_powerscheme(scheme_guid);
-            NavSetSchemeItemActive(scheme_guid);
+            if (success)
+            {
+                ShowSchemeSystemActive(scheme_guid);
+                this.systemactive_schemeguid = scheme_guid;
+            }
 
             var storyboard_success = (scheme_elem.Resources["success_animation"] as Storyboard);
             var storyboard_fail = (scheme_elem.Resources["fail_animation"] as Storyboard);
@@ -303,7 +316,7 @@ namespace better_power
             }
             else
             {
-                // this scheme is selected in navigationview. must de-select for success flash to be visible                
+                // this scheme is selected in navigationview. must de-select for flash to be visible                
                 this.SchemeNavigationView.SelectedItem = null;
 
                 // ReSelectItem will run when the success/fail animation is done running
@@ -393,9 +406,8 @@ namespace better_power
             var senderitem = sender as MenuFlyoutItem;
             string scheme_guid = senderitem.Tag.ToString();
             var scheme_elem = this.scheme_element_dict[scheme_guid];
-            string systemactive_schemeguid = App.Current.power_manager.get_systemactive_schemeguid();
 
-            if (scheme_guid == systemactive_schemeguid)
+            if (scheme_guid == this.systemactive_schemeguid)
             {
                 // flyout a dialog - active scheme cannot be deleted
                 ContentDialog no_delete_dialog = new ContentDialog()
@@ -449,7 +461,32 @@ namespace better_power
         }
 
 
+        // export a scheme
+        private async void SchemeExportFlyout_Clicked(object sender, RoutedEventArgs e)
+        {
+            var senderitem = sender as MenuFlyoutItem;
+            string scheme_guid = senderitem.Tag.ToString();
+            var scheme_elem = this.scheme_element_dict[scheme_guid];
+            var scheme_data = App.scheme_data_dict[scheme_guid];
 
+            var savePicker = new Windows.Storage.Pickers.FileSavePicker();
+            savePicker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary;
+            savePicker.FileTypeChoices.Add("All Files", new List<string>() { "." });
+            savePicker.FileTypeChoices.Add(".pow File", new List<string>() { ".pow" });
+            savePicker.SuggestedFileName = scheme_data.scheme_name + ".pow";
+
+            WinRT.Interop.InitializeWithWindow.Initialize(savePicker, App.Current._hwnd);
+            Windows.Storage.StorageFile file = await savePicker.PickSaveFileAsync();
+
+            if (file != null)            
+                App.Current.power_manager.powercfg_export_scheme(scheme_guid, file.Path);            
+        }
+
+
+
+
+
+        // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
         private void FireSchemeSuccessFlash(NavigationViewItem applied_scheme_elem, bool success)
         {
@@ -459,9 +496,9 @@ namespace better_power
                 (applied_scheme_elem.Resources["fail_animation"] as Storyboard).Begin();
         }
 
-        private void NavSetSchemeItemActive(string active_scheme_guid)
+        private void ShowSchemeSystemActive(string active_scheme_guid)
         {
-            // ordering doesn't matter here. All elements must be modified
+            // ordering doesn't matter here. All elements must be visited
             foreach (var kvp in this.scheme_element_dict)
             {
                 if (kvp.Key == active_scheme_guid)
@@ -494,26 +531,25 @@ namespace better_power
                     selected_scheme_guid = selected_guid;
 
                     // if the application is already showing these scheme values, no need to change to them
-                    if (selected_scheme_guid != this.current_display_scheme_guid)
-                    { 
-                        update_settings_to_scheme(selected_scheme_guid);
+                    if (selected_scheme_guid != this.current_display_scheme_guid)                     
+                        update_settings_displaydata_to_scheme(selected_scheme_guid);
 
-                        this.setting_elements.Clear();
-                        foreach (FrameworkElement elem in this.setting_element_dict.Values)
-                            this.setting_elements.Add(elem);
-                    }
+                    // but we always add all elements back into listview
+                    this.setting_elements.Clear();
+                    foreach (FrameworkElement elem in this.setting_element_dict.Values)
+                        this.setting_elements.Add(elem);
+                    
                 }
-                // else selected_guid is a groupid. get selected scheme. check for scheme change. filter settings in view.
+                // else selected_guid is a groupid. get selected scheme. check for scheme change. filter to group's settings in view.
                 else
                 {
                     string selected_group_guid = selected_guid;
                     selected_scheme_guid = (args.SelectedItemContainer.DataContext as SchemeStore).scheme_guid;
 
                     if (selected_scheme_guid != this.current_display_scheme_guid)
-                        update_settings_to_scheme(selected_scheme_guid);
+                        update_settings_displaydata_to_scheme(selected_scheme_guid);
 
                     this.setting_elements.Clear();
-
                     foreach (var setting_element in this.setting_elements_by_group_dict[selected_group_guid])                    
                         this.setting_elements.Add(setting_element);                    
                 }
@@ -523,7 +559,7 @@ namespace better_power
             }
         }
 
-        private void update_settings_to_scheme(string selected_scheme_guid)
+        private void update_settings_displaydata_to_scheme(string selected_scheme_guid)
         {
             foreach (SettingStore setting_data in App.setting_data_dict.Values)
             {
@@ -537,11 +573,7 @@ namespace better_power
 
 
 
-
-
-
-        private void SchemeNavigationView_DisplayModeChanged(object sender, NavigationViewDisplayModeChangedEventArgs e) { }
-
+        // -----------------------------------------------------------------------------------------------------------------------------------------------------
         private void SearchBoxTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
             if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
@@ -556,10 +588,8 @@ namespace better_power
                 {
                     string elem_guid = setting_elem.Tag.ToString();
 
-                    //if (this.group_headerelements_dict.ContainsKey(elem_guid))
                     if (App.group_data_dict.ContainsKey(elem_guid))
                     {
-                        //curr_groupheader_elem = this.group_headerelements_dict[elem_guid];
                         curr_groupheader_elem = this.setting_element_dict[elem_guid];
                         header_added = false;
                     }
@@ -567,7 +597,6 @@ namespace better_power
                     {
                         var setting_data = App.setting_data_dict[elem_guid];
                         string setting_name = setting_data._setting_name.ToLower();
-                        string setting_groupguid = setting_data._parent_groupguid;
 
                         if (setting_name.Contains(query))
                         {
