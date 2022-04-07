@@ -29,10 +29,14 @@ namespace better_power
 
     // TODO
 
-    // import/export scheme from file
-    // flyout styles with icons
-    // override single-pixel theme border
+    // import scheme from file
     // install the classic schemes - from "power saving" to "ultimate perf"
+        // navigation footers i think
+        // both can also be a right-click flyout on the navigationview blank space
+
+    // override single-pixel theme border
+
+    // right-click: reset scheme settings to default for that scheme name
 
     // setting cards:
     //      indicate possible values to which we can set the setting

@@ -41,7 +41,7 @@ namespace better_power
 
         string systemactive_schemeguid;
 
-        // inidicate that settings' displayed values should not change while navigating
+        // inidicate that setting values changing in listview should not fire system settings changes
         bool settings_locked_for_navigation = false;
 
 
@@ -219,6 +219,11 @@ namespace better_power
                 this.scheme_element_dict[scheme_kvp.Key] = scheme_menuitem;
             }
 
+            var importitem = new NavigationViewItem() { Content = "Import Power Scheme", Tag = "Import_NavItem", Icon=new SymbolIcon() {Symbol=Symbol.Import} };
+            var installitem = new NavigationViewItem() { Content = "Install Classic Schemes", Tag = "Install_NavItem", Icon=new SymbolIcon() {Symbol=Symbol.ImportAll} };
+            this.SchemeNavigationView.FooterMenuItems.Add(importitem);
+            this.SchemeNavigationView.FooterMenuItems.Add(installitem);
+
             ShowSchemeSystemActive(this.systemactive_schemeguid);
             this.SchemeNavigationView.SelectedItem = this.scheme_element_dict[this.systemactive_schemeguid];
         }
@@ -241,7 +246,7 @@ namespace better_power
                 Children = { namebox, activebox }
             };
 
-            var scheme_menuitem = new NavigationViewItem();
+            var scheme_menuitem = new NavigationViewItem() {Icon=new SymbolIcon() {Symbol=Symbol.List} };
             scheme_menuitem.Content = stackpanel;
             scheme_menuitem.Tag = scheme_data.scheme_guid;
             scheme_menuitem.DataContext = scheme_data;
@@ -254,6 +259,7 @@ namespace better_power
             register_animation(scheme_menuitem, background_brush, Colors.MediumSpringGreen, "success_animation");
             Storyboard.SetTargetName(scheme_menuitem.Resources["success_animation"] as Storyboard, scheme_guid);
             register_animation(scheme_menuitem, background_brush, Colors.MediumVioletRed, "fail_animation");
+            Storyboard.SetTargetName(scheme_menuitem.Resources["fail_animation"] as Storyboard, scheme_guid);
 
             // create flyouts for scheme menuitem's contextmenu
             var setactive = new MenuFlyoutItem() { Text = "Set Active", Icon=new SymbolIcon(){Symbol=Symbol.Accept}, Tag=scheme_guid };
@@ -278,7 +284,7 @@ namespace better_power
             scheme_menuitem.ContextFlyout = new MenuFlyout() { Items = { setactive, separate1, export, separate2, rename, copy, delete } };
 
             // each scheme menuitem gets a complete list of all groups as submenu items
-            scheme_menuitem.MenuItems.Add(new NavigationViewItemHeader() { Content = "Setting Groups", FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Colors.SlateBlue) });
+            scheme_menuitem.MenuItems.Add(new NavigationViewItemHeader() { Content = "Power Setting Groups", FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Colors.SlateBlue) });
 
             foreach (var group_data in App.group_data_dict)
             {
@@ -360,7 +366,6 @@ namespace better_power
             }
         }
              
-
         // Copy a scheme
         private async void SchemeCopyFlyout_Clicked(object sender, RoutedEventArgs e)
         {
@@ -382,22 +387,25 @@ namespace better_power
                 bool success1 = App.Current.power_manager.powercfg_copy_powerscheme(scheme_guid, new_scheme_guid);
                 bool success2 = App.Current.power_manager.set_powerscheme_name(new_scheme_guid, new_scheme_name);
 
-                if (success1 && success2) 
-                {
-                    // update Application datastructures for new scheme
-                    SchemeStore new_scheme_data = new SchemeStore(new_scheme_name, new_scheme_guid);
-                    App.scheme_data_dict[new_scheme_guid] = new_scheme_data;
-                    App.Current.store_setting_values_one_scheme(new_scheme_guid);
-
-                    // update view elements for the new scheme
-                    var new_scheme_elem = Generate_SchemeMenuItem(new_scheme_data);
-                    this.SchemeNavigationView.MenuItems.Add(new_scheme_elem);
-                    this.scheme_element_dict[new_scheme_guid] = new_scheme_elem;
-
-                    FireSchemeSuccessFlash(new_scheme_elem, success1 && success2);
-                }
+                if (success1 && success2)                 
+                    NewScheme_UpdateAppData_UpdateUIElems(new_scheme_name, new_scheme_guid);                
             }
 
+        }
+
+        private void NewScheme_UpdateAppData_UpdateUIElems(string new_scheme_name, string new_scheme_guid)
+        {
+            // update Application datastructures for new scheme
+            SchemeStore new_scheme_data = new SchemeStore(new_scheme_name, new_scheme_guid);
+            App.scheme_data_dict[new_scheme_guid] = new_scheme_data;
+            App.Current.store_setting_values_one_scheme(new_scheme_guid);
+
+            // update view elements for the new scheme
+            var new_scheme_elem = Generate_SchemeMenuItem(new_scheme_data);
+            this.SchemeNavigationView.MenuItems.Add(new_scheme_elem);
+            this.scheme_element_dict[new_scheme_guid] = new_scheme_elem;
+
+            FireSchemeSuccessFlash(new_scheme_elem, true);
         }
 
         // delete a scheme
@@ -460,13 +468,11 @@ namespace better_power
             }
         }
 
-
         // export a scheme
         private async void SchemeExportFlyout_Clicked(object sender, RoutedEventArgs e)
         {
             var senderitem = sender as MenuFlyoutItem;
             string scheme_guid = senderitem.Tag.ToString();
-            var scheme_elem = this.scheme_element_dict[scheme_guid];
             var scheme_data = App.scheme_data_dict[scheme_guid];
 
             var savePicker = new Windows.Storage.Pickers.FileSavePicker();
@@ -512,49 +518,69 @@ namespace better_power
             }
         }
 
-        private void SchemeNavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+        private async void SchemeNavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
-            if (args.IsSettingsSelected)
-            {
-                //RootFrame.Navigate( typeof(SettingsPage) );                
-            }
-            else if (args.SelectedItemContainer != null)
+            if (args.SelectedItemContainer != null)
             {
                 this.settings_locked_for_navigation = true;
 
-                string selected_guid = args.SelectedItemContainer.Tag.ToString();
+                string selected_tag = args.SelectedItemContainer.Tag.ToString();
                 string selected_scheme_guid;
 
                 // selected is a scheme. update settings cards current values in listview
-                if (App.scheme_data_dict.ContainsKey(selected_guid))
+                if (App.scheme_data_dict.ContainsKey(selected_tag))
                 {
-                    selected_scheme_guid = selected_guid;
+                    selected_scheme_guid = selected_tag;
 
                     // if the application is already showing these scheme values, no need to change to them
-                    if (selected_scheme_guid != this.current_display_scheme_guid)                     
+                    if (selected_scheme_guid != this.current_display_scheme_guid)
+                    {
                         update_settings_displaydata_to_scheme(selected_scheme_guid);
+                        this.current_display_scheme_guid = selected_scheme_guid;
+                    }
 
-                    // but we always add all elements back into listview
+                    // but we always add all elements back into listview when scheme clicked
                     this.setting_elements.Clear();
                     foreach (FrameworkElement elem in this.setting_element_dict.Values)
                         this.setting_elements.Add(elem);
-                    
                 }
-                // else selected_guid is a groupid. get selected scheme. check for scheme change. filter to group's settings in view.
-                else
+                // selected_guid is a groupid. get selected scheme. check for scheme change. filter to group's settings in view.
+                else if (App.group_data_dict.ContainsKey(selected_tag))
                 {
-                    string selected_group_guid = selected_guid;
+                    string selected_group_guid = selected_tag;
                     selected_scheme_guid = (args.SelectedItemContainer.DataContext as SchemeStore).scheme_guid;
 
                     if (selected_scheme_guid != this.current_display_scheme_guid)
+                    {
                         update_settings_displaydata_to_scheme(selected_scheme_guid);
+                        this.current_display_scheme_guid = selected_scheme_guid;
+                    }
 
                     this.setting_elements.Clear();
-                    foreach (var setting_element in this.setting_elements_by_group_dict[selected_group_guid])                    
-                        this.setting_elements.Add(setting_element);                    
+                    foreach (var setting_element in this.setting_elements_by_group_dict[selected_group_guid])
+                        this.setting_elements.Add(setting_element);
                 }
+                else if (selected_tag == "Import_NavItem") 
+                {
+                    var openPicker = new Windows.Storage.Pickers.FileOpenPicker();
+                    openPicker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary;
+                    openPicker.FileTypeFilter.Add( "." );
+                    openPicker.FileTypeFilter.Add( ".pow" );
 
-                this.current_display_scheme_guid = selected_scheme_guid;
+                    WinRT.Interop.InitializeWithWindow.Initialize(openPicker, App.Current._hwnd);
+                    Windows.Storage.StorageFile file = await openPicker.PickSingleFileAsync();
+
+                    if (file != null)
+                    {
+                        string new_scheme_guid = Guid.NewGuid().ToString();
+                        App.Current.power_manager.powercfg_import_scheme(new_scheme_guid, file.Path);
+                        string new_scheme_name = App.Current.power_manager.powercfg_get_schemename(new_scheme_guid);
+                        NewScheme_UpdateAppData_UpdateUIElems(new_scheme_guid, new_scheme_name);
+                    }
+                }
+                else if (selected_tag == "Install_NavItem") 
+                { }
+                                
                 this.settings_locked_for_navigation = false;
             }
         }

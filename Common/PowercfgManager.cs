@@ -83,6 +83,23 @@ namespace better_power.Common
             return (result.Count == 0);
         }
 
+        public bool powercfg_import_scheme(string new_scheme_guid, string import_filepath)
+        {
+            this.ps.AddCommand("powercfg").AddArgument("import").AddArgument(import_filepath).AddArgument(new_scheme_guid);
+            var result = this.ps.Invoke();
+
+            return (result.Count == 1);
+        }
+        public string powercfg_get_schemename(string scheme_guid)
+        {
+            this.ps.AddCommand("powercfg").AddArgument("q").AddArgument(scheme_guid);
+            var result = this.ps.Invoke();
+
+            string schemename = result[0].ToString().Trim();
+            schemename = schemename.Substring(58, schemename.Length - 1 - 58); 
+            return schemename;
+        }
+
     }
     
 }
