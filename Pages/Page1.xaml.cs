@@ -1,4 +1,5 @@
-﻿using Microsoft.UI;
+﻿using better_power.Common;
+using Microsoft.UI;
 using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -272,25 +273,23 @@ namespace better_power
 
             var separate2 = new MenuFlyoutSeparator();
 
-            var rename = new MenuFlyoutItem() { Text = "Rename", Icon = new SymbolIcon(){Symbol=Symbol.Edit}, Tag =scheme_guid };
+            var rename = new MenuFlyoutItem() { Text = "Rename", Icon = new SymbolIcon(){Symbol=Symbol.Edit}, Tag=scheme_guid };
             rename.Click += SchemeRenameFlyout_Clicked;
 
-            var copy = new MenuFlyoutItem() { Text = "Copy", Icon = new SymbolIcon() {Symbol=Symbol.Copy}, Tag = scheme_guid };
+            var copy = new MenuFlyoutItem() { Text = "Copy", Icon = new SymbolIcon() {Symbol=Symbol.Copy}, Tag=scheme_guid };
             copy.Click += SchemeCopyFlyout_Clicked;
 
-            var delete = new MenuFlyoutItem() { Text = "Delete", Icon = new SymbolIcon() {Symbol = Symbol.Delete }, Tag = scheme_guid };
+            var delete = new MenuFlyoutItem() { Text = "Delete", Icon = new SymbolIcon() {Symbol=Symbol.Delete}, Tag=scheme_guid };
             delete.Click += SchemeDeleteFlyout_Clicked;
 
             scheme_menuitem.ContextFlyout = new MenuFlyout() { Items = { setactive, separate1, export, separate2, rename, copy, delete } };
 
             // each scheme menuitem gets a complete list of all groups as submenu items
-            scheme_menuitem.MenuItems.Add(new NavigationViewItemHeader() { Content = "Power Setting Groups", FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Colors.SlateBlue) });
+            scheme_menuitem.MenuItems.Add(new NavigationViewItemHeader() { Content="Power Setting Groups", FontWeight=FontWeights.Bold, Foreground=new SolidColorBrush(Colors.SlateBlue) });
 
-            foreach (var group_data in App.group_data_dict)
-            {
-                scheme_menuitem.MenuItems.Add(new NavigationViewItem() { Content = group_data.Value._group_name, Tag = group_data.Key });
-            }
-
+            foreach (var group_data in App.group_data_dict)            
+                scheme_menuitem.MenuItems.Add(new NavigationViewItem() { Content=group_data.Value._group_name, Tag=group_data.Key });
+            
             return scheme_menuitem;
         }
 
@@ -303,7 +302,7 @@ namespace better_power
             string scheme_guid = (sender as MenuFlyoutItem).Tag.ToString();
             NavigationViewItem scheme_elem = (NavigationViewItem)this.scheme_element_dict[scheme_guid];
 
-            bool success = App.Current.power_manager.set_systemactive_powerscheme(scheme_guid);
+            bool success = App.Current.power_manager.set_systemactive_scheme(scheme_guid);
             if (success)
             {
                 ShowSchemeSystemActive(scheme_guid);
@@ -361,7 +360,7 @@ namespace better_power
                     scheme_data.scheme_name = new_name;
 
                     // do system rename of this scheme
-                    App.Current.power_manager.set_powerscheme_name(scheme_data.scheme_guid, new_name);
+                    App.Current.power_manager.powercfg_rename_scheme(scheme_data.scheme_guid, new_name);
                 }
             }
         }
@@ -384,13 +383,12 @@ namespace better_power
                 string new_scheme_name = copy_dialog.new_name;
 
                 // copy scheme in system. rename new scheme to new name.
-                bool success1 = App.Current.power_manager.powercfg_copy_powerscheme(scheme_guid, new_scheme_guid);
-                bool success2 = App.Current.power_manager.set_powerscheme_name(new_scheme_guid, new_scheme_name);
+                bool success1 = App.Current.power_manager.powercfg_copy_scheme(scheme_guid, new_scheme_guid);
+                bool success2 = App.Current.power_manager.powercfg_rename_scheme(new_scheme_guid, new_scheme_name);
 
                 if (success1 && success2)                 
                     NewScheme_UpdateAppData_UpdateUIElems(new_scheme_name, new_scheme_guid);                
             }
-
         }
 
         private void NewScheme_UpdateAppData_UpdateUIElems(string new_scheme_name, string new_scheme_guid)
@@ -448,7 +446,7 @@ namespace better_power
             if (result == ContentDialogResult.Primary)
             {
                 // delete scheme in system
-                bool success = App.Current.power_manager.powercfg_del_powerscheme(scheme_guid);
+                bool success = App.Current.power_manager.powercfg_del_scheme(scheme_guid);
 
                 if (success)
                 {
@@ -485,7 +483,7 @@ namespace better_power
             Windows.Storage.StorageFile file = await savePicker.PickSaveFileAsync();
 
             if (file != null)            
-                App.Current.power_manager.powercfg_export_scheme(scheme_guid, file.Path);            
+                PowercfgManager.powercfg_export_scheme(scheme_guid, file.Path);            
         }
 
 
@@ -560,6 +558,7 @@ namespace better_power
                     foreach (var setting_element in this.setting_elements_by_group_dict[selected_group_guid])
                         this.setting_elements.Add(setting_element);
                 }
+                // selected is the "import scheme" navitem
                 else if (selected_tag == "Import_NavItem") 
                 {
                     var openPicker = new Windows.Storage.Pickers.FileOpenPicker();
@@ -573,9 +572,12 @@ namespace better_power
                     if (file != null)
                     {
                         string new_scheme_guid = Guid.NewGuid().ToString();
-                        App.Current.power_manager.powercfg_import_scheme(new_scheme_guid, file.Path);
-                        string new_scheme_name = App.Current.power_manager.powercfg_get_schemename(new_scheme_guid);
-                        NewScheme_UpdateAppData_UpdateUIElems(new_scheme_guid, new_scheme_name);
+                        bool success = PowercfgManager.powercfg_import_scheme(new_scheme_guid, file.Path);
+                        if (success)
+                        {
+                            string new_scheme_name = App.Current.power_manager.powercfg_get_schemename(new_scheme_guid);
+                            NewScheme_UpdateAppData_UpdateUIElems(new_scheme_name, new_scheme_guid);
+                        }
                     }
                 }
                 else if (selected_tag == "Install_NavItem") 

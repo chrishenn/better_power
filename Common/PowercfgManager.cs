@@ -29,7 +29,7 @@ namespace better_power.Common
             return this.ps.Invoke()[0].ToString().Trim().Substring(19, 36);
         }
 
-        public Collection<PSObject> get_powercfg_list()
+        public Collection<PSObject> powercfg_get_schemelist()
         {
             this.ps.AddCommand("powercfg").AddArgument("list");
             return this.ps.Invoke();
@@ -43,7 +43,7 @@ namespace better_power.Common
             return (result.Count == 0);
         }
 
-        public bool set_systemactive_powerscheme(string scheme_guid)
+        public bool set_systemactive_scheme(string scheme_guid)
         {
             this.ps.AddCommand("powercfg").AddArgument("setactive").AddArgument(scheme_guid);
             var result = this.ps.Invoke();
@@ -51,7 +51,7 @@ namespace better_power.Common
             return (result.Count == 0);
         }
 
-        public bool set_powerscheme_name(string scheme_guid, string name)
+        public bool powercfg_rename_scheme(string scheme_guid, string name)
         {
             this.ps.AddCommand("powercfg").AddArgument("changename").AddArgument(scheme_guid).AddArgument(name);
             var result = this.ps.Invoke();
@@ -59,7 +59,7 @@ namespace better_power.Common
             return (result.Count == 0);
         }
 
-        public bool powercfg_copy_powerscheme(string scheme_guid, string new_guid)
+        public bool powercfg_copy_scheme(string scheme_guid, string new_guid)
         {
             this.ps.AddCommand("powercfg").AddArgument("duplicatescheme").AddArgument(scheme_guid).AddArgument(new_guid);
             var result = this.ps.Invoke();
@@ -67,7 +67,7 @@ namespace better_power.Common
             return (result.Count == 1);
         }
 
-        public bool powercfg_del_powerscheme(string scheme_guid)
+        public bool powercfg_del_scheme(string scheme_guid)
         {
             this.ps.AddCommand("powercfg").AddArgument("delete").AddArgument(scheme_guid);
             var result = this.ps.Invoke();
@@ -75,29 +75,33 @@ namespace better_power.Common
             return (result.Count == 0);
         }
 
-        public bool powercfg_export_scheme(string scheme_guid, string export_filename)
-        {
-            this.ps.AddCommand("powercfg").AddArgument("export").AddArgument(export_filename).AddArgument(scheme_guid);
-            var result = this.ps.Invoke();
-
-            return (result.Count == 0);
-        }
-
-        public bool powercfg_import_scheme(string new_scheme_guid, string import_filepath)
-        {
-            this.ps.AddCommand("powercfg").AddArgument("import").AddArgument(import_filepath).AddArgument(new_scheme_guid);
-            var result = this.ps.Invoke();
-
-            return (result.Count == 1);
-        }
         public string powercfg_get_schemename(string scheme_guid)
         {
-            this.ps.AddCommand("powercfg").AddArgument("q").AddArgument(scheme_guid);
+            this.ps.AddCommand("powercfg").AddArgument("query").AddArgument(scheme_guid);
             var result = this.ps.Invoke();
 
             string schemename = result[0].ToString().Trim();
             schemename = schemename.Substring(58, schemename.Length - 1 - 58); 
             return schemename;
+        }
+
+
+        // -------------------------------------------------------------------------------------------------------------------------------------
+        public static bool powercfg_import_scheme(string new_guid, string import_filepath)
+        {
+            // MUST CREATE NEW POWERSHELL OBJECT. ELSE OLD COMMANDS WILL CONTINUE TO RE-RUN AFTER THIS ONE
+            var ps = PowerShell.Create().AddCommand("powercfg").AddArgument("import").AddArgument(import_filepath).AddArgument(new_guid);
+            var result = ps.Invoke();
+
+            return result[0].ToString().ToLower().Contains("successfully");                
+        }
+        public static bool powercfg_export_scheme(string scheme_guid, string export_filename)
+        {
+            // MUST CREATE NEW POWERSHELL OBJECT. ELSE OLD COMMANDS WILL CONTINUE TO RE-RUN AFTER THIS ONE
+            var ps = PowerShell.Create().AddCommand("powercfg").AddArgument("export").AddArgument(export_filename).AddArgument(scheme_guid);
+            var result = ps.Invoke();
+
+            return (result.Count == 0);
         }
 
     }

@@ -30,9 +30,11 @@ namespace better_power
     // TODO
 
     // import scheme from file
+    // refresh button - rebuild scheme/setting info from system changes
+
     // install the classic schemes - from "power saving" to "ultimate perf"
-        // navigation footers i think
         // both can also be a right-click flyout on the navigationview blank space
+        // powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61 (Ultimte Performance)
 
     // override single-pixel theme border
 
@@ -45,6 +47,7 @@ namespace better_power
     //      ac + dc menus
 
     // error handling
+        // check that new data objects with GUIDs have valid GUIDS
     // packaging - modern install, portable install, taskbar icon, taskbar app name
     // installer must run power unhide scripts
     // compatibility testing
@@ -191,7 +194,7 @@ namespace better_power
 
         private void build_schemedata()
         {
-            var result = this.power_manager.get_powercfg_list();
+            var result = this.power_manager.powercfg_get_schemelist();
 
             foreach (var ps_ob in result)
             {
