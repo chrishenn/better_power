@@ -22,7 +22,8 @@ using Windows.Foundation.Collections;
 using better_power.Common;
 
 using Microsoft.Windows.ApplicationModel.DynamicDependency;
-
+using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace better_power
 {
@@ -185,7 +186,13 @@ namespace better_power
 
         public static int str16_toint(string hex_string) { return Convert.ToInt32(hex_string, 16); }
 
-
+        public static string GetAppRoot()
+        {
+            var exePath = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase);
+            Regex appPathMatcher = new Regex(@"(?<!fil)[A-Za-z]:\\+[\S\s]*?(?=\\+bin)");
+            var appRoot = appPathMatcher.Match(exePath).Value;
+            return appRoot;
+        }
 
         //-------------------------------------------------------------------------------------------------
         //Build App data structs and objects

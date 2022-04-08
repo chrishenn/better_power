@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Truncon.Collections;
 using Windows.Foundation;
@@ -126,7 +127,7 @@ namespace better_power
         // register animation to a settings element or a scheme menuitem in the navigationview
         private void register_animation(FrameworkElement element, SolidColorBrush animated_brush, Color color, string animation_name)
         {
-            Color background_gray = (Application.Current.Resources["AppTitleBar_Grey"] as SolidColorBrush).Color;
+            Color background_gray = (App.Current.Resources["AppTitleBar_Grey"] as SolidColorBrush).Color;
 
             var color_tocolor = new LinearColorKeyFrame() { Value = color, KeyTime = TimeSpan.FromSeconds(0.025) };
             var color_hold = new LinearColorKeyFrame() { Value = color, KeyTime = TimeSpan.FromSeconds(0.1) };
@@ -580,8 +581,50 @@ namespace better_power
                         }
                     }
                 }
+                // selected is the "install classic schemes" navitem
                 else if (selected_tag == "Install_NavItem") 
-                { }
+                {
+                    var proj_path = App.GetAppRoot();
+                    var config_path = proj_path + @"\classic_configs\";
+                    string[] filePaths = Directory.GetFiles(config_path, "*.pow", SearchOption.TopDirectoryOnly);
+                    int[] classic_order = { 2, 0, 1, 3 };
+
+                    var buttonpanel = new StackPanel() { Orientation = Orientation.Vertical };
+                    foreach (int i in classic_order)
+                    {
+                        string path = filePaths[i];
+                        string filename = System.IO.Path.GetFileName(path);
+                        string schemename = filename.Substring(0, filename.IndexOf("."));
+
+                        var button = new Button() { Content = schemename, Margin = new Thickness(5), Tag = path };
+
+                        // register animators into buttons's Resources
+                        Color background_gray = (Application.Current.Resources["AppTitleBar_Grey"] as SolidColorBrush).Color;
+                        SolidColorBrush background_brush = new SolidColorBrush(background_gray);
+                        button.Background = background_brush;
+
+                        register_animation(button, background_brush, Colors.MediumSpringGreen, "success_animation");
+                        register_animation(button, background_brush, Colors.MediumVioletRed, "fail_animation");
+
+                        // button click handler
+                        button.Click += ClassicSchemeInstall_ButtonClicked;
+
+                        buttonpanel.Children.Add(button);
+                    }                    
+                    
+                    // todo: explain that this dialog will install a fresh, separate copy of the classic schemes
+                    ContentDialog install_dialog = new ContentDialog()
+                    {
+                        Title = "Install Classic Powerschemes",
+                        Content = buttonpanel,
+
+                        CloseButtonText = "Close",
+                        DefaultButton = ContentDialogButton.Close
+                    };
+
+                    install_dialog.XamlRoot = this.XamlRoot;
+                    await install_dialog.ShowAsync();
+                }
                                 
                 this.settings_locked_for_navigation = false;
             }
@@ -598,7 +641,16 @@ namespace better_power
             }
         }
 
+        private void ClassicSchemeInstall_ButtonClicked(object sender, RoutedEventArgs e)
+        {
+            var senderitem = sender as Button;
+            string schemepath = senderitem.Tag.ToString();
 
+            var new_scheme_guid = Guid.NewGuid().ToString();
+            PowercfgManager.powercfg_import_scheme(new_scheme_guid, schemepath);
+
+            // todo: does this overwrite the classic scheme or make a new one?
+        }
 
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
