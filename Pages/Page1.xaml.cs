@@ -56,6 +56,12 @@ namespace better_power
 
             this.systemactive_schemeguid = App.Current.power_manager.get_systemactive_schemeguid();
 
+            this.generate_setting_elements();
+        }
+
+        // generate setting elements from App setting data objects
+        private void generate_setting_elements()
+        {
             string curr_groupid = "";
             ListViewHeaderItem curr_groupheader = null;
 
@@ -124,7 +130,49 @@ namespace better_power
             this.setting_elements = new ObservableCollection<FrameworkElement>(this.setting_element_dict.Values);
         }
 
-        // register animation to (a Control) or (a Panel)
+        // settings elements: settings changed handler; numberbox
+        private void NumberBoxValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs e)
+        {
+            if (sender.IsLoaded && !this.settings_locked_for_navigation)
+            {
+                SettingStore setting = App.setting_data_dict[sender.Tag.ToString()];
+
+                string selected_scheme_guid = this.current_display_scheme_guid;
+
+                var curr_vals = setting.curr_setting_vals_by_scheme[selected_scheme_guid];
+                setting.curr_setting_vals_by_scheme[selected_scheme_guid] = ((int)sender.Value, curr_vals.dc_val);
+
+                bool success = App.Current.power_manager.set_powersetting(selected_scheme_guid, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.Value);
+
+                var setting_elem = this.setting_element_dict[setting._setting_guid];
+                fire_success_animation_panel(setting_elem as Panel, success);
+            }
+        }
+        
+        // settings elements: settings changed handler; combobox
+        private void ComboBoxSelectionChanged(object _sender, SelectionChangedEventArgs e)
+        {
+            ComboBox sender = _sender as ComboBox;
+
+            if (sender.IsLoaded && !this.settings_locked_for_navigation)
+            {
+                SettingStore setting = App.setting_data_dict[sender.Tag.ToString()];
+
+                string selected_scheme_guid = this.current_display_scheme_guid;
+
+                var curr_vals = setting.curr_setting_vals_by_scheme[selected_scheme_guid];
+                setting.curr_setting_vals_by_scheme[selected_scheme_guid] = ((int)sender.SelectedIndex, curr_vals.dc_val);
+
+                bool success = App.Current.power_manager.set_powersetting(selected_scheme_guid, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.SelectedIndex);
+
+                var setting_elem = this.setting_element_dict[setting._setting_guid];
+                fire_success_animation_panel(setting_elem as Panel, success);
+            }
+        }
+
+
+
+        // register animation to (a Control) or (a Panel); dispatcher
         private static void register_animation(FrameworkElement element, Color color, string animation_name, string storyboard_tag = null)
         {
             if (element is Control)
@@ -134,7 +182,6 @@ namespace better_power
             else
                 throw new ArgumentException();
         }
-
         private static void register_animation_control(Control element, Color color, string animation_name, string storyboard_tag = null)
         {
             Color background_gray = (App.Current.Resources["AppTitleBar_Grey"] as SolidColorBrush).Color;
@@ -194,6 +241,7 @@ namespace better_power
             element.Resources[animation_name] = story_board;
         }
 
+        // success animation runner; control
         private void fire_success_animation_control(Control element, bool success)
         {
             if (success)
@@ -201,6 +249,7 @@ namespace better_power
             else
                 (element.Resources["fail_animation"] as Storyboard).Begin();
         }
+        // success animation runner; panel
         private void fire_success_animation_panel(Panel element, bool success)
         {
             if (success)
@@ -216,50 +265,6 @@ namespace better_power
         {
             this.ListView_main.ItemsSource = this.setting_elements;
         }
-
-        private void NumberBoxValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs e)
-        {
-            if (sender.IsLoaded && !this.settings_locked_for_navigation)
-            {
-                SettingStore setting = App.setting_data_dict[sender.Tag.ToString()];
-
-                string selected_scheme_guid = this.current_display_scheme_guid;
-
-                var curr_vals = setting.curr_setting_vals_by_scheme[selected_scheme_guid];
-                setting.curr_setting_vals_by_scheme[selected_scheme_guid] = ((int)sender.Value, curr_vals.dc_val);
-
-                bool success = App.Current.power_manager.set_powersetting(selected_scheme_guid, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.Value);
-
-                var setting_elem = this.setting_element_dict[setting._setting_guid];
-                fire_success_animation_panel(setting_elem as Panel, success);
-            }
-        }
-
-        private void ComboBoxSelectionChanged(object _sender, SelectionChangedEventArgs e)
-        {
-            ComboBox sender = _sender as ComboBox;
-
-            if (sender.IsLoaded && !this.settings_locked_for_navigation)
-            {
-                SettingStore setting = App.setting_data_dict[sender.Tag.ToString()];
-
-                string selected_scheme_guid = this.current_display_scheme_guid;
-
-                var curr_vals = setting.curr_setting_vals_by_scheme[selected_scheme_guid];
-                setting.curr_setting_vals_by_scheme[selected_scheme_guid] = ((int)sender.SelectedIndex, curr_vals.dc_val);
-
-                bool success = App.Current.power_manager.set_powersetting(selected_scheme_guid, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.SelectedIndex);
-
-                var setting_elem = this.setting_element_dict[setting._setting_guid];
-                fire_success_animation_panel(setting_elem as Panel, success);
-            }
-        }
-
-
-
-
-
-
 
         // Generate and Add navigationviewitems to navigationview
         private void SchemeNavigationView_Loaded(object sender, RoutedEventArgs e)
@@ -280,14 +285,15 @@ namespace better_power
 
             var importitem = new NavigationViewItem() { Content = "Import Power Scheme", Tag = "Import_NavItem", Icon = new SymbolIcon() { Symbol = Symbol.Import } };
             var installitem = new NavigationViewItem() { Content = "Install Classic Schemes", Tag = "Install_NavItem", Icon = new SymbolIcon() { Symbol = Symbol.ImportAll } };
-            this.SchemeNavigationView.FooterMenuItems.Add(importitem);
-            this.SchemeNavigationView.FooterMenuItems.Add(installitem);
+            importitem.Tapped += Scheme_ImportButton_Tapped;
+            installitem.Tapped += Scheme_InstallButton_Tapped;
+            this.SchemeNavigationView.PaneFooter = new StackPanel() { Children = {importitem, installitem}, Orientation= Orientation.Vertical, HorizontalAlignment=HorizontalAlignment.Stretch };
 
-            ShowSchemeSystemActive(this.systemactive_schemeguid);
+            UpdateUI_ShowSystemActiveScheme(this.systemactive_schemeguid);
             this.SchemeNavigationView.SelectedItem = this.scheme_element_dict[this.systemactive_schemeguid];
         }
 
-        // generate menuitem from data-backing scheme_data object
+        // generate a menuitem from scheme_data object
         private NavigationViewItem Generate_SchemeMenuItem(SchemeStore scheme_data)
         {
             string scheme_guid = scheme_data.scheme_guid;
@@ -346,6 +352,9 @@ namespace better_power
 
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
+        // Scheme Elements in Navigationview: Right-click context flyout handlers
+        // -----------------------------------------------------------------------------------------------------------------------------------------------------
+
         // Set a scheme active via its context flyout
         private void SchemeSetActiveFlyout_Clicked(object sender, RoutedEventArgs e)
         {
@@ -355,7 +364,7 @@ namespace better_power
             bool success = App.Current.power_manager.set_systemactive_scheme(scheme_guid);
             if (success)
             {
-                ShowSchemeSystemActive(scheme_guid);
+                UpdateUI_ShowSystemActiveScheme(scheme_guid);
                 this.systemactive_schemeguid = scheme_guid;
             }
 
@@ -542,25 +551,22 @@ namespace better_power
 
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
+        // Navgation: view settings in each scheme; open scheme import dialog; open classic scheme install dialog
+        // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
-
-        private void ShowSchemeSystemActive(string active_scheme_guid)
+        private void UpdateUI_ShowSystemActiveScheme(string active_scheme_guid)
         {
             // ordering doesn't matter here. All elements must be visited
             foreach (var kvp in this.scheme_element_dict)
             {
-                if (kvp.Key == active_scheme_guid)
-                {
-                    (App.scheme_data_dict[kvp.Key] as SchemeStore).activebox_visible = "Visible";
-                }
-                else
-                {
-                    (App.scheme_data_dict[kvp.Key] as SchemeStore).activebox_visible = "Collapsed";
-                }
+                if (kvp.Key == active_scheme_guid)                
+                    App.scheme_data_dict[kvp.Key].activebox_visible = "Visible";                
+                else                
+                    App.scheme_data_dict[kvp.Key].activebox_visible = "Collapsed";                
             }
         }
 
-        private async void SchemeNavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+        private void SchemeNavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
             if (args.SelectedItemContainer == null) return;
             
@@ -604,72 +610,7 @@ namespace better_power
                     this.setting_elements.Add(setting_element);
             }
                 
-            // selected is the "import scheme" navitem
-            else if (selected_tag == "Import_NavItem")
-            {
-                var openPicker = new Windows.Storage.Pickers.FileOpenPicker();
-                openPicker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary;
-                openPicker.FileTypeFilter.Add(".");
-                openPicker.FileTypeFilter.Add(".pow");
-
-                WinRT.Interop.InitializeWithWindow.Initialize(openPicker, App.Current._hwnd);
-                Windows.Storage.StorageFile file = await openPicker.PickSingleFileAsync();
-
-                if (file != null)
-                {
-                    string new_scheme_guid = Guid.NewGuid().ToString();
-                    bool success = PowercfgManager.powercfg_import_scheme(new_scheme_guid, file.Path);
-                    if (success)
-                    {
-                        string new_scheme_name = App.Current.power_manager.powercfg_get_schemename(new_scheme_guid);
-                        NewScheme_UpdateAppData_UpdateUIElems(new_scheme_name, new_scheme_guid);
-                    }
-                }
-            }
-                
-            // selected is the "install classic schemes" navitem
-            else if (selected_tag == "Install_NavItem")
-            {                
-                var file_panel = new StackPanel() { Orientation = Orientation.Vertical };
-                file_panel.Children.Add(new TextBlock() { 
-                    Text = "These buttons will install a new copy of the given default scheme. Existing schemes will not be modified.", 
-                    TextWrapping=TextWrapping.WrapWholeWords,
-                    Margin = new Thickness(20)
-                });
-
-                foreach (int i in App.Current.classic_order)
-                {
-                    string path = App.Current.classic_filepaths[i];
-                    string filename = System.IO.Path.GetFileName(path);
-                    string schemename = filename.Substring(0, filename.IndexOf("."));
-
-                    var file_button = new Button() { Content = schemename, Margin = new Thickness(2), Tag = path };
-
-                    // register animators into buttons's Resources
-                    register_animation(file_button, Colors.MediumSpringGreen, "success_animation");
-                    register_animation(file_button, Colors.MediumVioletRed, "fail_animation");
-
-                    // button click handler
-                    file_button.Click += ClassicSchemeInstall_ButtonClicked;
-
-                    file_panel.Children.Add(file_button);
-                }
-                                
-                ContentDialog install_dialog = new ContentDialog()
-                {
-                    Title = "Install Classic Powerschemes",
-                    Content = file_panel,
-
-                    CloseButtonText = "Close",
-                    DefaultButton = ContentDialogButton.Close
-                };
-
-                install_dialog.XamlRoot = this.XamlRoot;
-                await install_dialog.ShowAsync();
-            }
-
-            this.settings_locked_for_navigation = false;
-            
+            this.settings_locked_for_navigation = false;            
         }
 
         private void update_settings_displaydata_to_scheme(string selected_scheme_guid)
@@ -683,15 +624,80 @@ namespace better_power
             }
         }
 
+
+
+        private async void Scheme_ImportButton_Tapped(object _sender, TappedRoutedEventArgs e)
+        {
+            var openPicker = new Windows.Storage.Pickers.FileOpenPicker();
+            openPicker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary;
+            openPicker.FileTypeFilter.Add(".");
+            openPicker.FileTypeFilter.Add(".pow");
+
+            WinRT.Interop.InitializeWithWindow.Initialize(openPicker, App.Current._hwnd);
+            Windows.Storage.StorageFile file = await openPicker.PickSingleFileAsync();
+
+            if (file != null)
+            {
+                string new_scheme_guid = Guid.NewGuid().ToString();
+                bool success = PowercfgManager.powercfg_import_scheme(new_scheme_guid, file.Path);
+                if (success)
+                {
+                    string new_scheme_name = App.Current.power_manager.powercfg_get_schemename(new_scheme_guid);
+                    NewScheme_UpdateAppData_UpdateUIElems(new_scheme_name, new_scheme_guid);
+                }
+            }
+        }
+
+        private async void Scheme_InstallButton_Tapped(object _sender, TappedRoutedEventArgs e)
+        {
+            var file_panel = new StackPanel() { Orientation = Orientation.Vertical };
+            file_panel.Children.Add(new TextBlock()
+            {
+                Text = "These buttons will install a new copy of the given default scheme. Existing schemes will not be modified.",
+                TextWrapping = TextWrapping.WrapWholeWords,
+                Margin = new Thickness(20)
+            });
+
+            foreach (int i in App.Current.classic_order)
+            {
+                string path = App.Current.classic_filepaths[i];
+                string filename = System.IO.Path.GetFileName(path);
+                string schemename = filename.Substring(0, filename.IndexOf("."));
+
+                var file_button = new Button() { Content = schemename, Margin = new Thickness(2), Tag = path };
+
+                // register animators into buttons's Resources
+                register_animation(file_button, Colors.MediumSpringGreen, "success_animation");
+                register_animation(file_button, Colors.MediumVioletRed, "fail_animation");
+
+                // button click handler
+                file_button.Click += Scheme_InstallDialog_InstallButtonTapped;
+
+                file_panel.Children.Add(file_button);
+            }
+
+            ContentDialog install_dialog = new ContentDialog()
+            {
+                Title = "Install Classic Powerschemes",
+                Content = file_panel,
+
+                CloseButtonText = "Close",
+                DefaultButton = ContentDialogButton.Close
+            };
+
+            install_dialog.XamlRoot = this.XamlRoot;
+            await install_dialog.ShowAsync();
+        }
+
         // makes a fresh scheme using default values from classic scheme name
-        private void ClassicSchemeInstall_ButtonClicked(object sender, RoutedEventArgs e)
+        private void Scheme_InstallDialog_InstallButtonTapped(object sender, RoutedEventArgs e)
         {
             var senderitem = sender as Button;
             string schemepath = senderitem.Tag.ToString();
 
             var new_scheme_guid = Guid.NewGuid().ToString();
             bool success = PowercfgManager.powercfg_import_scheme(new_scheme_guid, schemepath);
-            if (success) 
+            if (success)
             {
                 string new_scheme_name = App.Current.power_manager.powercfg_get_schemename(new_scheme_guid);
                 NewScheme_UpdateAppData_UpdateUIElems(new_scheme_name, new_scheme_guid);
@@ -700,12 +706,9 @@ namespace better_power
             fire_success_animation_control(senderitem, success);
         }
 
-        private void ClassicSchemeRefresh_ButtonClicked(object sender, RoutedEventArgs e)
-        {
 
-        }
-
-
+        // -----------------------------------------------------------------------------------------------------------------------------------------------------
+        // SearchBox 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
         private void SearchBoxTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {

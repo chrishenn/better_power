@@ -36,6 +36,7 @@ namespace better_power
         // or maybe take those buttons off the navigation view
     // scheme reset button - runs powercfg -resetdefaultpowerschemes ; deletes all custom schemes and re-installs your system-default schemes
     // override single-pixel theme border
+    // global success indicator? especially for export success. there's no obvious place for a success flash
 
     // right-click: reset scheme settings to default for that scheme name
 
