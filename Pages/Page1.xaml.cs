@@ -75,7 +75,7 @@ namespace better_power
                     this.setting_element_dict[curr_groupid] = curr_groupheader;
 
                     this.setting_elements_by_group_dict[curr_groupid] = new List<FrameworkElement>();
-                    this.setting_elements_by_group_dict[curr_groupid].Add(curr_groupheader);                                        
+                    this.setting_elements_by_group_dict[curr_groupid].Add(curr_groupheader);
                 }
 
                 Control box_elem;
@@ -113,8 +113,8 @@ namespace better_power
                 SolidColorBrush background_brush = new SolidColorBrush(background_gray);
                 setting_elem.Background = background_brush;
 
-                register_animation(setting_elem, background_brush, Colors.MediumSpringGreen, "success_animation");
-                register_animation(setting_elem, background_brush, Colors.MediumVioletRed, "fail_animation");
+                register_animation(setting_elem, Colors.MediumSpringGreen, "success_animation");
+                register_animation(setting_elem, Colors.MediumVioletRed, "fail_animation");
 
                 // add setting element to instance collections to find later
                 this.setting_element_dict[setting_guid] = setting_elem;
@@ -124,10 +124,27 @@ namespace better_power
             this.setting_elements = new ObservableCollection<FrameworkElement>(this.setting_element_dict.Values);
         }
 
-        // register animation to a settings element or a scheme menuitem in the navigationview
-        private void register_animation(FrameworkElement element, SolidColorBrush animated_brush, Color color, string animation_name)
+        // register animation to (a Control) or (a Panel)
+        private static void register_animation(FrameworkElement element, Color color, string animation_name, string storyboard_tag = null)
+        {
+            if (element is Control)
+                register_animation_control(element as Control, color, animation_name, storyboard_tag);
+            else if (element is Panel)
+                register_animation_panel(element as Panel, color, animation_name, storyboard_tag);
+            else
+                throw new ArgumentException();
+        }
+
+        private static void register_animation_control(Control element, Color color, string animation_name, string storyboard_tag = null)
         {
             Color background_gray = (App.Current.Resources["AppTitleBar_Grey"] as SolidColorBrush).Color;
+
+            if (!element.Resources.ContainsKey("background_brush"))
+            {
+                SolidColorBrush background_brush = new SolidColorBrush(background_gray);
+                element.Background = background_brush;
+                element.Resources["background_brush"] = background_brush;
+            }
 
             var color_tocolor = new LinearColorKeyFrame() { Value = color, KeyTime = TimeSpan.FromSeconds(0.025) };
             var color_hold = new LinearColorKeyFrame() { Value = color, KeyTime = TimeSpan.FromSeconds(0.1) };
@@ -138,21 +155,66 @@ namespace better_power
             animation.KeyFrames.Add(color_hold);
             animation.KeyFrames.Add(color_togray);
 
-            Storyboard.SetTarget(animation, animated_brush);
+            Storyboard.SetTarget(animation, element.Resources["background_brush"] as SolidColorBrush);
             Storyboard.SetTargetProperty(animation, "Color");
 
             Storyboard story_board = new Storyboard() { Children = { animation } };
-            
-            element.Resources.Add(animation_name, story_board);
+            if (storyboard_tag != null) 
+                Storyboard.SetTargetName(story_board, storyboard_tag);
+
+            element.Resources[animation_name] = story_board;
+        }
+        private static void register_animation_panel(Panel element, Color color, string animation_name, string storyboard_tag = null)
+        {
+            Color background_gray = (App.Current.Resources["AppTitleBar_Grey"] as SolidColorBrush).Color;
+
+            if (!element.Resources.ContainsKey("background_brush"))
+            {
+                SolidColorBrush background_brush = new SolidColorBrush(background_gray);
+                element.Background = background_brush;
+                element.Resources["background_brush"] = background_brush;
+            }
+
+            var color_tocolor = new LinearColorKeyFrame() { Value = color, KeyTime = TimeSpan.FromSeconds(0.025) };
+            var color_hold = new LinearColorKeyFrame() { Value = color, KeyTime = TimeSpan.FromSeconds(0.1) };
+            var color_togray = new LinearColorKeyFrame() { Value = background_gray, KeyTime = TimeSpan.FromSeconds(0.25) };
+
+            var animation = new ColorAnimationUsingKeyFrames();
+            animation.KeyFrames.Add(color_tocolor);
+            animation.KeyFrames.Add(color_hold);
+            animation.KeyFrames.Add(color_togray);
+
+            Storyboard.SetTarget(animation, element.Resources["background_brush"] as SolidColorBrush);
+            Storyboard.SetTargetProperty(animation, "Color");
+
+            Storyboard story_board = new Storyboard() { Children = { animation } };
+            if (storyboard_tag != null)
+                Storyboard.SetTargetName(story_board, storyboard_tag);
+
+            element.Resources[animation_name] = story_board;
         }
 
+        private void fire_success_animation_control(Control element, bool success)
+        {
+            if (success)
+                (element.Resources["success_animation"] as Storyboard).Begin();
+            else
+                (element.Resources["fail_animation"] as Storyboard).Begin();
+        }
+        private void fire_success_animation_panel(Panel element, bool success)
+        {
+            if (success)
+                (element.Resources["success_animation"] as Storyboard).Begin();
+            else
+                (element.Resources["fail_animation"] as Storyboard).Begin();
+        }
 
 
 
         // Add power setting cards collection to main ListView
         private void ListView_Loaded(object sender, RoutedEventArgs e)
         {
-            this.ListView_main.ItemsSource = this.setting_elements;            
+            this.ListView_main.ItemsSource = this.setting_elements;
         }
 
         private void NumberBoxValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs e)
@@ -168,7 +230,8 @@ namespace better_power
 
                 bool success = App.Current.power_manager.set_powersetting(selected_scheme_guid, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.Value);
 
-                FireSettingSuccessFlash(setting, success);
+                var setting_elem = this.setting_element_dict[setting._setting_guid];
+                fire_success_animation_panel(setting_elem as Panel, success);
             }
         }
 
@@ -181,23 +244,17 @@ namespace better_power
                 SettingStore setting = App.setting_data_dict[sender.Tag.ToString()];
 
                 string selected_scheme_guid = this.current_display_scheme_guid;
-                                
+
                 var curr_vals = setting.curr_setting_vals_by_scheme[selected_scheme_guid];
                 setting.curr_setting_vals_by_scheme[selected_scheme_guid] = ((int)sender.SelectedIndex, curr_vals.dc_val);
 
                 bool success = App.Current.power_manager.set_powersetting(selected_scheme_guid, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.SelectedIndex);
 
-                FireSettingSuccessFlash(setting, success);
+                var setting_elem = this.setting_element_dict[setting._setting_guid];
+                fire_success_animation_panel(setting_elem as Panel, success);
             }
         }
 
-        private void FireSettingSuccessFlash(SettingStore setting, bool success)
-        {
-            if (success)
-                (this.setting_element_dict[setting._setting_guid].Resources["success_animation"] as Storyboard).Begin();
-            else
-                (this.setting_element_dict[setting._setting_guid].Resources["fail_animation"] as Storyboard).Begin();
-        }
 
 
 
@@ -221,8 +278,8 @@ namespace better_power
                 this.scheme_element_dict[scheme_kvp.Key] = scheme_menuitem;
             }
 
-            var importitem = new NavigationViewItem() { Content = "Import Power Scheme", Tag = "Import_NavItem", Icon=new SymbolIcon() {Symbol=Symbol.Import} };
-            var installitem = new NavigationViewItem() { Content = "Install Classic Schemes", Tag = "Install_NavItem", Icon=new SymbolIcon() {Symbol=Symbol.ImportAll} };
+            var importitem = new NavigationViewItem() { Content = "Import Power Scheme", Tag = "Import_NavItem", Icon = new SymbolIcon() { Symbol = Symbol.Import } };
+            var installitem = new NavigationViewItem() { Content = "Install Classic Schemes", Tag = "Install_NavItem", Icon = new SymbolIcon() { Symbol = Symbol.ImportAll } };
             this.SchemeNavigationView.FooterMenuItems.Add(importitem);
             this.SchemeNavigationView.FooterMenuItems.Add(installitem);
 
@@ -238,8 +295,6 @@ namespace better_power
             // create elements to compose the scheme menuitem
             var namebox = (this.Resources["NameBoxTemplate"] as DataTemplate).LoadContent() as TextBlock;
             var activebox = (this.Resources["SchemeActiveBoxTemplate"] as DataTemplate).LoadContent() as Grid;
-            namebox.Tag = scheme_guid;
-            activebox.Tag = scheme_guid;
 
             var stackpanel = new Grid()
             {
@@ -248,49 +303,43 @@ namespace better_power
                 Children = { namebox, activebox }
             };
 
-            var scheme_menuitem = new NavigationViewItem() {Icon=new SymbolIcon() {Symbol=Symbol.List} };
+            var scheme_menuitem = new NavigationViewItem() { Icon = new SymbolIcon() { Symbol = Symbol.List } };
             scheme_menuitem.Content = stackpanel;
             scheme_menuitem.Tag = scheme_data.scheme_guid;
             scheme_menuitem.DataContext = scheme_data;
 
             // register animators
-            Color background_gray = (Application.Current.Resources["AppTitleBar_Grey"] as SolidColorBrush).Color;
-            SolidColorBrush background_brush = new SolidColorBrush(background_gray);
-            scheme_menuitem.Background = background_brush;
-
-            register_animation(scheme_menuitem, background_brush, Colors.MediumSpringGreen, "success_animation");
-            Storyboard.SetTargetName(scheme_menuitem.Resources["success_animation"] as Storyboard, scheme_guid);
-            register_animation(scheme_menuitem, background_brush, Colors.MediumVioletRed, "fail_animation");
-            Storyboard.SetTargetName(scheme_menuitem.Resources["fail_animation"] as Storyboard, scheme_guid);
+            register_animation(scheme_menuitem, Colors.MediumSpringGreen, "success_animation", storyboard_tag: scheme_guid);
+            register_animation(scheme_menuitem, Colors.MediumVioletRed, "fail_animation", storyboard_tag: scheme_guid);
 
             // create flyouts for scheme menuitem's contextmenu
-            var setactive = new MenuFlyoutItem() { Text = "Set Active", Icon=new SymbolIcon(){Symbol=Symbol.Accept}, Tag=scheme_guid };
+            var setactive = new MenuFlyoutItem() { Text = "Set Active", Icon = new SymbolIcon() { Symbol = Symbol.Accept }, Tag = scheme_guid };
             setactive.Click += SchemeSetActiveFlyout_Clicked;
 
             var separate1 = new MenuFlyoutSeparator();
 
-            var export = new MenuFlyoutItem() { Text = "Export", Icon = new SymbolIcon(){Symbol=Symbol.Save}, Tag=scheme_guid };
+            var export = new MenuFlyoutItem() { Text = "Export", Icon = new SymbolIcon() { Symbol = Symbol.Save }, Tag = scheme_guid };
             export.Click += SchemeExportFlyout_Clicked;
 
             var separate2 = new MenuFlyoutSeparator();
 
-            var rename = new MenuFlyoutItem() { Text = "Rename", Icon = new SymbolIcon(){Symbol=Symbol.Edit}, Tag=scheme_guid };
+            var rename = new MenuFlyoutItem() { Text = "Rename", Icon = new SymbolIcon() { Symbol = Symbol.Edit }, Tag = scheme_guid };
             rename.Click += SchemeRenameFlyout_Clicked;
 
-            var copy = new MenuFlyoutItem() { Text = "Copy", Icon = new SymbolIcon() {Symbol=Symbol.Copy}, Tag=scheme_guid };
+            var copy = new MenuFlyoutItem() { Text = "Copy", Icon = new SymbolIcon() { Symbol = Symbol.Copy }, Tag = scheme_guid };
             copy.Click += SchemeCopyFlyout_Clicked;
 
-            var delete = new MenuFlyoutItem() { Text = "Delete", Icon = new SymbolIcon() {Symbol=Symbol.Delete}, Tag=scheme_guid };
+            var delete = new MenuFlyoutItem() { Text = "Delete", Icon = new SymbolIcon() { Symbol = Symbol.Delete }, Tag = scheme_guid };
             delete.Click += SchemeDeleteFlyout_Clicked;
 
             scheme_menuitem.ContextFlyout = new MenuFlyout() { Items = { setactive, separate1, export, separate2, rename, copy, delete } };
 
             // each scheme menuitem gets a complete list of all groups as submenu items
-            scheme_menuitem.MenuItems.Add(new NavigationViewItemHeader() { Content="Power Setting Groups", FontWeight=FontWeights.Bold, Foreground=new SolidColorBrush(Colors.SlateBlue) });
+            scheme_menuitem.MenuItems.Add(new NavigationViewItemHeader() { Content = "Power Setting Groups", FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Colors.SlateBlue) });
 
-            foreach (var group_data in App.group_data_dict)            
-                scheme_menuitem.MenuItems.Add(new NavigationViewItem() { Content=group_data.Value._group_name, Tag=group_data.Key });
-            
+            foreach (var group_data in App.group_data_dict)
+                scheme_menuitem.MenuItems.Add(new NavigationViewItem() { Content = group_data.Value._group_name, Tag = group_data.Key });
+
             return scheme_menuitem;
         }
 
@@ -318,7 +367,7 @@ namespace better_power
                 storyboard_success.Completed -= ReSelectItem;
                 storyboard_fail.Completed -= ReSelectItem;
 
-                FireSchemeSuccessFlash(scheme_elem, success);
+                fire_success_animation_control(scheme_elem, success);
             }
             else
             {
@@ -329,15 +378,15 @@ namespace better_power
                 storyboard_success.Completed += ReSelectItem;
                 storyboard_fail.Completed += ReSelectItem;
 
-                FireSchemeSuccessFlash(scheme_elem, success);
+                fire_success_animation_control(scheme_elem, success);
             }
         }
 
-        private void ReSelectItem(object sender, object e) 
+        private void ReSelectItem(object sender, object e)
         {
             // we have to store the scheme_guid of this storyboard's owning menuitem because it doesn't have a tag
             string scheme_guid = Storyboard.GetTargetName(sender as Storyboard);
-            this.SchemeNavigationView.SelectedItem = this.scheme_element_dict[scheme_guid];                        
+            this.SchemeNavigationView.SelectedItem = this.scheme_element_dict[scheme_guid];
         }
 
 
@@ -365,7 +414,7 @@ namespace better_power
                 }
             }
         }
-             
+
         // Copy a scheme
         private async void SchemeCopyFlyout_Clicked(object sender, RoutedEventArgs e)
         {
@@ -387,11 +436,12 @@ namespace better_power
                 bool success1 = App.Current.power_manager.powercfg_copy_scheme(scheme_guid, new_scheme_guid);
                 bool success2 = App.Current.power_manager.powercfg_rename_scheme(new_scheme_guid, new_scheme_name);
 
-                if (success1 && success2)                 
-                    NewScheme_UpdateAppData_UpdateUIElems(new_scheme_name, new_scheme_guid);                
+                if (success1 && success2)
+                    NewScheme_UpdateAppData_UpdateUIElems(new_scheme_name, new_scheme_guid);
             }
         }
 
+        // todo: roll more import scheme code into this method
         private void NewScheme_UpdateAppData_UpdateUIElems(string new_scheme_name, string new_scheme_guid)
         {
             // update Application datastructures for new scheme
@@ -404,7 +454,7 @@ namespace better_power
             this.SchemeNavigationView.MenuItems.Add(new_scheme_elem);
             this.scheme_element_dict[new_scheme_guid] = new_scheme_elem;
 
-            FireSchemeSuccessFlash(new_scheme_elem, true);
+            fire_success_animation_control(new_scheme_elem, true);
         }
 
         // delete a scheme
@@ -429,7 +479,7 @@ namespace better_power
                 await no_delete_dialog.ShowAsync();
                 return;
             }
-            
+
             // dialog - confirm delete
             ContentDialog confirm_delete_dialog = new ContentDialog()
             {
@@ -483,8 +533,8 @@ namespace better_power
             WinRT.Interop.InitializeWithWindow.Initialize(savePicker, App.Current._hwnd);
             Windows.Storage.StorageFile file = await savePicker.PickSaveFileAsync();
 
-            if (file != null)            
-                PowercfgManager.powercfg_export_scheme(scheme_guid, file.Path);            
+            if (file != null)
+                PowercfgManager.powercfg_export_scheme(scheme_guid, file.Path);
         }
 
 
@@ -493,13 +543,6 @@ namespace better_power
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
-        private void FireSchemeSuccessFlash(NavigationViewItem applied_scheme_elem, bool success)
-        {
-            if (success)
-                (applied_scheme_elem.Resources["success_animation"] as Storyboard).Begin();
-            else
-                (applied_scheme_elem.Resources["fail_animation"] as Storyboard).Begin();
-        }
 
         private void ShowSchemeSystemActive(string active_scheme_guid)
         {
@@ -519,115 +562,114 @@ namespace better_power
 
         private async void SchemeNavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
-            if (args.SelectedItemContainer != null)
+            if (args.SelectedItemContainer == null) return;
+            
+            this.settings_locked_for_navigation = true;
+
+            string selected_tag = args.SelectedItemContainer.Tag.ToString();
+            string selected_scheme_guid;
+
+            // selected is a scheme. update settings cards current values in listview
+            if (App.scheme_data_dict.ContainsKey(selected_tag))
             {
-                this.settings_locked_for_navigation = true;
+                selected_scheme_guid = selected_tag;
 
-                string selected_tag = args.SelectedItemContainer.Tag.ToString();
-                string selected_scheme_guid;
-
-                // selected is a scheme. update settings cards current values in listview
-                if (App.scheme_data_dict.ContainsKey(selected_tag))
+                // if the application is already showing these scheme values, no need to change to them
+                if (selected_scheme_guid != this.current_display_scheme_guid)
                 {
-                    selected_scheme_guid = selected_tag;
-
-                    // if the application is already showing these scheme values, no need to change to them
-                    if (selected_scheme_guid != this.current_display_scheme_guid)
-                    {
-                        update_settings_displaydata_to_scheme(selected_scheme_guid);
-                        this.current_display_scheme_guid = selected_scheme_guid;
-                    }
-
-                    // but we always add all elements back into listview when scheme clicked
-                    this.setting_elements.Clear();
-                    foreach (FrameworkElement elem in this.setting_element_dict.Values)
-                        this.setting_elements.Add(elem);
+                    update_settings_displaydata_to_scheme(selected_scheme_guid);
+                    this.current_display_scheme_guid = selected_scheme_guid;
                 }
-                // selected_guid is a groupid. get selected scheme. check for scheme change. filter to group's settings in view.
-                else if (App.group_data_dict.ContainsKey(selected_tag))
+
+                // but we always add all elements back into listview when scheme clicked
+                this.setting_elements.Clear();
+                foreach (FrameworkElement elem in this.setting_element_dict.Values)
+                    this.setting_elements.Add(elem);
+            }
+                
+            // selected_guid is a groupid. get selected scheme. check for scheme change. filter to group's settings in view.
+            else if (App.group_data_dict.ContainsKey(selected_tag))
+            {
+                string selected_group_guid = selected_tag;
+                selected_scheme_guid = (args.SelectedItemContainer.DataContext as SchemeStore).scheme_guid;
+
+                if (selected_scheme_guid != this.current_display_scheme_guid)
                 {
-                    string selected_group_guid = selected_tag;
-                    selected_scheme_guid = (args.SelectedItemContainer.DataContext as SchemeStore).scheme_guid;
-
-                    if (selected_scheme_guid != this.current_display_scheme_guid)
-                    {
-                        update_settings_displaydata_to_scheme(selected_scheme_guid);
-                        this.current_display_scheme_guid = selected_scheme_guid;
-                    }
-
-                    this.setting_elements.Clear();
-                    foreach (var setting_element in this.setting_elements_by_group_dict[selected_group_guid])
-                        this.setting_elements.Add(setting_element);
+                    update_settings_displaydata_to_scheme(selected_scheme_guid);
+                    this.current_display_scheme_guid = selected_scheme_guid;
                 }
-                // selected is the "import scheme" navitem
-                else if (selected_tag == "Import_NavItem") 
+
+                this.setting_elements.Clear();
+                foreach (var setting_element in this.setting_elements_by_group_dict[selected_group_guid])
+                    this.setting_elements.Add(setting_element);
+            }
+                
+            // selected is the "import scheme" navitem
+            else if (selected_tag == "Import_NavItem")
+            {
+                var openPicker = new Windows.Storage.Pickers.FileOpenPicker();
+                openPicker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary;
+                openPicker.FileTypeFilter.Add(".");
+                openPicker.FileTypeFilter.Add(".pow");
+
+                WinRT.Interop.InitializeWithWindow.Initialize(openPicker, App.Current._hwnd);
+                Windows.Storage.StorageFile file = await openPicker.PickSingleFileAsync();
+
+                if (file != null)
                 {
-                    var openPicker = new Windows.Storage.Pickers.FileOpenPicker();
-                    openPicker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary;
-                    openPicker.FileTypeFilter.Add( "." );
-                    openPicker.FileTypeFilter.Add( ".pow" );
-
-                    WinRT.Interop.InitializeWithWindow.Initialize(openPicker, App.Current._hwnd);
-                    Windows.Storage.StorageFile file = await openPicker.PickSingleFileAsync();
-
-                    if (file != null)
+                    string new_scheme_guid = Guid.NewGuid().ToString();
+                    bool success = PowercfgManager.powercfg_import_scheme(new_scheme_guid, file.Path);
+                    if (success)
                     {
-                        string new_scheme_guid = Guid.NewGuid().ToString();
-                        bool success = PowercfgManager.powercfg_import_scheme(new_scheme_guid, file.Path);
-                        if (success)
-                        {
-                            string new_scheme_name = App.Current.power_manager.powercfg_get_schemename(new_scheme_guid);
-                            NewScheme_UpdateAppData_UpdateUIElems(new_scheme_name, new_scheme_guid);
-                        }
+                        string new_scheme_name = App.Current.power_manager.powercfg_get_schemename(new_scheme_guid);
+                        NewScheme_UpdateAppData_UpdateUIElems(new_scheme_name, new_scheme_guid);
                     }
                 }
-                // selected is the "install classic schemes" navitem
-                else if (selected_tag == "Install_NavItem") 
+            }
+                
+            // selected is the "install classic schemes" navitem
+            else if (selected_tag == "Install_NavItem")
+            {                
+                var file_panel = new StackPanel() { Orientation = Orientation.Vertical };
+                file_panel.Children.Add(new TextBlock() { 
+                    Text = "These buttons will install a new copy of the given default scheme. Existing schemes will not be modified.", 
+                    TextWrapping=TextWrapping.WrapWholeWords,
+                    Margin = new Thickness(20)
+                });
+
+                foreach (int i in App.Current.classic_order)
                 {
-                    var proj_path = App.GetAppRoot();
-                    var config_path = proj_path + @"\classic_configs\";
-                    string[] filePaths = Directory.GetFiles(config_path, "*.pow", SearchOption.TopDirectoryOnly);
-                    int[] classic_order = { 2, 0, 1, 3 };
+                    string path = App.Current.classic_filepaths[i];
+                    string filename = System.IO.Path.GetFileName(path);
+                    string schemename = filename.Substring(0, filename.IndexOf("."));
 
-                    var buttonpanel = new StackPanel() { Orientation = Orientation.Vertical };
-                    foreach (int i in classic_order)
-                    {
-                        string path = filePaths[i];
-                        string filename = System.IO.Path.GetFileName(path);
-                        string schemename = filename.Substring(0, filename.IndexOf("."));
+                    var file_button = new Button() { Content = schemename, Margin = new Thickness(2), Tag = path };
 
-                        var button = new Button() { Content = schemename, Margin = new Thickness(5), Tag = path };
+                    // register animators into buttons's Resources
+                    register_animation(file_button, Colors.MediumSpringGreen, "success_animation");
+                    register_animation(file_button, Colors.MediumVioletRed, "fail_animation");
 
-                        // register animators into buttons's Resources
-                        Color background_gray = (Application.Current.Resources["AppTitleBar_Grey"] as SolidColorBrush).Color;
-                        SolidColorBrush background_brush = new SolidColorBrush(background_gray);
-                        button.Background = background_brush;
+                    // button click handler
+                    file_button.Click += ClassicSchemeInstall_ButtonClicked;
 
-                        register_animation(button, background_brush, Colors.MediumSpringGreen, "success_animation");
-                        register_animation(button, background_brush, Colors.MediumVioletRed, "fail_animation");
-
-                        // button click handler
-                        button.Click += ClassicSchemeInstall_ButtonClicked;
-
-                        buttonpanel.Children.Add(button);
-                    }                    
-                    
-                    // todo: explain that this dialog will install a fresh, separate copy of the classic schemes
-                    ContentDialog install_dialog = new ContentDialog()
-                    {
-                        Title = "Install Classic Powerschemes",
-                        Content = buttonpanel,
-
-                        CloseButtonText = "Close",
-                        DefaultButton = ContentDialogButton.Close
-                    };
-
-                    install_dialog.XamlRoot = this.XamlRoot;
-                    await install_dialog.ShowAsync();
+                    file_panel.Children.Add(file_button);
                 }
                                 
-                this.settings_locked_for_navigation = false;
+                ContentDialog install_dialog = new ContentDialog()
+                {
+                    Title = "Install Classic Powerschemes",
+                    Content = file_panel,
+
+                    CloseButtonText = "Close",
+                    DefaultButton = ContentDialogButton.Close
+                };
+
+                install_dialog.XamlRoot = this.XamlRoot;
+                await install_dialog.ShowAsync();
             }
+
+            this.settings_locked_for_navigation = false;
+            
         }
 
         private void update_settings_displaydata_to_scheme(string selected_scheme_guid)
@@ -641,15 +683,26 @@ namespace better_power
             }
         }
 
+        // makes a fresh scheme using default values from classic scheme name
         private void ClassicSchemeInstall_ButtonClicked(object sender, RoutedEventArgs e)
         {
             var senderitem = sender as Button;
             string schemepath = senderitem.Tag.ToString();
 
             var new_scheme_guid = Guid.NewGuid().ToString();
-            PowercfgManager.powercfg_import_scheme(new_scheme_guid, schemepath);
+            bool success = PowercfgManager.powercfg_import_scheme(new_scheme_guid, schemepath);
+            if (success) 
+            {
+                string new_scheme_name = App.Current.power_manager.powercfg_get_schemename(new_scheme_guid);
+                NewScheme_UpdateAppData_UpdateUIElems(new_scheme_name, new_scheme_guid);
+            }
 
-            // todo: does this overwrite the classic scheme or make a new one?
+            fire_success_animation_control(senderitem, success);
+        }
+
+        private void ClassicSchemeRefresh_ButtonClicked(object sender, RoutedEventArgs e)
+        {
+
         }
 
 
@@ -698,5 +751,5 @@ namespace better_power
             SearchBox.Focus(FocusState.Programmatic);
         }
     }
-
+           
 }

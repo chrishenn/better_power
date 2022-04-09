@@ -29,14 +29,12 @@ namespace better_power
 {
 
     // TODO
-
-    // import scheme from file
+        
     // refresh button - rebuild scheme/setting info from system changes
-
-    // install the classic schemes - from "power saving" to "ultimate perf"
-        // both can also be a right-click flyout on the navigationview blank space
-        // powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61 (Ultimte Performance)
-
+        // bind to F5  
+    // BUG: because import buttons are in the navigation view, we must save previous selected and restore after dialogs complete
+        // or maybe take those buttons off the navigation view
+    // scheme reset button - runs powercfg -resetdefaultpowerschemes ; deletes all custom schemes and re-installs your system-default schemes
     // override single-pixel theme border
 
     // right-click: reset scheme settings to default for that scheme name
@@ -46,6 +44,7 @@ namespace better_power
     //      data units + format     
     //      range checking
     //      ac + dc menus
+
 
     // error handling
         // check that new data objects with GUIDs have valid GUIDS
@@ -164,11 +163,17 @@ namespace better_power
 
         public PowercfgManager power_manager = new PowercfgManager();
 
+        public string[] classic_filepaths;
+        public string[] classic_guids;
+        public int[] classic_order;
+
+
 
         public App()
         {
             this.InitializeComponent();
 
+            this.read_classic_schemes_fromfiles();
             this.build_schemedata();
             this.build_settingdata();
             this.store_setting_values_all_schemes();
@@ -194,6 +199,16 @@ namespace better_power
             return appRoot;
         }
 
+        public void read_classic_schemes_fromfiles()
+        {
+            var proj_path = App.GetAppRoot();
+            var config_path = proj_path + @"\classic_configs\";
+
+            this.classic_filepaths = Directory.GetFiles(config_path, "*.pow", SearchOption.TopDirectoryOnly);
+            this.classic_guids = File.ReadAllLines(config_path + @"classic_scheme_guids.txt");
+
+            this.classic_order = new int[] { 2, 0, 1, 3 };
+        }
         //-------------------------------------------------------------------------------------------------
         //Build App data structs and objects
         //-------------------------------------------------------------------------------------------------
