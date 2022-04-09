@@ -122,7 +122,7 @@
             IsTitleBarAutoPaddingEnabled="False"
             
             SelectionChanged="SchemeNavigationView_SelectionChanged"
-            Loaded="SchemeNavigationView_Loaded">
+            Loaded="Navigationview_Load_Elements">
 
             <NavigationView.AutoSuggestBox>
                 <AutoSuggestBox
@@ -141,7 +141,7 @@
             </NavigationView.AutoSuggestBox>
             
             <ListView x:Name="ListView_main"
-                      Loaded="ListView_Loaded"
+                      Loaded="ListView_Load_Elements"
                     Grid.Row="1"                         
                     Padding="0,5,0,5"
                     IsTabStop="False" 

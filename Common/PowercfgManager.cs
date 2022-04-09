@@ -85,6 +85,14 @@ namespace better_power.Common
             return schemename;
         }
 
+        public bool powercfg_resetdefaultschemes()
+        {
+            var ps = PowerShell.Create().AddCommand("powercfg").AddArgument("restoredefaultschemes");
+            var result = ps.Invoke();
+
+            return (result.Count == 0);
+        }
+
 
         // -------------------------------------------------------------------------------------------------------------------------------------
         public static bool powercfg_import_scheme(string new_guid, string import_filepath)

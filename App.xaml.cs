@@ -30,15 +30,18 @@ namespace better_power
 
     // TODO
         
+    // BUG: primary button on install schemes dialog is not the close button
+    // enforce that the "working on it" behavior is the same no matter the dialog, flyout, import, etc
+
     // refresh button - rebuild scheme/setting info from system changes
         // bind to F5  
-    // BUG: because import buttons are in the navigation view, we must save previous selected and restore after dialogs complete
-        // or maybe take those buttons off the navigation view
     // scheme reset button - runs powercfg -resetdefaultpowerschemes ; deletes all custom schemes and re-installs your system-default schemes
     // override single-pixel theme border
     // global success indicator? especially for export success. there's no obvious place for a success flash
 
     // right-click: reset scheme settings to default for that scheme name
+    // drag-n-drop reordering of schemes in navigationview
+        // default ordering from power saver to ultimate
 
     // setting cards:
     //      indicate possible values to which we can set the setting
@@ -48,6 +51,7 @@ namespace better_power
 
 
     // error handling
+        // write exceptions to recover, display errors to user, crash if needed 
         // check that new data objects with GUIDs have valid GUIDS
     // packaging - modern install, portable install, taskbar icon, taskbar app name
     // installer must run power unhide scripts
@@ -175,6 +179,7 @@ namespace better_power
             this.InitializeComponent();
 
             this.read_classic_schemes_fromfiles();
+
             this.build_schemedata();
             this.build_settingdata();
             this.store_setting_values_all_schemes();
@@ -194,7 +199,7 @@ namespace better_power
 
         public static string GetAppRoot()
         {
-            var exePath = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase);
+            var exePath = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             Regex appPathMatcher = new Regex(@"(?<!fil)[A-Za-z]:\\+[\S\s]*?(?=\\+bin)");
             var appRoot = appPathMatcher.Match(exePath).Value;
             return appRoot;
@@ -210,10 +215,22 @@ namespace better_power
 
             this.classic_order = new int[] { 2, 0, 1, 3 };
         }
-        //-------------------------------------------------------------------------------------------------
-        //Build App data structs and objects
-        //-------------------------------------------------------------------------------------------------
+       
+        
+        public void Refresh_App_Data()
+        {
+            _setting_data_dict.Clear();
+            _group_data_dict.Clear();
+            _scheme_data_dict.Clear();
 
+            this.build_schemedata();
+            this.build_settingdata();
+            this.store_setting_values_all_schemes();
+        }
+
+        //-------------------------------------------------------------------------------------------------
+        // Build App data structs and objects
+        //-------------------------------------------------------------------------------------------------
 
         private void build_schemedata()
         {
@@ -394,13 +411,6 @@ namespace better_power
         }
 
 
-
-
-        //-------------------------------------------------------------------------------------------------
-        // todo: move these to a powershell-function class
-        //-------------------------------------------------------------------------------------------------
-
-        
 
 
 

@@ -31,13 +31,14 @@ namespace better_power
     public sealed partial class Page1 : Page
     {
         // required ordereddict to maintain the ordering of headers and setting elements in the listView
-        ObservableCollection<FrameworkElement> setting_elements;
-        OrderedDictionary<string, FrameworkElement> setting_element_dict = new OrderedDictionary<string, FrameworkElement>();
-
-        // ordering doesn't matter for these
-        Dictionary<string, NavigationViewItem> scheme_element_dict = new Dictionary<string, NavigationViewItem>();
+        ObservableCollection<FrameworkElement> setting_elements = new ObservableCollection<FrameworkElement>();
+        OrderedDictionary<string, FrameworkElement> setting_elements_dict = new OrderedDictionary<string, FrameworkElement>();
         Dictionary<string, List<FrameworkElement>> setting_elements_by_group_dict = new Dictionary<string, List<FrameworkElement>>();
 
+        // ordering needed to support drag-n-drop reordering in navigationview
+        OrderedDictionary<string, NavigationViewItem> scheme_elements_dict = new OrderedDictionary<string, NavigationViewItem>();
+        StackPanel scheme_footerelements;
+              
         // current scheme guid being displayed in the main ListView UI
         string current_display_scheme_guid;
 
@@ -54,9 +55,7 @@ namespace better_power
             this.InitializeComponent();
             App.Window.SetTitleBar(this.AppTitleBar);
 
-            this.systemactive_schemeguid = App.Current.power_manager.get_systemactive_schemeguid();
-
-            this.generate_setting_elements();
+            Refresh_App_Elements();
         }
 
         // generate setting elements from App setting data objects
@@ -78,7 +77,7 @@ namespace better_power
 
                     curr_groupheader = new ListViewHeaderItem() { Content = curr_groupname, Tag = curr_groupid };
 
-                    this.setting_element_dict[curr_groupid] = curr_groupheader;
+                    this.setting_elements_dict[curr_groupid] = curr_groupheader;
 
                     this.setting_elements_by_group_dict[curr_groupid] = new List<FrameworkElement>();
                     this.setting_elements_by_group_dict[curr_groupid].Add(curr_groupheader);
@@ -123,11 +122,12 @@ namespace better_power
                 register_animation(setting_elem, Colors.MediumVioletRed, "fail_animation");
 
                 // add setting element to instance collections to find later
-                this.setting_element_dict[setting_guid] = setting_elem;
+                this.setting_elements_dict[setting_guid] = setting_elem;
                 this.setting_elements_by_group_dict[curr_groupid].Add(setting_elem);
             }
 
-            this.setting_elements = new ObservableCollection<FrameworkElement>(this.setting_element_dict.Values);
+            foreach (var elem in this.setting_elements_dict.Values) 
+                this.setting_elements.Add(elem);
         }
 
         // settings elements: settings changed handler; numberbox
@@ -144,7 +144,7 @@ namespace better_power
 
                 bool success = App.Current.power_manager.set_powersetting(selected_scheme_guid, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.Value);
 
-                var setting_elem = this.setting_element_dict[setting._setting_guid];
+                var setting_elem = this.setting_elements_dict[setting._setting_guid];
                 fire_success_animation_panel(setting_elem as Panel, success);
             }
         }
@@ -165,12 +165,33 @@ namespace better_power
 
                 bool success = App.Current.power_manager.set_powersetting(selected_scheme_guid, setting._parent_groupguid, sender.Tag.ToString(), (int)sender.SelectedIndex);
 
-                var setting_elem = this.setting_element_dict[setting._setting_guid];
+                var setting_elem = this.setting_elements_dict[setting._setting_guid];
                 fire_success_animation_panel(setting_elem as Panel, success);
             }
         }
 
 
+
+
+        private void Refresh_App_Elements()
+        {
+            this.settings_locked_for_navigation = true;
+
+            this.setting_elements.Clear();
+            this.setting_elements_dict.Clear();
+            this.setting_elements_by_group_dict.Clear();
+            this.scheme_elements_dict.Clear();
+
+            this.SchemeNavigationView.MenuItems.Clear();
+
+            this.generate_setting_elements();
+            this.generate_scheme_elements();
+
+            this.systemactive_schemeguid = App.Current.power_manager.get_systemactive_schemeguid();
+            this.current_display_scheme_guid = this.systemactive_schemeguid;
+
+            this.settings_locked_for_navigation = false;
+        }
 
         // register animation to (a Control) or (a Panel); dispatcher
         private static void register_animation(FrameworkElement element, Color color, string animation_name, string storyboard_tag = null)
@@ -260,41 +281,60 @@ namespace better_power
 
 
 
-        // Add power setting cards collection to main ListView
-        private void ListView_Loaded(object sender, RoutedEventArgs e)
+
+
+        // add stored power setting cards collection to main ListView
+        private void ListView_Load_Elements(object sender, RoutedEventArgs e)
         {
             this.ListView_main.ItemsSource = this.setting_elements;
         }
 
-        // Generate and Add navigationviewitems to navigationview
-        private void SchemeNavigationView_Loaded(object sender, RoutedEventArgs e)
+
+        // add stored navigation elements to SchemeNavigationView
+        private void Navigationview_Load_Elements(object _object, RoutedEventArgs e)
         {
             this.SchemeNavigationView.MenuItems.Add(new NavigationViewItemHeader() { Content = "Installed Power Schemes", FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Colors.SlateBlue) });
 
+            foreach (var elem in this.scheme_elements_dict.Values)
+                this.SchemeNavigationView.MenuItems.Add(elem);
+
+            this.SchemeNavigationView.PaneFooter = this.scheme_footerelements;
+
+            UpdateUI_ShowSystemActiveScheme();
+            this.SchemeNavigationView.SelectedItem = this.scheme_elements_dict[this.current_display_scheme_guid];
+        }
+
+
+
+
+
+        // Generate navigationview elements 
+        private void generate_scheme_elements()
+        {
             foreach (var scheme_kvp in App.scheme_data_dict)
             {
-                // generate menuitem from bound data-backing scheme_data object
-                NavigationViewItem scheme_menuitem = Generate_SchemeMenuItem(scheme_kvp.Value);
-
-                // add the menuitem to the navigationview's menuitems
-                this.SchemeNavigationView.MenuItems.Add(scheme_menuitem);
+                // generate menuitem and bind to scheme_data object
+                NavigationViewItem scheme_menuitem = generate_schememenuitem(scheme_kvp.Value);
 
                 // store references to elements for later use
-                this.scheme_element_dict[scheme_kvp.Key] = scheme_menuitem;
+                this.scheme_elements_dict[scheme_kvp.Key] = scheme_menuitem;
             }
 
-            var importitem = new NavigationViewItem() { Content = "Import Power Scheme", Tag = "Import_NavItem", Icon = new SymbolIcon() { Symbol = Symbol.Import } };
-            var installitem = new NavigationViewItem() { Content = "Install Classic Schemes", Tag = "Install_NavItem", Icon = new SymbolIcon() { Symbol = Symbol.ImportAll } };
+            var importitem = new NavigationViewItem() { Content = "Import Power Scheme", Icon = new SymbolIcon() { Symbol = Symbol.Import } };
+            var installitem = new NavigationViewItem() { Content = "Install Classic Schemes", Icon = new SymbolIcon() { Symbol = Symbol.ImportAll } };
+            var resetitem = new NavigationViewItem() { Content = "Reset Default Schemes", Icon = new SymbolIcon() { Symbol = Symbol.Undo } };
+            var refreshitem = new NavigationViewItem() { Content = "Refresh App Data", Icon = new SymbolIcon() { Symbol = Symbol.Refresh } };
             importitem.Tapped += Scheme_ImportButton_Tapped;
             installitem.Tapped += Scheme_InstallButton_Tapped;
-            this.SchemeNavigationView.PaneFooter = new StackPanel() { Children = {importitem, installitem}, Orientation= Orientation.Vertical, HorizontalAlignment=HorizontalAlignment.Stretch };
+            resetitem.Tapped += Scheme_ResetButton_Tapped;
+            refreshitem.Tapped += Scheme_RefreshButton_Tapped;
 
-            UpdateUI_ShowSystemActiveScheme(this.systemactive_schemeguid);
-            this.SchemeNavigationView.SelectedItem = this.scheme_element_dict[this.systemactive_schemeguid];
+            // store to use when the navigationview loads
+            this.scheme_footerelements = new StackPanel() { Children = {importitem, installitem, resetitem, refreshitem}, Orientation= Orientation.Vertical, HorizontalAlignment=HorizontalAlignment.Stretch };       
         }
 
         // generate a menuitem from scheme_data object
-        private NavigationViewItem Generate_SchemeMenuItem(SchemeStore scheme_data)
+        private NavigationViewItem generate_schememenuitem(SchemeStore scheme_data)
         {
             string scheme_guid = scheme_data.scheme_guid;
 
@@ -351,6 +391,8 @@ namespace better_power
 
 
 
+
+
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
         // Scheme Elements in Navigationview: Right-click context flyout handlers
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -359,13 +401,13 @@ namespace better_power
         private void SchemeSetActiveFlyout_Clicked(object sender, RoutedEventArgs e)
         {
             string scheme_guid = (sender as MenuFlyoutItem).Tag.ToString();
-            NavigationViewItem scheme_elem = (NavigationViewItem)this.scheme_element_dict[scheme_guid];
+            NavigationViewItem scheme_elem = (NavigationViewItem)this.scheme_elements_dict[scheme_guid];
 
             bool success = App.Current.power_manager.set_systemactive_scheme(scheme_guid);
             if (success)
             {
-                UpdateUI_ShowSystemActiveScheme(scheme_guid);
                 this.systemactive_schemeguid = scheme_guid;
+                UpdateUI_ShowSystemActiveScheme();                
             }
 
             var storyboard_success = (scheme_elem.Resources["success_animation"] as Storyboard);
@@ -395,7 +437,7 @@ namespace better_power
         {
             // we have to store the scheme_guid of this storyboard's owning menuitem because it doesn't have a tag
             string scheme_guid = Storyboard.GetTargetName(sender as Storyboard);
-            this.SchemeNavigationView.SelectedItem = this.scheme_element_dict[scheme_guid];
+            this.SchemeNavigationView.SelectedItem = this.scheme_elements_dict[scheme_guid];
         }
 
 
@@ -459,9 +501,9 @@ namespace better_power
             App.Current.store_setting_values_one_scheme(new_scheme_guid);
 
             // update view elements for the new scheme
-            var new_scheme_elem = Generate_SchemeMenuItem(new_scheme_data);
+            var new_scheme_elem = generate_schememenuitem(new_scheme_data);
             this.SchemeNavigationView.MenuItems.Add(new_scheme_elem);
-            this.scheme_element_dict[new_scheme_guid] = new_scheme_elem;
+            this.scheme_elements_dict[new_scheme_guid] = new_scheme_elem;
 
             fire_success_animation_control(new_scheme_elem, true);
         }
@@ -471,7 +513,7 @@ namespace better_power
         {
             var senderitem = sender as MenuFlyoutItem;
             string scheme_guid = senderitem.Tag.ToString();
-            var scheme_elem = this.scheme_element_dict[scheme_guid];
+            var scheme_elem = this.scheme_elements_dict[scheme_guid];
 
             if (scheme_guid == this.systemactive_schemeguid)
             {
@@ -512,12 +554,12 @@ namespace better_power
                 {
                     // if deleted scheme is selected by navigationview, select the systemactive scheme 
                     if (scheme_elem.IsSelected)
-                        this.SchemeNavigationView.SelectedItem = this.scheme_element_dict[systemactive_schemeguid];
+                        this.SchemeNavigationView.SelectedItem = this.scheme_elements_dict[systemactive_schemeguid];
                     // todo: this highlights the header in the listview - why 
 
                     // delete scheme from navigationview
                     this.SchemeNavigationView.MenuItems.Remove(scheme_elem);
-                    this.scheme_element_dict.Remove(scheme_guid);
+                    this.scheme_elements_dict.Remove(scheme_guid);
 
                     // delete scheme from application data
                     App.scheme_data_dict.Remove(scheme_guid);
@@ -554,10 +596,12 @@ namespace better_power
         // Navgation: view settings in each scheme; open scheme import dialog; open classic scheme install dialog
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
-        private void UpdateUI_ShowSystemActiveScheme(string active_scheme_guid)
+        private void UpdateUI_ShowSystemActiveScheme()
         {
+            string active_scheme_guid = this.systemactive_schemeguid;
+
             // ordering doesn't matter here. All elements must be visited
-            foreach (var kvp in this.scheme_element_dict)
+            foreach (var kvp in this.scheme_elements_dict)
             {
                 if (kvp.Key == active_scheme_guid)                
                     App.scheme_data_dict[kvp.Key].activebox_visible = "Visible";                
@@ -589,7 +633,7 @@ namespace better_power
 
                 // but we always add all elements back into listview when scheme clicked
                 this.setting_elements.Clear();
-                foreach (FrameworkElement elem in this.setting_element_dict.Values)
+                foreach (FrameworkElement elem in this.setting_elements_dict.Values)
                     this.setting_elements.Add(elem);
             }
                 
@@ -707,6 +751,46 @@ namespace better_power
         }
 
 
+        private async void Scheme_ResetButton_Tapped(object _sender, TappedRoutedEventArgs e)
+        {
+            ContentDialog reset_dialog = new ContentDialog()
+            {
+                Title = "Reset Default Powerschemes",
+                Content = "Resetting your system schemes to default will uninstall any custom or copied schemes, and revert each scheme to all its default setting values." +
+                "The system active scheme will be set to a default scheme.",
+
+                PrimaryButtonText = "Reset Schemes to Default",
+                CloseButtonText = "Cancel",
+
+                DefaultButton = ContentDialogButton.Primary
+            };
+
+            reset_dialog.XamlRoot = this.XamlRoot;
+            ContentDialogResult result = await reset_dialog.ShowAsync();
+
+            if (result == ContentDialogResult.Primary)
+            {
+                // todo: show loading screen and lock app
+
+                App.Current.power_manager.powercfg_resetdefaultschemes();
+
+                App.Current.Refresh_App_Data();
+                this.Refresh_App_Elements();
+
+                this.ListView_Load_Elements(null, null);
+                this.Navigationview_Load_Elements(null, null);
+            }
+        }
+
+        private void Scheme_RefreshButton_Tapped(object _sender, TappedRoutedEventArgs e)
+        {
+            App.Current.Refresh_App_Data();
+            this.Refresh_App_Elements();
+
+            this.ListView_Load_Elements(null, null);
+            this.Navigationview_Load_Elements(null, null);
+        }
+
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
         // SearchBox 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -720,13 +804,13 @@ namespace better_power
                 bool header_added = false;
                 FrameworkElement curr_groupheader_elem = null;
 
-                foreach (var setting_elem in this.setting_element_dict.Values)
+                foreach (var setting_elem in this.setting_elements_dict.Values)
                 {
                     string elem_guid = setting_elem.Tag.ToString();
 
                     if (App.group_data_dict.ContainsKey(elem_guid))
                     {
-                        curr_groupheader_elem = this.setting_element_dict[elem_guid];
+                        curr_groupheader_elem = this.setting_elements_dict[elem_guid];
                         header_added = false;
                     }
                     else
@@ -742,7 +826,7 @@ namespace better_power
                                 header_added = true;
                             }
 
-                            this.setting_elements.Add(this.setting_element_dict[elem_guid]);
+                            this.setting_elements.Add(this.setting_elements_dict[elem_guid]);
                         }
                     }
                 }
