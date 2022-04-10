@@ -38,6 +38,7 @@ namespace better_power
 
     // drag-n-drop reordering of schemes in navigationview
     // default ordering from power saver to ultimate
+    // explanatory tooltips
 
     // setting cards:
     //      indicate possible values to which we can set the setting

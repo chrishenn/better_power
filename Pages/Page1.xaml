@@ -56,10 +56,12 @@
             </DataTemplate>
 
             <DataTemplate x:Key="Scheme_NavViewItemTemplate" 
-                          x:DataType="local:SchemeStore" >
+                          x:DataType="local:SchemeStore">
 
-                <NavigationViewItem Icon="List" Tag="{x:Bind scheme_guid}">
-
+                <NavigationViewItem                    
+                    Icon="List"                     
+                    Tag="{x:Bind scheme_guid}" >
+                    
                     <NavigationViewItem.ContextFlyout>
                         <MenuFlyout>
                             <MenuFlyoutItem Text="Set Active" Icon="Accept" Tag="{x:Bind scheme_guid}" Click="SchemeSetActiveFlyout_Clicked"/>
@@ -73,34 +75,42 @@
                     </NavigationViewItem.ContextFlyout>
 
                     <NavigationViewItem.MenuItems>
-                        <NavigationViewItemHeader Content="Power Setting Groups" FontWeight="Bold" Foreground="SlateBlue"/>
+                        <NavigationViewItemHeader Content="Power Setting Groups" FontWeight="Bold" Foreground="SlateBlue" />
                     </NavigationViewItem.MenuItems>
                     
-                    <Grid HorizontalAlignment="Stretch"
-                          VerticalAlignment="Center" >
+                    <RelativePanel 
+                        MinHeight="30"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Center" 
+                                                                    
+                        Margin="0,8,0,8">
                         
-                        <TextBlock      
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center" 
-                            Margin="0,18,0,18"                        
+                        <TextBlock
+                            x:Name="namebox"
+                            MaxWidth="160"
+                             
+                            RelativePanel.AlignVerticalCenterWithPanel="True"
+                            RelativePanel.AlignLeftWithPanel="True"
+                                                        
+                            TextWrapping="Wrap"  
+                            TextAlignment="Start"
                             Text="{x:Bind scheme_name, Mode=OneWay}" />
 
-                        <Grid 
-                            CornerRadius="2" BorderThickness="2" 
-                            BorderBrush="MediumSpringGreen"                     
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Center"                    
-                            Visibility="{x:Bind activebox_visible, Mode=OneWay}">
+                        <TextBlock   
+                            RelativePanel.AlignVerticalCenterWithPanel="True"
+                            RelativePanel.AlignRightWithPanel="True"
+                            RelativePanel.RightOf="namebox"
+                            Margin="5,0,0,0"
                             
-                            <TextBlock  
-                                Text="Active"                      
-                                FontWeight="Bold" 
-                                Foreground="MediumSpringGreen" 
-                                VerticalAlignment="Center"
-                                Margin="8" />
-                        </Grid>
+                            Text="Active"
+                            Foreground="MediumSpringGreen"
+                            FontWeight="Bold"
+                            
+                            TextAlignment="Right"
+                                                        
+                            Visibility="{x:Bind activebox_visible, Mode=OneWay}"/>
 
-                    </Grid>
+                    </RelativePanel>
                 </NavigationViewItem>                
             </DataTemplate>
 

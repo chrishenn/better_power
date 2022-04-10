@@ -365,7 +365,13 @@ namespace better_power
         private void navigationview_Load_Elements()
         {
             // need to add this header programmatically; menuitems will be cleared on refresh
-            this.navigationview.MenuItems.Add(new NavigationViewItemHeader() { Content = "Installed Power Schemes", FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Colors.SlateBlue) });
+            this.navigationview.MenuItems.Add(
+                new NavigationViewItemHeader() { 
+                    Content = "Installed Power Schemes",
+                    FontWeight = FontWeights.Bold, 
+                    Foreground = new SolidColorBrush(Colors.SlateBlue), 
+                    Margin=new Thickness(0,10,0,0),
+                });
 
             foreach (var elem in this.scheme_elements_dict.Values)
                 this.navigationview.MenuItems.Add(elem);
