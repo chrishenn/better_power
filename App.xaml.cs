@@ -29,19 +29,15 @@ namespace better_power
 {
 
     // TODO
-        
+
     // BUG: primary button on install schemes dialog is not the close button
+
     // enforce that the "working on it" behavior is the same no matter the dialog, flyout, import, etc
-
-    // refresh button - rebuild scheme/setting info from system changes
-        // bind to F5  
-    // scheme reset button - runs powercfg -resetdefaultpowerschemes ; deletes all custom schemes and re-installs your system-default schemes
-    // override single-pixel theme border
     // global success indicator? especially for export success. there's no obvious place for a success flash
+    // override single-pixel theme border
 
-    // right-click: reset scheme settings to default for that scheme name
     // drag-n-drop reordering of schemes in navigationview
-        // default ordering from power saver to ultimate
+    // default ordering from power saver to ultimate
 
     // setting cards:
     //      indicate possible values to which we can set the setting
@@ -49,10 +45,11 @@ namespace better_power
     //      range checking
     //      ac + dc menus
 
+    // initial load (and therefore refresh) code is slow. is there a faster way? (check speed in release build)
 
     // error handling
-        // write exceptions to recover, display errors to user, crash if needed 
-        // check that new data objects with GUIDs have valid GUIDS
+    // write exceptions to recover, display errors to user, crash if needed 
+    // check that new data objects with GUIDs have valid GUIDS
     // packaging - modern install, portable install, taskbar icon, taskbar app name
     // installer must run power unhide scripts
     // compatibility testing
@@ -189,7 +186,7 @@ namespace better_power
         {
             App._window = new MainWindow();
             App._window.ExtendsContentIntoTitleBar = true;
-            App._window.Content = new Page1();
+            App._window.Content = new MainPage();
             App._window.Activate();
 
             this._hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App._window);
