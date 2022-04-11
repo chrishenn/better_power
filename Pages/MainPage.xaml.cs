@@ -37,24 +37,31 @@ namespace better_power
         // ordering needed to support drag-n-drop reordering in navigationview
         OrderedDictionary<string, NavigationViewItem> scheme_elements_dict = new OrderedDictionary<string, NavigationViewItem>();
 
-        // current scheme guid being displayed in the main ListView UI
-        string current_display_scheme_guid;
+        // indicate the guid of the scheme element in nav view that was most recently selected
+        string selected_scheme_element_guid;
 
+        // the parent schemeguid of the selected group or scheme in nav view
+        string selected_parent_schemeguid;
+
+        // the active power scheme guid as reported by system
         string systemactive_schemeguid;
 
         // inidicate that setting values changing in listview should not fire system settings changes
         bool settings_locked_for_navigation = false;
+
+        // indicate that settings elements shown in listview should not change
         bool settings_elements_locked_in_view = false;
 
         const string ANIMATION_SUCCESS_KEY = "animation_success";
         const string ANIMATION_FAIL_KEY = "animation_fail";
         const string BACKGROUND_BRUSH_KEY = "background_brush";
 
+
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
         // Initialize instance; generate uielements from existing App data; code to refresh app elements
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
-        // build instance UIElements, lists and dicts with references to them
+        // clear and build instance UIElements, Collections and dicts with references to them
         public MainPage()
         {
             this.InitializeComponent();
@@ -63,7 +70,7 @@ namespace better_power
             Refresh_App_Elements();
 
             // need only run once at construction
-            register_globalinfo_animators();
+            register_animation_globalnotifier();
         }
 
         private void Refresh_App_Elements()
@@ -81,10 +88,7 @@ namespace better_power
             this.generate_scheme_elements();
 
             this.systemactive_schemeguid = App.Current.power_manager.get_systemactive_schemeguid();
-
-            // must set initial value here
-            this.current_display_scheme_guid = this.systemactive_schemeguid + "";
-            this.set_current_display_scheme_guid(this.systemactive_schemeguid);
+            this.navigationview.SelectedItem = this.scheme_elements_dict[this.systemactive_schemeguid];
 
             this.settings_locked_for_navigation = false;
         }
@@ -99,23 +103,8 @@ namespace better_power
         }
 
 
-        private void set_current_display_scheme_guid(string value)
-        {
-            string old_guid = this.current_display_scheme_guid;
-            var old_elem = this.scheme_elements_dict[old_guid];
-            (old_elem.Resources[ANIMATION_SUCCESS_KEY] as Storyboard).Completed -= ReSelectItem_AfterAnimation;
-            (old_elem.Resources[ANIMATION_FAIL_KEY] as Storyboard).Completed -= ReSelectItem_AfterAnimation;
-
-            string new_guid = value;
-            var new_elem = this.scheme_elements_dict[new_guid];
-            (new_elem.Resources[ANIMATION_SUCCESS_KEY] as Storyboard).Completed += ReSelectItem_AfterAnimation;
-            (new_elem.Resources[ANIMATION_FAIL_KEY] as Storyboard).Completed += ReSelectItem_AfterAnimation;
-
-            this.current_display_scheme_guid = value + "";
-        }
-
-
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
+
 
         // generate setting elements from App setting data objects
         private void generate_setting_elements()
@@ -188,47 +177,47 @@ namespace better_power
         // settings elements: settings changed handler; numberbox
         private void NumberBoxValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs e)
         {
-            if (!this.settings_locked_for_navigation)
-            {
-                string setting_guid = sender.Tag.ToString();
-                SettingStore setting_data = App.setting_data_dict[setting_guid];
+            if (this.settings_locked_for_navigation) return;
+            
+            string setting_guid = sender.Tag.ToString();
+            SettingStore setting_data = App.setting_data_dict[setting_guid];
 
-                string selected_scheme_guid = this.current_display_scheme_guid;
+            string selected_parent_schemeguid = this.selected_parent_schemeguid;
 
-                var curr_vals = setting_data.curr_setting_vals_by_scheme[selected_scheme_guid];
-                setting_data.curr_setting_vals_by_scheme[selected_scheme_guid] = ((int)sender.Value, curr_vals.dc_val);
+            var curr_vals = setting_data.curr_setting_vals_by_scheme[selected_parent_schemeguid];
+            setting_data.curr_setting_vals_by_scheme[selected_parent_schemeguid] = ((int)sender.Value, curr_vals.dc_val);
 
-                bool success = App.Current.power_manager.set_powersetting(selected_scheme_guid, setting_data._parent_groupguid, setting_guid, (int)sender.Value);
+            bool success = App.Current.power_manager.set_powersetting(selected_parent_schemeguid, setting_data._parent_groupguid, setting_guid, (int)sender.Value);
 
-                var setting_elem = this.setting_elements_dict[setting_guid] as Panel;
-                fire_success_animation(setting_elem, success);
-            }
+            var setting_elem = this.setting_elements_dict[setting_guid] as Panel;
+            fire_success_animation(setting_elem, success);
+            
         }
         
         // settings elements: settings changed handler; combobox
         private void ComboBoxSelectionChanged(object _sender, SelectionChangedEventArgs e)
         {
-            if (!this.settings_locked_for_navigation)
-            {
-                ComboBox sender = _sender as ComboBox;
-                string setting_guid = sender.Tag.ToString();
-                SettingStore setting_data = App.setting_data_dict[setting_guid];
+            if (this.settings_locked_for_navigation) return;
+            
+            ComboBox sender = _sender as ComboBox;
+            string setting_guid = sender.Tag.ToString();
+            SettingStore setting_data = App.setting_data_dict[setting_guid];
 
-                string selected_scheme_guid = this.current_display_scheme_guid;
+            string selected_parent_schemeguid = this.selected_parent_schemeguid;
 
-                var curr_vals = setting_data.curr_setting_vals_by_scheme[selected_scheme_guid];
-                setting_data.curr_setting_vals_by_scheme[selected_scheme_guid] = ((int)sender.SelectedIndex, curr_vals.dc_val);
+            var curr_vals = setting_data.curr_setting_vals_by_scheme[selected_parent_schemeguid];
+            setting_data.curr_setting_vals_by_scheme[selected_parent_schemeguid] = ((int)sender.SelectedIndex, curr_vals.dc_val);
 
-                bool success = App.Current.power_manager.set_powersetting(selected_scheme_guid, setting_data._parent_groupguid, setting_guid, (int)sender.SelectedIndex);
+            bool success = App.Current.power_manager.set_powersetting(selected_parent_schemeguid, setting_data._parent_groupguid, setting_guid, (int)sender.SelectedIndex);
 
-                var setting_elem = this.setting_elements_dict[setting_guid] as Panel;
-                fire_success_animation(setting_elem, success);
-            }
+            var setting_elem = this.setting_elements_dict[setting_guid] as Panel;
+            fire_success_animation(setting_elem, success);
+            
         }
 
 
-
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
+
 
         // Generate navigationview elements 
         private void generate_scheme_elements()
@@ -256,19 +245,11 @@ namespace better_power
             return scheme_menuitem;
         }
 
-
-        // -----------------------------------------------------------------------------------------------------------------------------------------------------
-        
-        // register animators into global notifier infobar
-        private void register_globalinfo_animators()
-        {
-            register_animation(this.globalinfo, Colors.MediumSpringGreen, ANIMATION_SUCCESS_KEY);
-            register_animation(this.globalinfo, Colors.MediumVioletRed, ANIMATION_FAIL_KEY);
-        }
+          
 
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
-        // Animation; generate animators and register into uielement resources; run animations to indicate success or failure
+        // Animation; generate animators and register into uielement resources
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
         // register animation to (a Control) or (a Panel); dispatcher
@@ -340,10 +321,27 @@ namespace better_power
             element.Resources[animation_name] = story_board;
         }
 
+        // register animators into global notifier infobar
+        private void register_animation_globalnotifier()
+        {
+            register_animation(this.globalinfo, Colors.MediumSpringGreen, ANIMATION_SUCCESS_KEY);
+            register_animation(this.globalinfo, Colors.MediumVioletRed, ANIMATION_FAIL_KEY);
+        }
+
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
 
+        private void fire_success_animation_scheme(string scheme_guid, bool success)
+        {
+            NavigationViewItem scheme_elem = this.scheme_elements_dict[scheme_guid];
+
+            // we assume that the re-select code will be registered into this elem's storyboard whenever it is selected
+            if (scheme_elem.IsSelected)
+                this.navigationview.SelectedItem = null;
+
+            fire_success_animation(scheme_elem, success);
+        }
         private void fire_success_animation(FrameworkElement element, bool success)
         {
             if (element is Control)
@@ -369,45 +367,11 @@ namespace better_power
         }
 
 
-
-        // -----------------------------------------------------------------------------------------------------------------------------------------------------
-
-        private void process_selected_schemelement_to_animate(NavigationViewItem scheme_elem, string scheme_guid)
-        {
-            var storyboard_success = (scheme_elem.Resources[ANIMATION_SUCCESS_KEY] as Storyboard);
-            var storyboard_fail = (scheme_elem.Resources[ANIMATION_FAIL_KEY] as Storyboard);
-
-            if (scheme_guid == this.current_display_scheme_guid)
-            {
-                // this scheme is selected in navigationview. must de-select for flash to be visible                
-                this.navigationview.SelectedItem = null;
-
-                // ReSelectItem will run when the success/fail animation is done running
-                storyboard_success.Completed += ReSelectItem_AfterAnimation;
-                storyboard_fail.Completed += ReSelectItem_AfterAnimation;
-            }
-            else
-            {
-                // this scheme is not selected. unregister ReSelectItem in case it was previously added
-                storyboard_success.Completed -= ReSelectItem_AfterAnimation;
-                storyboard_fail.Completed -= ReSelectItem_AfterAnimation;
-            }
-        }
-
-        private void ReSelectItem_AfterAnimation(object sender, object e)
-        {
-            // we have to store the scheme_guid of this storyboard's owning menuitem in its TargetName because it doesn't have a tag
-            string scheme_guid = Storyboard.GetTargetName(sender as Storyboard);
-
-            this.settings_elements_locked_in_view = true;
-            this.navigationview.SelectedItem = this.scheme_elements_dict[scheme_guid];
-            this.settings_elements_locked_in_view = false;
-        }
-
+ 
 
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
-        // Bind loaded UIElements from the UI into their component objects stored in this instance
+        // Bind loaded UIElements from the UI to their component objects stored in this Page instance
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
         // add stored power setting cards collection to main ListView
@@ -441,20 +405,15 @@ namespace better_power
             foreach (var elem in this.scheme_elements_dict.Values)
                 this.navigationview.MenuItems.Add(elem);
 
-            UpdateUI_ShowSystemActiveScheme();
-            this.navigationview.SelectedItem = this.scheme_elements_dict[this.current_display_scheme_guid];
+            UpdateUI_ShowSystemActiveScheme();            
         }
 
 
-
-
-
-  
-
+                 
 
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
-        // Flyout Handlers: operations using single power schemes
+        // Flyout Handlers: operations on single power schemes
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
         // set a scheme as active
@@ -469,13 +428,7 @@ namespace better_power
                 UpdateUI_ShowSystemActiveScheme();                
             }
 
-            NavigationViewItem scheme_elem = this.scheme_elements_dict[scheme_guid];
-
-            //process_selected_schemelement_to_animate(scheme_elem, scheme_guid);
-            if (scheme_guid == this.current_display_scheme_guid)                          
-                this.navigationview.SelectedItem = null;
-
-            fire_success_animation(scheme_elem, success);
+            fire_success_animation_scheme(scheme_guid, success);
             fly_global_notification("set active power scheme", success, flash: true);
         }
 
@@ -500,13 +453,7 @@ namespace better_power
                     if (success)                         
                         scheme_data.scheme_name = new_name;
 
-                    NavigationViewItem scheme_elem = this.scheme_elements_dict[scheme_guid];
-
-                    //process_selected_schemelement_to_animate(scheme_elem, scheme_guid);
-                    if (scheme_guid == this.current_display_scheme_guid)
-                        this.navigationview.SelectedItem = null;
-
-                    fire_success_animation(scheme_elem, success);
+                    fire_success_animation_scheme(scheme_guid, success);
                     fly_global_notification("renamed power scheme \""+ old_name+"\" to \""+new_name+"\"", success, flash: true);
                 }
             }
@@ -537,13 +484,7 @@ namespace better_power
                 if (success)
                     NewScheme_UpdateAppData_UpdateUIElems(new_scheme_name, new_scheme_guid);
 
-                var scheme_elem = this.scheme_elements_dict[scheme_guid];
-
-                //process_selected_schemelement_to_animate(scheme_elem, scheme_guid);
-                if (scheme_guid == this.current_display_scheme_guid)
-                    this.navigationview.SelectedItem = null;
-
-                fire_success_animation(scheme_elem, success);
+                fire_success_animation_scheme(scheme_guid, success);
                 fly_global_notification("copied power scheme \""+scheme_data.scheme_name+"\" to \""+new_scheme_name+"\"", success, flash: true);
             }
         }
@@ -592,16 +533,11 @@ namespace better_power
                 bool success = App.Current.power_manager.powercfg_del_scheme(scheme_guid);
                 if (success)
                 {
-                    // if deleted scheme is selected by navigationview, select the systemactive scheme 
+                    // if deleted scheme was selected by navigationview, select the systemactive scheme instead
                     var scheme_elem = this.scheme_elements_dict[scheme_guid];
-                    if (scheme_elem.IsSelected)
-                    {
+                    if (scheme_elem.IsSelected)                    
                         this.navigationview.SelectedItem = this.scheme_elements_dict[this.systemactive_schemeguid];
-
-                        //this.current_display_scheme_guid = "" + this.systemactive_schemeguid;
-                        this.set_current_display_scheme_guid(this.systemactive_schemeguid);
-                    }
-                    
+                                        
                     // delete scheme from navigationview
                     this.navigationview.MenuItems.Remove(scheme_elem);
                     this.scheme_elements_dict.Remove(scheme_guid);
@@ -634,13 +570,7 @@ namespace better_power
             {
                 bool success = PowercfgManager.powercfg_export_scheme(scheme_guid, file.Path);
 
-                var scheme_elem = this.scheme_elements_dict[scheme_guid];
-
-                //process_selected_schemelement_to_animate(scheme_elem, scheme_guid);
-                if (scheme_guid == this.current_display_scheme_guid)
-                    this.navigationview.SelectedItem = null;
-
-                fire_success_animation(scheme_elem, success);
+                fire_success_animation_scheme(scheme_guid, success);
                 fly_global_notification("exported power scheme \"" + scheme_data.scheme_name + "\" to file \"" + file.Name+"\"", success, flash: true);
             }
         }
@@ -649,76 +579,7 @@ namespace better_power
 
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
-        // Navgation (via navigationview): view settings in selected scheme or group; scheme import dialog; classic scheme install dialog; app data refresh
-        // -----------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-        private void navigationview_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
-        {
-            if (args.SelectedItemContainer == null) return;
-            
-            string selected_tag = args.SelectedItemContainer.Tag.ToString();
-            string selected_scheme_guid;
-
-            // selected is a scheme. update settings cards current values in listview
-            if (App.scheme_data_dict.ContainsKey(selected_tag))
-            {
-                selected_scheme_guid = selected_tag;
-
-                // add all elements back into listview
-                if (!this.settings_elements_locked_in_view)
-                {
-                    this.setting_elements.Clear();
-                    foreach (var elem in this.setting_elements_dict.Values)
-                        this.setting_elements.Add(elem);
-                }
-            }
-                
-            // selected_guid is a groupid. get selected scheme. check for scheme change. filter to group's settings in view.
-            else
-            {
-                string selected_group_guid = selected_tag;
-                selected_scheme_guid = (args.SelectedItemContainer.DataContext as SchemeStore).scheme_guid;
-
-                // filter setting elements down to only those members of the selected group
-                this.setting_elements.Clear();
-                foreach (var elem in this.setting_elements_by_group_dict[selected_group_guid])
-                    this.setting_elements.Add(elem);
-            }
-
-            // if the scheme guid of the scheme or group that's been selected is not being displayed, display its settings values
-            if (selected_scheme_guid != this.current_display_scheme_guid)
-            {
-                navigation_update_settings_displaydata_to_scheme(selected_scheme_guid);
-
-                //this.current_display_scheme_guid = selected_scheme_guid;
-                this.set_current_display_scheme_guid(selected_scheme_guid);
-            }
-
-            // always clear searchbox on scheme or group clicked
-            this.searchbox.Text = "";
-        }
-
-        private void navigation_update_settings_displaydata_to_scheme(string selected_scheme_guid)
-        {
-            this.settings_locked_for_navigation = true;
-
-            foreach (SettingStore setting_data in App.setting_data_dict.Values)
-            {
-                var vals = setting_data.curr_setting_vals_by_scheme[selected_scheme_guid];
-
-                setting_data.curr_ac_val = vals.ac_val;
-                setting_data.curr_dc_val = vals.dc_val;
-            }
-
-            this.settings_locked_for_navigation = false;
-        }
-
-
-
-
-        // -----------------------------------------------------------------------------------------------------------------------------------------------------
-        // PaneFooter Button Tap-Handlers; core application functionality
+        // PaneFooter Button Handlers: core application functionality
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
         private async void Scheme_ImportButton_Tapped(object _sender, TappedRoutedEventArgs e)
@@ -747,7 +608,7 @@ namespace better_power
                 TextWrapping = TextWrapping.WrapWholeWords,
                 Margin = new Thickness(20),
             });
-            
+
             foreach (int i in App.Current.classic_order)
             {
                 string path = App.Current.classic_filepaths[i];
@@ -776,7 +637,7 @@ namespace better_power
 
                 XamlRoot = this.XamlRoot,
             };
-         
+
             await install_dialog.ShowAsync();
         }
 
@@ -839,6 +700,112 @@ namespace better_power
             }
         }
 
+
+
+
+        // -----------------------------------------------------------------------------------------------------------------------------------------------------
+        // Navgation (via navigationview): view settings in selected scheme or group
+        // -----------------------------------------------------------------------------------------------------------------------------------------------------
+
+        private void navigationview_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+        {
+            if (args.SelectedItemContainer == null) return;
+            
+            string selected_tag = args.SelectedItemContainer.Tag.ToString();
+            string new_parent_schemeguid;
+
+            // selected is a scheme. update settings cards current values in listview
+            if (App.scheme_data_dict.ContainsKey(selected_tag))
+            {
+                new_parent_schemeguid = selected_tag;
+
+                this.clear_last_selected_schemeelement();
+                this.register_new_selected_schemeelement(selected_tag);
+
+                // add all elements back into listview (unless we are re-selecting scheme after animation)
+                if (!this.settings_elements_locked_in_view)
+                {
+                    this.setting_elements.Clear();
+                    foreach (var elem in this.setting_elements_dict.Values)
+                        this.setting_elements.Add(elem);
+                }
+            }
+                
+            // selected_guid is a groupid. get selected scheme. check for parent scheme change. filter to group's settings in view.
+            else
+            {
+                string selected_group_guid = selected_tag;
+                new_parent_schemeguid = (args.SelectedItemContainer.DataContext as SchemeStore).scheme_guid;
+
+                this.clear_last_selected_schemeelement();
+
+                // filter setting elements down to only those members of the selected group
+                this.setting_elements.Clear();
+                foreach (var elem in this.setting_elements_by_group_dict[selected_group_guid])
+                    this.setting_elements.Add(elem);
+            }
+
+            // the parent schemeguid has changed (the guid that determines which settings values are shown in listview)
+            if (new_parent_schemeguid != this.selected_parent_schemeguid)
+            {
+                navigation_update_settings_displaydata_to_scheme(new_parent_schemeguid);
+                this.selected_parent_schemeguid = new_parent_schemeguid;
+            }
+
+            // always clear searchbox on scheme or group clicked
+            this.searchbox.Text = "";
+        }
+
+        // another nav element is selected; de-register the old one
+        private void clear_last_selected_schemeelement()
+        {
+            if (this.selected_scheme_element_guid == null)
+                this.selected_scheme_element_guid = this.systemactive_schemeguid + "";
+
+            string old_guid = this.selected_scheme_element_guid;
+            var old_elem = this.scheme_elements_dict[old_guid];
+            (old_elem.Resources[ANIMATION_SUCCESS_KEY] as Storyboard).Completed -= ReSelectItem_AfterAnimation;
+            (old_elem.Resources[ANIMATION_FAIL_KEY] as Storyboard).Completed -= ReSelectItem_AfterAnimation;
+        }
+
+        // whenever a scheme element is selected, register the reselector into the new one
+        private void register_new_selected_schemeelement(string new_guid)
+        {
+            if (this.selected_scheme_element_guid == null)
+                this.selected_scheme_element_guid = this.systemactive_schemeguid + "";
+
+            this.selected_scheme_element_guid = new_guid + "";
+
+            var new_elem = this.scheme_elements_dict[new_guid];
+            (new_elem.Resources[ANIMATION_SUCCESS_KEY] as Storyboard).Completed += ReSelectItem_AfterAnimation;
+            (new_elem.Resources[ANIMATION_FAIL_KEY] as Storyboard).Completed += ReSelectItem_AfterAnimation;
+        }
+
+        // after a de-selected nav item has animated, re-select it here
+        private void ReSelectItem_AfterAnimation(object sender, object e)
+        {
+            // we have to store the scheme_guid of this storyboard's owning menuitem in its TargetName because it doesn't have a tag
+            string scheme_guid = Storyboard.GetTargetName(sender as Storyboard);
+
+            this.settings_elements_locked_in_view = true;
+            this.navigationview.SelectedItem = this.scheme_elements_dict[scheme_guid];
+            this.settings_elements_locked_in_view = false;
+        }
+
+        private void navigation_update_settings_displaydata_to_scheme(string new_parent_schemeguid)
+        {
+            this.settings_locked_for_navigation = true;
+
+            foreach (SettingStore setting_data in App.setting_data_dict.Values)
+            {
+                var vals = setting_data.curr_setting_vals_by_scheme[new_parent_schemeguid];
+
+                setting_data.curr_ac_val = vals.ac_val;
+                setting_data.curr_dc_val = vals.dc_val;
+            }
+
+            this.settings_locked_for_navigation = false;
+        }
 
 
 
