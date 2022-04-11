@@ -9,11 +9,17 @@
 
 
     <Page.Resources>
+        
         <ResourceDictionary>
+            <CornerRadius x:Key="ControlCornerRadius">4</CornerRadius>
+            <CornerRadius x:Key="OverlayCornerRadius">4</CornerRadius>
+            <Thickness x:Key="NavigationViewContentPresenterMargin">0,0,0,0</Thickness>
 
-            
             <DataTemplate x:Key="SettingTemplate" x:DataType="local:SettingStore">
-                <Grid CornerRadius="2" BorderThickness="1" Padding="5" Margin="25,5,25,5" >
+                <Grid 
+                    CornerRadius="{StaticResource ControlCornerRadius}"
+                    Padding="5" 
+                    Margin="25,5,25,5" >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
@@ -55,12 +61,13 @@
                     Value="{x:Bind curr_ac_val, Mode=TwoWay}" />                
             </DataTemplate>
 
-            <DataTemplate x:Key="Scheme_NavViewItemTemplate" 
-                          x:DataType="local:SchemeStore">
-
+            <DataTemplate x:Key="Scheme_NavViewItemTemplate" x:DataType="local:SchemeStore">
                 <NavigationViewItem                    
                     Icon="List"                     
-                    Tag="{x:Bind scheme_guid}" >
+                    Tag="{x:Bind scheme_guid}" 
+                    
+                    CanDrag="True"
+                    >
                     
                     <NavigationViewItem.ContextFlyout>
                         <MenuFlyout>
@@ -120,8 +127,14 @@
 
     
 
-    <Grid KeyboardAcceleratorPlacementMode="Hidden">
-                  
+    <Grid 
+        KeyboardAcceleratorPlacementMode="Hidden"
+        Background="{StaticResource AppPageBackground}">
+
+        <Grid.Resources>
+            
+        </Grid.Resources>
+        
         <Grid.RowDefinitions>
             <RowDefinition Height="32"/>
             <RowDefinition />
@@ -131,13 +144,14 @@
             <KeyboardAccelerator Key="F5" Invoked="F5_Invoked" />
         </Grid.KeyboardAccelerators>
 
-        <Grid Grid.Row="1" Background="{StaticResource AppPageBackground}"/>
+        <Grid x:Name="AppTitleBar" Grid.Row="0" />
 
-        <Grid x:Name="AppTitleBar" 
-              Grid.Row="0" 
-              Background="{StaticResource AppTitleBar_Grey}" >
-        </Grid>
-
+        <InfoBar
+                    IsOpen="True"
+                    IsIconVisible="True"
+                    IsClosable="True"
+                    Title="Title"
+                    Message="Essential app message " />
 
         <NavigationView
             x:Name="navigationview"     
@@ -159,21 +173,22 @@
             ExpandedModeThresholdWidth="500"
             SelectionFollowsFocus="Disabled"
             IsTabStop="False"
-            IsTitleBarAutoPaddingEnabled="False" >
-
+            IsTitleBarAutoPaddingEnabled="False"            
+            >
+           
             <NavigationView.AutoSuggestBox>
                 <AutoSuggestBox
                     x:Name="searchbox"
                     TextChanged="searchbox_TextChanged"
                     
                     MinWidth="100"
-                    Margin="10,8,10,0"
+                    Margin="10,0,10,5"
                     
                     x:FieldModifier="public"
                     PlaceholderText="Search Settings in Selected Scheme"
                     QueryIcon="Find"                                        
                     KeyboardAcceleratorPlacementMode="Hidden" >
-                    
+
                     <AutoSuggestBox.KeyboardAccelerators>
                         <KeyboardAccelerator Modifiers="Control" Key="F" Invoked="CtrlF_Invoked" />
                     </AutoSuggestBox.KeyboardAccelerators>
@@ -182,24 +197,31 @@
 
             <NavigationView.PaneFooter>
                 <StackPanel Orientation="Vertical" HorizontalAlignment="Stretch">
-                    <NavigationViewItem Content="Import Power Scheme"   Icon="Import"       Tapped="Scheme_ImportButton_Tapped"/>
-                    <NavigationViewItem Content="Install Classic Schemes" Icon="ImportAll"  Tapped="Scheme_InstallButton_Tapped"/>
-                    <NavigationViewItem Content="Reset Default Schemes" Icon="Undo"         Tapped="Scheme_ResetButton_Tapped"/>
-                    <NavigationViewItem Content="Refresh App Data"      Icon="Refresh"      Tapped="RefreshButton_Tapped"/>
+                    <FlyoutBase.AttachedFlyout>
+                        <Flyout ShowMode="Transient" Placement="Top">
+                            <TextBlock x:Name="globalnotifierflyouttext" Text="This is some text in a flyout."  />
+                        </Flyout>
+                    </FlyoutBase.AttachedFlyout>
+                    <NavigationViewItemSeparator/>
+                    <NavigationViewItem Content="Import Power Scheme"   Icon="Import"      Tapped="Scheme_ImportButton_Tapped"/>
+                    <NavigationViewItem Content="Install Classic Schemes" Icon="ImportAll" Tapped="Scheme_InstallButton_Tapped"/>
+                    <NavigationViewItem Content="Reset Default Schemes" Icon="Undo"        Tapped="Scheme_ResetButton_Tapped"/>
+                    <NavigationViewItem Content="Refresh App Data"      Icon="Refresh"     Tapped="RefreshButton_Tapped"/>
                 </StackPanel>
             </NavigationView.PaneFooter>
-            
+
             <ListView 
                 x:Name="listview"                
                 Loaded="listview_Loaded"
-                
+                                                
                 Grid.Row="1"                         
                 Padding="0,5,0,5"
                 
                 IsTabStop="False" 
                 SelectionMode="None"
-                IsItemClickEnabled="False">
-            </ListView>             
+                IsItemClickEnabled="False">                
+            </ListView>   
+            
         </NavigationView>
 
     </Grid>   

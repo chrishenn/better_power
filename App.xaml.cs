@@ -30,13 +30,9 @@ namespace better_power
 
     // TODO
 
-    // BUG: primary button on install schemes dialog is not the close button
-
-    // enforce that the "working on it" behavior is the same no matter the dialog, flyout, import, etc
+    // enforce that the "working on it" behavior is the same no matter the dialog, flyout, import, refresh, etc
     // global success indicator? especially for export success. there's no obvious place for a success flash
-    // override single-pixel theme border
 
-    // drag-n-drop reordering of schemes in navigationview
     // default ordering from power saver to ultimate
     // explanatory tooltips
 
@@ -46,14 +42,18 @@ namespace better_power
     //      range checking
     //      ac + dc menus
 
-    // initial load (and therefore refresh) code is slow. is there a faster way? (check speed in release build)
-
     // error handling
     // write exceptions to recover, display errors to user, crash if needed 
     // check that new data objects with GUIDs have valid GUIDS
     // packaging - modern install, portable install, taskbar icon, taskbar app name
-    // installer must run power unhide scripts
+    // installer must run power unhide scripts (reporpose system-object code?)
     // compatibility testing
+
+    // full refresh is slow. can be faster? (check speed in release build)
+    // search behavior: include all settings under group header if header name matches search query?
+    // [wait: future winui version] override window theme-color border
+    // [wait: future winui version] drag-n-drop reordering of schemes in navigationview
+    // [appears to be intentional] buttons on panel added as Content to InstallScheme dialog steals Enter key
 
     // (?) change settings via registry key    
     // (?) pull power setting info from system objects

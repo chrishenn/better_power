@@ -370,7 +370,6 @@ namespace better_power
                     Content = "Installed Power Schemes",
                     FontWeight = FontWeights.Bold, 
                     Foreground = new SolidColorBrush(Colors.SlateBlue), 
-                    Margin=new Thickness(0,10,0,0),
                 });
 
             foreach (var elem in this.scheme_elements_dict.Values)
@@ -389,10 +388,10 @@ namespace better_power
 
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
-        // UI Handlers: navigationview Scheme Elements
+        // Flyout Handlers: operations using single power schemes
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
-        // Set a scheme active via its context flyout
+        // set a scheme as active
         private void SchemeSetActiveFlyout_Clicked(object sender, RoutedEventArgs e)
         {
             string scheme_guid = (sender as MenuFlyoutItem).Tag.ToString();
@@ -408,36 +407,37 @@ namespace better_power
             var storyboard_success = (scheme_elem.Resources["success_animation"] as Storyboard);
             var storyboard_fail = (scheme_elem.Resources["fail_animation"] as Storyboard);
 
-            if (scheme_guid != this.current_display_scheme_guid)
-            {
-                storyboard_success.Completed -= ReSelectItem;
-                storyboard_fail.Completed -= ReSelectItem;
-            }
-            else
+            if (scheme_guid == this.current_display_scheme_guid)
             {
                 // this scheme is selected in navigationview. must de-select for flash to be visible                
                 this.navigationview.SelectedItem = null;
 
                 // ReSelectItem will run when the success/fail animation is done running
-                storyboard_success.Completed += ReSelectItem;
-                storyboard_fail.Completed += ReSelectItem;
+                storyboard_success.Completed += ReSelectItem_AfterAnimation;
+                storyboard_fail.Completed += ReSelectItem_AfterAnimation;
+            }
+            else
+            {
+                // this scheme is not selected. unregister ReSelectItem in case it was previously added
+                storyboard_success.Completed -= ReSelectItem_AfterAnimation;
+                storyboard_fail.Completed -= ReSelectItem_AfterAnimation;
             }
 
             fire_success_animation(scheme_elem, success);
         }
 
-        private void ReSelectItem(object sender, object e)
+        private void ReSelectItem_AfterAnimation(object sender, object e)
         {
             // we have to store the scheme_guid of this storyboard's owning menuitem in its TargetName because it doesn't have a tag
             string scheme_guid = Storyboard.GetTargetName(sender as Storyboard);
             this.navigationview.SelectedItem = this.scheme_elements_dict[scheme_guid];
         }
 
-        // Rename a scheme via its context flyout
-        private async void SchemeRenameFlyout_Clicked(object sender, RoutedEventArgs e)
+        // rename a scheme
+        private async void SchemeRenameFlyout_Clicked(object _sender, RoutedEventArgs e)
         {
-            var senderitem = sender as MenuFlyoutItem;
-            SchemeStore scheme_data = senderitem.DataContext as SchemeStore;
+            var sender = _sender as MenuFlyoutItem;
+            SchemeStore scheme_data = sender.DataContext as SchemeStore;
 
             RenameDialog rename_dialog = new RenameDialog(scheme_data.scheme_name);
             rename_dialog.XamlRoot = this.XamlRoot;
@@ -449,22 +449,21 @@ namespace better_power
                 string curr_name = scheme_data.scheme_name;
                 if (new_name != curr_name)
                 {
-                    // change scheme name in application state
-                    scheme_data.scheme_name = new_name;
+                    bool success = App.Current.power_manager.powercfg_rename_scheme(scheme_data.scheme_guid, new_name);
 
-                    // do system rename of this scheme
-                    App.Current.power_manager.powercfg_rename_scheme(scheme_data.scheme_guid, new_name);
+                    if (success)                         
+                        scheme_data.scheme_name = new_name;
                 }
             }
         }
 
-        // Copy a scheme
-        private async void SchemeCopyFlyout_Clicked(object sender, RoutedEventArgs e)
+        // copy a scheme
+        private async void SchemeCopyFlyout_Clicked(object _sender, RoutedEventArgs e)
         {
             // ask for a new scheme name with default 
-            var senderitem = sender as MenuFlyoutItem;
-            string scheme_guid = senderitem.Tag.ToString();
-            SchemeStore scheme_data = senderitem.DataContext as SchemeStore;
+            var sender = _sender as MenuFlyoutItem;
+            string scheme_guid = sender.Tag.ToString();
+            SchemeStore scheme_data = sender.DataContext as SchemeStore;
 
             CopyDialog copy_dialog = new CopyDialog(scheme_data.scheme_name);
             copy_dialog.XamlRoot = this.XamlRoot;
@@ -484,67 +483,52 @@ namespace better_power
             }
         }
 
-        // todo: roll more import scheme code into this method
-        private void NewScheme_UpdateAppData_UpdateUIElems(string new_scheme_name, string new_scheme_guid)
-        {
-            // update Application datastructures for new scheme
-            SchemeStore new_scheme_data = new SchemeStore(new_scheme_name, new_scheme_guid);
-            App.scheme_data_dict[new_scheme_guid] = new_scheme_data;
-            App.Current.store_setting_values_one_scheme(new_scheme_guid);
-
-            // update view elements for the new scheme
-            var new_scheme_elem = generate_schememenuitem(new_scheme_data);
-            this.navigationview.MenuItems.Add(new_scheme_elem);
-            this.scheme_elements_dict[new_scheme_guid] = new_scheme_elem;
-
-            fire_success_animation(new_scheme_elem, true);
-        }
-
         // delete a scheme
-        private async void SchemeDeleteFlyout_Clicked(object sender, RoutedEventArgs e)
+        private async void SchemeDeleteFlyout_Clicked(object _sender, RoutedEventArgs e)
         {
-            var senderitem = sender as MenuFlyoutItem;
-            string scheme_guid = senderitem.Tag.ToString();
-            var scheme_elem = this.scheme_elements_dict[scheme_guid];
+            var sender = _sender as MenuFlyoutItem;
+            string scheme_guid = sender.Tag.ToString();
 
+            // active scheme cannot be deleted - notify with dialog
             if (scheme_guid == this.systemactive_schemeguid)
-            {
-                // flyout a dialog - active scheme cannot be deleted
-                ContentDialog no_delete_dialog = new ContentDialog()
+            {                
+                ContentDialog cannot_delete_dialog = new ContentDialog()
                 {
                     Title = "Cannot Delete",
-                    Content = "You cannot delete the system active power scheme",
+                    Content = "You cannot delete the system active power scheme.",
                     CloseButtonText = "Ok",
-                    DefaultButton = ContentDialogButton.Close
+                    DefaultButton = ContentDialogButton.Close,
+
+                    XamlRoot = this.XamlRoot,
                 };
 
-                no_delete_dialog.XamlRoot = this.XamlRoot;
-                await no_delete_dialog.ShowAsync();
+                await cannot_delete_dialog.ShowAsync();
                 return;
             }
 
-            // dialog - confirm delete
+            // confirm delete
+            var scheme_data = sender.DataContext as SchemeStore;
             ContentDialog confirm_delete_dialog = new ContentDialog()
             {
                 Title = "Confirm Delete",
-                Content = "Are you sure you want to delete?",
+                Content = "Are you sure you want to delete scheme: " + scheme_data.scheme_name + " ?",
+                
                 PrimaryButtonText = "Confirm",
                 CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Primary,
 
-                DefaultButton = ContentDialogButton.Primary
+                XamlRoot = this.XamlRoot,
             };
 
-            confirm_delete_dialog.XamlRoot = this.XamlRoot;
             ContentDialogResult result = await confirm_delete_dialog.ShowAsync();
 
             if (result == ContentDialogResult.Primary)
             {
-                // delete scheme in system
                 bool success = App.Current.power_manager.powercfg_del_scheme(scheme_guid);
-
                 if (success)
                 {
                     // if deleted scheme is selected by navigationview, select the systemactive scheme 
+                    var scheme_elem = this.scheme_elements_dict[scheme_guid];
                     if (scheme_elem.IsSelected)
                     {
                         this.navigationview.SelectedItem = this.scheme_elements_dict[this.systemactive_schemeguid];
@@ -585,13 +569,6 @@ namespace better_power
 
 
 
-
-
-
-
-
-
-
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
         // Navgation (via navigationview): view settings in selected scheme or group; scheme import dialog; classic scheme install dialog; app data refresh
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -601,8 +578,6 @@ namespace better_power
         {
             if (args.SelectedItemContainer == null) return;
             
-            this.settings_locked_for_navigation = true;
-
             string selected_tag = args.SelectedItemContainer.Tag.ToString();
             string selected_scheme_guid;
 
@@ -611,13 +586,6 @@ namespace better_power
             {
                 selected_scheme_guid = selected_tag;
 
-                // if the application is already showing these scheme values, no need to change to them
-                if (selected_scheme_guid != this.current_display_scheme_guid)
-                {
-                    navigation_update_settings_displaydata_to_scheme(selected_scheme_guid);
-                    this.current_display_scheme_guid = selected_scheme_guid;
-                }
-
                 // add all elements back into listview
                 this.setting_elements.Clear();
                 foreach (var elem in this.setting_elements_dict.Values)
@@ -625,29 +593,32 @@ namespace better_power
             }
                 
             // selected_guid is a groupid. get selected scheme. check for scheme change. filter to group's settings in view.
-            else if (App.group_data_dict.ContainsKey(selected_tag))
+            else
             {
                 string selected_group_guid = selected_tag;
                 selected_scheme_guid = (args.SelectedItemContainer.DataContext as SchemeStore).scheme_guid;
-
-                // if the application is already showing these scheme values, no need to change to them
-                if (selected_scheme_guid != this.current_display_scheme_guid)
-                {
-                    navigation_update_settings_displaydata_to_scheme(selected_scheme_guid);
-                    this.current_display_scheme_guid = selected_scheme_guid;
-                }
 
                 // filter setting elements down to only those members of the selected group
                 this.setting_elements.Clear();
                 foreach (var elem in this.setting_elements_by_group_dict[selected_group_guid])
                     this.setting_elements.Add(elem);
             }
-                
-            this.settings_locked_for_navigation = false;            
+
+            // if the scheme guid of the scheme or group that's been selected is not being displayed, display its settings values
+            if (selected_scheme_guid != this.current_display_scheme_guid)
+            {
+                navigation_update_settings_displaydata_to_scheme(selected_scheme_guid);
+                this.current_display_scheme_guid = selected_scheme_guid;
+            }
+
+            // clear searchbox
+            this.searchbox.Text = "";
         }
 
         private void navigation_update_settings_displaydata_to_scheme(string selected_scheme_guid)
         {
+            this.settings_locked_for_navigation = true;
+
             foreach (SettingStore setting_data in App.setting_data_dict.Values)
             {
                 var vals = setting_data.curr_setting_vals_by_scheme[selected_scheme_guid];
@@ -655,11 +626,16 @@ namespace better_power
                 setting_data.curr_ac_val = vals.ac_val;
                 setting_data.curr_dc_val = vals.dc_val;
             }
+
+            this.settings_locked_for_navigation = false;
         }
 
 
-        // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
+
+        // -----------------------------------------------------------------------------------------------------------------------------------------------------
+        // PaneFooter Button Tap-Handlers; core application functionality
+        // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
         private async void Scheme_ImportButton_Tapped(object _sender, TappedRoutedEventArgs e)
         {
@@ -672,7 +648,10 @@ namespace better_power
             Windows.Storage.StorageFile file = await openPicker.PickSingleFileAsync();
 
             if (file != null)            
-                NewScheme_ImportFromFile_UpdateApp(file.Path);            
+                NewScheme_ImportFromFile_UpdateApp(file.Path);
+
+            this.globalnotifierflyouttext.Text = "new text";
+            FlyoutBase.ShowAttachedFlyout(this.navigationview.PaneFooter as FrameworkElement);
         }
 
         private async void Scheme_InstallButton_Tapped(object _sender, TappedRoutedEventArgs e)
@@ -680,11 +659,11 @@ namespace better_power
             var file_panel = new StackPanel() { Orientation = Orientation.Vertical };
             file_panel.Children.Add(new TextBlock()
             {
-                Text = "These buttons will install a new copy of the given default scheme. Existing schemes will not be modified.",
+                Text = "These buttons will install a new copy of the given default power scheme. Existing schemes will not be modified.",
                 TextWrapping = TextWrapping.WrapWholeWords,
-                Margin = new Thickness(20)
+                Margin = new Thickness(20),
             });
-
+            
             foreach (int i in App.Current.classic_order)
             {
                 string path = App.Current.classic_filepaths[i];
@@ -709,10 +688,11 @@ namespace better_power
                 Content = file_panel,
 
                 CloseButtonText = "Close",
-                DefaultButton = ContentDialogButton.Close
-            };
+                DefaultButton = ContentDialogButton.Close,
 
-            install_dialog.XamlRoot = this.XamlRoot;
+                XamlRoot = this.XamlRoot,
+            };
+         
             await install_dialog.ShowAsync();
         }
 
@@ -725,6 +705,59 @@ namespace better_power
 
             fire_success_animation(sender, success);
         }
+
+        private async void Scheme_ResetButton_Tapped(object _sender, TappedRoutedEventArgs e)
+        {
+            ContentDialog reset_dialog = new ContentDialog()
+            {
+                Title = "Reset Default Powerschemes",
+                Content = "Resetting your system schemes to default will uninstall any custom or copied schemes, and revert each scheme to all its default setting values. " +
+                "The system active scheme will be set to a default scheme.",
+
+                PrimaryButtonText = "Reset Schemes to Default",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Primary,
+
+                XamlRoot = this.XamlRoot,
+            };
+
+            ContentDialogResult result = await reset_dialog.ShowAsync();
+
+            if (result == ContentDialogResult.Primary)
+            {
+                App.Current.power_manager.powercfg_resetdefaultschemes();
+
+                this.Application_Full_Refresh();
+            }
+        }
+
+        private async void RefreshButton_Tapped(object _sender, TappedRoutedEventArgs e)
+        {
+            ContentDialog refresh_dialog = new ContentDialog()
+            {
+                Title = "Refresh App Data",
+                Content = "This may take a few seconds. Continue to refresh?",
+
+                PrimaryButtonText = "Refresh",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Primary,
+
+                XamlRoot = this.XamlRoot,
+            };
+
+            ContentDialogResult result = await refresh_dialog.ShowAsync();
+
+            if (result == ContentDialogResult.Primary)            
+                this.Application_Full_Refresh();
+        }
+
+
+
+
+
+        // -----------------------------------------------------------------------------------------------------------------------------------------------------
+        // System, UI, and Application state-change helpers
+        // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
         private bool NewScheme_ImportFromFile_UpdateApp(string schemepath)
         {
@@ -739,43 +772,20 @@ namespace better_power
             return success;
         }
 
-
-        // -----------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-        private async void Scheme_ResetButton_Tapped(object _sender, TappedRoutedEventArgs e)
+        private void NewScheme_UpdateAppData_UpdateUIElems(string new_scheme_name, string new_scheme_guid)
         {
-            ContentDialog reset_dialog = new ContentDialog()
-            {
-                Title = "Reset Default Powerschemes",
-                Content = "Resetting your system schemes to default will uninstall any custom or copied schemes, and revert each scheme to all its default setting values." +
-                "The system active scheme will be set to a default scheme.",
+            // update Application datastructures for new scheme
+            SchemeStore new_scheme_data = new SchemeStore(new_scheme_name, new_scheme_guid);
+            App.scheme_data_dict[new_scheme_guid] = new_scheme_data;
+            App.Current.store_setting_values_one_scheme(new_scheme_guid);
 
-                PrimaryButtonText = "Reset Schemes to Default",
-                CloseButtonText = "Cancel",
+            // update view elements for the new scheme
+            var new_scheme_elem = generate_schememenuitem(new_scheme_data);
+            this.navigationview.MenuItems.Add(new_scheme_elem);
+            this.scheme_elements_dict[new_scheme_guid] = new_scheme_elem;
 
-                DefaultButton = ContentDialogButton.Primary
-            };
-
-            reset_dialog.XamlRoot = this.XamlRoot;
-            ContentDialogResult result = await reset_dialog.ShowAsync();
-
-            if (result == ContentDialogResult.Primary)
-            {
-                App.Current.power_manager.powercfg_resetdefaultschemes();
-
-                this.Application_Full_Refresh();
-            }
+            fire_success_animation(new_scheme_elem, true);
         }
-
-        private void RefreshButton_Tapped(object _sender, TappedRoutedEventArgs e)
-        {
-            this.Application_Full_Refresh();
-        }
-
-
-        // -----------------------------------------------------------------------------------------------------------------------------------------------------
-
 
         private void UpdateUI_ShowSystemActiveScheme()
         {
