@@ -50,7 +50,7 @@
     <Page Update="Pages\CopyDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Update="Pages\Page1.xaml">
+    <Page Update="Pages\MainPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Update="Pages\RenameDialog.xaml">

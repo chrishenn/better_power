@@ -1,5 +1,4 @@
-﻿using better_power.Common;
-using Microsoft.UI;
+﻿using Microsoft.UI;
 using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -23,6 +22,7 @@ using Windows.Foundation;
 using Windows.Foundation.Collections;
 
 using Windows.UI;
+using better_power.Common;
 
 
 namespace better_power
@@ -650,8 +650,7 @@ namespace better_power
             if (file != null)            
                 NewScheme_ImportFromFile_UpdateApp(file.Path);
 
-            this.globalnotifierflyouttext.Text = "new text";
-            FlyoutBase.ShowAttachedFlyout(this.navigationview.PaneFooter as FrameworkElement);
+            this.globalinfo.IsOpen = true;
         }
 
         private async void Scheme_InstallButton_Tapped(object _sender, TappedRoutedEventArgs e)

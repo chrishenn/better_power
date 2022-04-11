@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:better_power"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:common="using:better_power.Common"
     mc:Ignorable="d">
 
 
@@ -196,12 +196,17 @@
             </NavigationView.AutoSuggestBox>
 
             <NavigationView.PaneFooter>
-                <StackPanel Orientation="Vertical" HorizontalAlignment="Stretch">
-                    <FlyoutBase.AttachedFlyout>
-                        <Flyout ShowMode="Transient" Placement="Top">
-                            <TextBlock x:Name="globalnotifierflyouttext" Text="This is some text in a flyout."  />
-                        </Flyout>
-                    </FlyoutBase.AttachedFlyout>
+                <StackPanel x:Name="notistackpanel" Orientation="Vertical" HorizontalAlignment="Stretch">
+                    
+                    <common:AutoCloseInfoBar
+                        x:Name="globalinfo"
+                        Title="Info"
+                        Message="Setting success"
+                        IsOpen="False"
+                        IsIconVisible="True"
+                        IsClosable="True"
+                        AutoCloseInterval="3" />
+
                     <NavigationViewItemSeparator/>
                     <NavigationViewItem Content="Import Power Scheme"   Icon="Import"      Tapped="Scheme_ImportButton_Tapped"/>
                     <NavigationViewItem Content="Install Classic Schemes" Icon="ImportAll" Tapped="Scheme_InstallButton_Tapped"/>
