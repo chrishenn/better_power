@@ -36,7 +36,7 @@ namespace better_power
 
         // ordering needed to support drag-n-drop reordering in navigationview
         OrderedDictionary<string, NavigationViewItem> scheme_elements_dict = new OrderedDictionary<string, NavigationViewItem>();
-              
+
         // current scheme guid being displayed in the main ListView UI
         string current_display_scheme_guid;
 
@@ -44,6 +44,7 @@ namespace better_power
 
         // inidicate that setting values changing in listview should not fire system settings changes
         bool settings_locked_for_navigation = false;
+        bool settings_elements_locked_in_view = false;
 
         const string ANIMATION_SUCCESS_KEY = "animation_success";
         const string ANIMATION_FAIL_KEY = "animation_fail";
@@ -80,7 +81,10 @@ namespace better_power
             this.generate_scheme_elements();
 
             this.systemactive_schemeguid = App.Current.power_manager.get_systemactive_schemeguid();
+
+            // must set initial value here
             this.current_display_scheme_guid = this.systemactive_schemeguid + "";
+            this.set_current_display_scheme_guid(this.systemactive_schemeguid);
 
             this.settings_locked_for_navigation = false;
         }
@@ -95,6 +99,20 @@ namespace better_power
         }
 
 
+        private void set_current_display_scheme_guid(string value)
+        {
+            string old_guid = this.current_display_scheme_guid;
+            var old_elem = this.scheme_elements_dict[old_guid];
+            (old_elem.Resources[ANIMATION_SUCCESS_KEY] as Storyboard).Completed -= ReSelectItem_AfterAnimation;
+            (old_elem.Resources[ANIMATION_FAIL_KEY] as Storyboard).Completed -= ReSelectItem_AfterAnimation;
+
+            string new_guid = value;
+            var new_elem = this.scheme_elements_dict[new_guid];
+            (new_elem.Resources[ANIMATION_SUCCESS_KEY] as Storyboard).Completed += ReSelectItem_AfterAnimation;
+            (new_elem.Resources[ANIMATION_FAIL_KEY] as Storyboard).Completed += ReSelectItem_AfterAnimation;
+
+            this.current_display_scheme_guid = value + "";
+        }
 
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -352,6 +370,41 @@ namespace better_power
 
 
 
+        // -----------------------------------------------------------------------------------------------------------------------------------------------------
+
+        private void process_selected_schemelement_to_animate(NavigationViewItem scheme_elem, string scheme_guid)
+        {
+            var storyboard_success = (scheme_elem.Resources[ANIMATION_SUCCESS_KEY] as Storyboard);
+            var storyboard_fail = (scheme_elem.Resources[ANIMATION_FAIL_KEY] as Storyboard);
+
+            if (scheme_guid == this.current_display_scheme_guid)
+            {
+                // this scheme is selected in navigationview. must de-select for flash to be visible                
+                this.navigationview.SelectedItem = null;
+
+                // ReSelectItem will run when the success/fail animation is done running
+                storyboard_success.Completed += ReSelectItem_AfterAnimation;
+                storyboard_fail.Completed += ReSelectItem_AfterAnimation;
+            }
+            else
+            {
+                // this scheme is not selected. unregister ReSelectItem in case it was previously added
+                storyboard_success.Completed -= ReSelectItem_AfterAnimation;
+                storyboard_fail.Completed -= ReSelectItem_AfterAnimation;
+            }
+        }
+
+        private void ReSelectItem_AfterAnimation(object sender, object e)
+        {
+            // we have to store the scheme_guid of this storyboard's owning menuitem in its TargetName because it doesn't have a tag
+            string scheme_guid = Storyboard.GetTargetName(sender as Storyboard);
+
+            this.settings_elements_locked_in_view = true;
+            this.navigationview.SelectedItem = this.scheme_elements_dict[scheme_guid];
+            this.settings_elements_locked_in_view = false;
+        }
+
+
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
         // Bind loaded UIElements from the UI into their component objects stored in this instance
@@ -408,7 +461,6 @@ namespace better_power
         private void SchemeSetActiveFlyout_Clicked(object sender, RoutedEventArgs e)
         {
             string scheme_guid = (sender as MenuFlyoutItem).Tag.ToString();
-            NavigationViewItem scheme_elem = this.scheme_elements_dict[scheme_guid];
 
             bool success = App.Current.power_manager.set_systemactive_scheme(scheme_guid);
             if (success)
@@ -417,33 +469,14 @@ namespace better_power
                 UpdateUI_ShowSystemActiveScheme();                
             }
 
-            var storyboard_success = (scheme_elem.Resources["success_animation"] as Storyboard);
-            var storyboard_fail = (scheme_elem.Resources["fail_animation"] as Storyboard);
+            NavigationViewItem scheme_elem = this.scheme_elements_dict[scheme_guid];
 
-            if (scheme_guid == this.current_display_scheme_guid)
-            {
-                // this scheme is selected in navigationview. must de-select for flash to be visible                
+            //process_selected_schemelement_to_animate(scheme_elem, scheme_guid);
+            if (scheme_guid == this.current_display_scheme_guid)                          
                 this.navigationview.SelectedItem = null;
 
-                // ReSelectItem will run when the success/fail animation is done running
-                storyboard_success.Completed += ReSelectItem_AfterAnimation;
-                storyboard_fail.Completed += ReSelectItem_AfterAnimation;
-            }
-            else
-            {
-                // this scheme is not selected. unregister ReSelectItem in case it was previously added
-                storyboard_success.Completed -= ReSelectItem_AfterAnimation;
-                storyboard_fail.Completed -= ReSelectItem_AfterAnimation;
-            }
-
             fire_success_animation(scheme_elem, success);
-        }
-
-        private void ReSelectItem_AfterAnimation(object sender, object e)
-        {
-            // we have to store the scheme_guid of this storyboard's owning menuitem in its TargetName because it doesn't have a tag
-            string scheme_guid = Storyboard.GetTargetName(sender as Storyboard);
-            this.navigationview.SelectedItem = this.scheme_elements_dict[scheme_guid];
+            fly_global_notification("set active power scheme", success, flash: true);
         }
 
         // rename a scheme
@@ -451,21 +484,30 @@ namespace better_power
         {
             var sender = _sender as MenuFlyoutItem;
             SchemeStore scheme_data = sender.DataContext as SchemeStore;
+            string scheme_guid = scheme_data.scheme_guid;
+            string old_name = scheme_data.scheme_name + "";
 
-            RenameDialog rename_dialog = new RenameDialog(scheme_data.scheme_name);
+            RenameDialog rename_dialog = new RenameDialog(old_name);
             rename_dialog.XamlRoot = this.XamlRoot;
             await rename_dialog.ShowAsync();
 
             if (rename_dialog.result == RenameResult.RenameSuccess)
             {
                 string new_name = rename_dialog.new_name;
-                string curr_name = scheme_data.scheme_name;
-                if (new_name != curr_name)
+                if (new_name != old_name)
                 {
-                    bool success = App.Current.power_manager.powercfg_rename_scheme(scheme_data.scheme_guid, new_name);
-
+                    bool success = App.Current.power_manager.powercfg_rename_scheme(scheme_guid, new_name);
                     if (success)                         
                         scheme_data.scheme_name = new_name;
+
+                    NavigationViewItem scheme_elem = this.scheme_elements_dict[scheme_guid];
+
+                    //process_selected_schemelement_to_animate(scheme_elem, scheme_guid);
+                    if (scheme_guid == this.current_display_scheme_guid)
+                        this.navigationview.SelectedItem = null;
+
+                    fire_success_animation(scheme_elem, success);
+                    fly_global_notification("renamed power scheme \""+ old_name+"\" to \""+new_name+"\"", success, flash: true);
                 }
             }
         }
@@ -491,8 +533,18 @@ namespace better_power
                 bool success1 = App.Current.power_manager.powercfg_copy_scheme(scheme_guid, new_scheme_guid);
                 bool success2 = App.Current.power_manager.powercfg_rename_scheme(new_scheme_guid, new_scheme_name);
 
-                if (success1 && success2)
+                bool success = success1 && success2;
+                if (success)
                     NewScheme_UpdateAppData_UpdateUIElems(new_scheme_name, new_scheme_guid);
+
+                var scheme_elem = this.scheme_elements_dict[scheme_guid];
+
+                //process_selected_schemelement_to_animate(scheme_elem, scheme_guid);
+                if (scheme_guid == this.current_display_scheme_guid)
+                    this.navigationview.SelectedItem = null;
+
+                fire_success_animation(scheme_elem, success);
+                fly_global_notification("copied power scheme \""+scheme_data.scheme_name+"\" to \""+new_scheme_name+"\"", success, flash: true);
             }
         }
 
@@ -545,7 +597,9 @@ namespace better_power
                     if (scheme_elem.IsSelected)
                     {
                         this.navigationview.SelectedItem = this.scheme_elements_dict[this.systemactive_schemeguid];
-                        this.current_display_scheme_guid = "" + this.systemactive_schemeguid;
+
+                        //this.current_display_scheme_guid = "" + this.systemactive_schemeguid;
+                        this.set_current_display_scheme_guid(this.systemactive_schemeguid);
                     }
                     
                     // delete scheme from navigationview
@@ -556,6 +610,7 @@ namespace better_power
                     App.scheme_data_dict.Remove(scheme_guid);
                     App.Current.remove_setting_values_one_scheme(scheme_guid);
                 }
+                fly_global_notification("deleted power scheme: " + scheme_data.scheme_name, success, flash: true);
             }
         }
 
@@ -576,7 +631,18 @@ namespace better_power
             Windows.Storage.StorageFile file = await savePicker.PickSaveFileAsync();
 
             if (file != null)
-                PowercfgManager.powercfg_export_scheme(scheme_guid, file.Path);
+            {
+                bool success = PowercfgManager.powercfg_export_scheme(scheme_guid, file.Path);
+
+                var scheme_elem = this.scheme_elements_dict[scheme_guid];
+
+                //process_selected_schemelement_to_animate(scheme_elem, scheme_guid);
+                if (scheme_guid == this.current_display_scheme_guid)
+                    this.navigationview.SelectedItem = null;
+
+                fire_success_animation(scheme_elem, success);
+                fly_global_notification("exported power scheme \"" + scheme_data.scheme_name + "\" to file \"" + file.Name+"\"", success, flash: true);
+            }
         }
 
 
@@ -600,9 +666,12 @@ namespace better_power
                 selected_scheme_guid = selected_tag;
 
                 // add all elements back into listview
-                this.setting_elements.Clear();
-                foreach (var elem in this.setting_elements_dict.Values)
-                    this.setting_elements.Add(elem);
+                if (!this.settings_elements_locked_in_view)
+                {
+                    this.setting_elements.Clear();
+                    foreach (var elem in this.setting_elements_dict.Values)
+                        this.setting_elements.Add(elem);
+                }
             }
                 
             // selected_guid is a groupid. get selected scheme. check for scheme change. filter to group's settings in view.
@@ -621,10 +690,12 @@ namespace better_power
             if (selected_scheme_guid != this.current_display_scheme_guid)
             {
                 navigation_update_settings_displaydata_to_scheme(selected_scheme_guid);
-                this.current_display_scheme_guid = selected_scheme_guid;
+
+                //this.current_display_scheme_guid = selected_scheme_guid;
+                this.set_current_display_scheme_guid(selected_scheme_guid);
             }
 
-            // clear searchbox
+            // always clear searchbox on scheme or group clicked
             this.searchbox.Text = "";
         }
 
@@ -764,23 +835,12 @@ namespace better_power
             if (result == ContentDialogResult.Primary)
             {
                 this.Application_Full_Refresh();
-                fly_global_notification("refreshing application data", true, flash: true);
+                this.fly_global_notification("refreshing application data", true, flash: true);
             }
         }
 
 
-        private void fly_global_notification(string message, bool success, bool flash = false)
-        {
-            string title;
-            if (success) title = "SUCCESS";
-            else title = "FAILED";
 
-            this.globalinfo.Title = title;
-            this.globalinfo.Message = message;
-            this.globalinfo.IsOpen = true;
-            if (flash)
-                fire_success_animation(this.globalinfo, success);
-        }
 
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -829,7 +889,19 @@ namespace better_power
             }
         }
 
+        private void fly_global_notification(string message, bool success, bool flash = false)
+        {
+            string title;
+            if (success) title = "SUCCESS";
+            else title = "FAILED";
 
+            this.globalinfo.Title = title;
+            this.globalinfo.Message = message;
+            this.globalinfo.IsOpen = true;
+
+            if (flash)
+                fire_success_animation(this.globalinfo, success);
+        }
 
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -889,6 +961,7 @@ namespace better_power
         private void F5_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
         {
             this.Application_Full_Refresh();
+            this.fly_global_notification("refreshing application data", true, flash: true);
         }
     }
            

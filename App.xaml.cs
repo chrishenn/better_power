@@ -30,6 +30,9 @@ namespace better_power
 
     // TODO
 
+    // instead of registering re-select handlers at every operation, maybe register only when a scheme is selected in the nav view?
+        // would that be faster?
+
     // enforce that the "working on it" behavior is the same no matter the dialog, flyout, import, refresh, etc
     // global success indicator? especially for export success. there's no obvious place for a success flash
 
@@ -49,6 +52,8 @@ namespace better_power
     // installer must run power unhide scripts (reporpose system-object code?)
     // compatibility testing
 
+    // BUG: code that animates success flash on nav item that is selected, re-selects the item, which re-loads the listview items
+        // from navigation selection changed. There's now an animation associated with that, which only runs in this case.
     // full refresh is slow. can be faster? (check speed in release build)
     // search behavior: include all settings under group header if header name matches search query?
     // [wait: future winui version] override window theme-color border
