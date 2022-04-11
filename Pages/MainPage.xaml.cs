@@ -26,8 +26,7 @@ using better_power.Common;
 
 
 namespace better_power
-{
-
+{    
     public sealed partial class MainPage : Page
     {
         // required ordereddict to maintain the ordering of headers and setting elements in the listView
@@ -46,7 +45,9 @@ namespace better_power
         // inidicate that setting values changing in listview should not fire system settings changes
         bool settings_locked_for_navigation = false;
 
-
+        const string ANIMATION_SUCCESS_KEY = "animation_success";
+        const string ANIMATION_FAIL_KEY = "animation_fail";
+        const string BACKGROUND_BRUSH_KEY = "background_brush";
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
         // Initialize instance; generate uielements from existing App data; code to refresh app elements
@@ -59,6 +60,9 @@ namespace better_power
             App.Window.SetTitleBar(this.AppTitleBar);
 
             Refresh_App_Elements();
+
+            // need only run once at construction
+            register_globalinfo_animators();
         }
 
         private void Refresh_App_Elements()
@@ -151,8 +155,8 @@ namespace better_power
                 setting_elem.Tag = setting_guid;
 
                 // register animators into element's Resources  
-                register_animation(setting_elem, Colors.MediumSpringGreen, "success_animation");
-                register_animation(setting_elem, Colors.MediumVioletRed, "fail_animation");
+                register_animation(setting_elem, Colors.MediumSpringGreen, ANIMATION_SUCCESS_KEY);
+                register_animation(setting_elem, Colors.MediumVioletRed, ANIMATION_FAIL_KEY);
 
                 // add setting element to instance collections to find later
                 this.setting_elements_dict[setting_guid] = setting_elem;
@@ -224,8 +228,8 @@ namespace better_power
             scheme_menuitem.DataContext = scheme_data;
 
             // register animators
-            register_animation(scheme_menuitem, Colors.MediumSpringGreen, "success_animation", storyboard_tag: scheme_guid);
-            register_animation(scheme_menuitem, Colors.MediumVioletRed, "fail_animation", storyboard_tag: scheme_guid);
+            register_animation(scheme_menuitem, Colors.MediumSpringGreen, ANIMATION_SUCCESS_KEY, storyboard_tag: scheme_guid);
+            register_animation(scheme_menuitem, Colors.MediumVioletRed, ANIMATION_FAIL_KEY, storyboard_tag: scheme_guid);
 
             // each scheme menuitem gets a complete list of all groups as submenu items            
             foreach (var group_data in App.group_data_dict)
@@ -234,6 +238,15 @@ namespace better_power
             return scheme_menuitem;
         }
 
+
+        // -----------------------------------------------------------------------------------------------------------------------------------------------------
+        
+        // register animators into global notifier infobar
+        private void register_globalinfo_animators()
+        {
+            register_animation(this.globalinfo, Colors.MediumSpringGreen, ANIMATION_SUCCESS_KEY);
+            register_animation(this.globalinfo, Colors.MediumVioletRed, ANIMATION_FAIL_KEY);
+        }
 
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -254,11 +267,11 @@ namespace better_power
         {
             Color background_gray = (App.Current.Resources["AppTitleBar_Grey"] as SolidColorBrush).Color;
 
-            if (!element.Resources.ContainsKey("background_brush"))
+            if (!element.Resources.ContainsKey(BACKGROUND_BRUSH_KEY))
             {
                 SolidColorBrush background_brush = new SolidColorBrush(background_gray);
                 element.Background = background_brush;
-                element.Resources["background_brush"] = background_brush;
+                element.Resources[BACKGROUND_BRUSH_KEY] = background_brush;
             }
 
             var color_tocolor = new LinearColorKeyFrame() { Value = color, KeyTime = TimeSpan.FromSeconds(0.025) };
@@ -270,7 +283,7 @@ namespace better_power
             animation.KeyFrames.Add(color_hold);
             animation.KeyFrames.Add(color_togray);
 
-            Storyboard.SetTarget(animation, element.Resources["background_brush"] as SolidColorBrush);
+            Storyboard.SetTarget(animation, element.Resources[BACKGROUND_BRUSH_KEY] as SolidColorBrush);
             Storyboard.SetTargetProperty(animation, "Color");
 
             Storyboard story_board = new Storyboard() { Children = { animation } };
@@ -283,7 +296,7 @@ namespace better_power
         {
             Color background_gray = (App.Current.Resources["AppTitleBar_Grey"] as SolidColorBrush).Color;
 
-            if (!element.Resources.ContainsKey("background_brush"))
+            if (!element.Resources.ContainsKey(BACKGROUND_BRUSH_KEY))
             {
                 SolidColorBrush background_brush = new SolidColorBrush(background_gray);
                 element.Background = background_brush;
@@ -299,7 +312,7 @@ namespace better_power
             animation.KeyFrames.Add(color_hold);
             animation.KeyFrames.Add(color_togray);
 
-            Storyboard.SetTarget(animation, element.Resources["background_brush"] as SolidColorBrush);
+            Storyboard.SetTarget(animation, element.Resources[BACKGROUND_BRUSH_KEY] as SolidColorBrush);
             Storyboard.SetTargetProperty(animation, "Color");
 
             Storyboard story_board = new Storyboard() { Children = { animation } };
@@ -325,16 +338,16 @@ namespace better_power
         private void fire_success_animation_control(Control element, bool success)
         {
             if (success)
-                (element.Resources["success_animation"] as Storyboard).Begin();
+                (element.Resources[ANIMATION_SUCCESS_KEY] as Storyboard).Begin();
             else
-                (element.Resources["fail_animation"] as Storyboard).Begin();
+                (element.Resources[ANIMATION_FAIL_KEY] as Storyboard).Begin();
         }
         private void fire_success_animation_panel(Panel element, bool success)
         {
             if (success)
-                (element.Resources["success_animation"] as Storyboard).Begin();
+                (element.Resources[ANIMATION_SUCCESS_KEY] as Storyboard).Begin();
             else
-                (element.Resources["fail_animation"] as Storyboard).Begin();
+                (element.Resources[ANIMATION_FAIL_KEY] as Storyboard).Begin();
         }
 
 
@@ -647,10 +660,11 @@ namespace better_power
             WinRT.Interop.InitializeWithWindow.Initialize(openPicker, App.Current._hwnd);
             Windows.Storage.StorageFile file = await openPicker.PickSingleFileAsync();
 
-            if (file != null)            
-                NewScheme_ImportFromFile_UpdateApp(file.Path);
-
-            this.globalinfo.IsOpen = true;
+            if (file != null)
+            {
+                bool success = NewScheme_ImportFromFile_UpdateApp(file.Path);
+                fly_global_notification("importing scheme from " + file.Name, success, flash: true);
+            }
         }
 
         private async void Scheme_InstallButton_Tapped(object _sender, TappedRoutedEventArgs e)
@@ -672,8 +686,8 @@ namespace better_power
                 var file_button = new Button() { Content = schemename, Margin = new Thickness(2), Tag = path };
 
                 // register animators into buttons's Resources
-                register_animation(file_button, Colors.MediumSpringGreen, "success_animation");
-                register_animation(file_button, Colors.MediumVioletRed, "fail_animation");
+                register_animation(file_button, Colors.MediumSpringGreen, ANIMATION_SUCCESS_KEY);
+                register_animation(file_button, Colors.MediumVioletRed, ANIMATION_FAIL_KEY);
 
                 // button click handler
                 file_button.Click += Scheme_InstallDialog_InstallButtonTapped;
@@ -703,6 +717,7 @@ namespace better_power
             bool success = NewScheme_ImportFromFile_UpdateApp(schemepath);
 
             fire_success_animation(sender, success);
+            fly_global_notification("installing classic scheme", success, flash: true);
         }
 
         private async void Scheme_ResetButton_Tapped(object _sender, TappedRoutedEventArgs e)
@@ -724,9 +739,9 @@ namespace better_power
 
             if (result == ContentDialogResult.Primary)
             {
-                App.Current.power_manager.powercfg_resetdefaultschemes();
-
+                bool success = App.Current.power_manager.powercfg_resetdefaultschemes();
                 this.Application_Full_Refresh();
+                fly_global_notification("resetting to default schemes", success, flash: true);
             }
         }
 
@@ -746,12 +761,26 @@ namespace better_power
 
             ContentDialogResult result = await refresh_dialog.ShowAsync();
 
-            if (result == ContentDialogResult.Primary)            
+            if (result == ContentDialogResult.Primary)
+            {
                 this.Application_Full_Refresh();
+                fly_global_notification("refreshing application data", true, flash: true);
+            }
         }
 
 
+        private void fly_global_notification(string message, bool success, bool flash = false)
+        {
+            string title;
+            if (success) title = "SUCCESS";
+            else title = "FAILED";
 
+            this.globalinfo.Title = title;
+            this.globalinfo.Message = message;
+            this.globalinfo.IsOpen = true;
+            if (flash)
+                fire_success_animation(this.globalinfo, success);
+        }
 
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
