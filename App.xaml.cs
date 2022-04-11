@@ -31,9 +31,9 @@ namespace better_power
     // TODO
 
     // enforce that the "working on it" behavior is the same no matter the dialog, flyout, import, refresh, etc
+    // if a new notification fires before the old one has timed out, force it to refresh with new notification content
     // default ordering from power saver to ultimate
     // explanatory tooltips
-    // if a new notification fires before the old one has timed out, force it to refresh with new notification content
 
     // setting cards:
     //      indicate possible values to which we can set the setting

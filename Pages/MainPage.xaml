@@ -5,7 +5,8 @@
     xmlns:local="using:better_power"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:common="using:better_power.Common"
-    mc:Ignorable="d">
+    mc:Ignorable="d"    
+    >
 
 
     <Page.Resources>
@@ -64,10 +65,8 @@
             <DataTemplate x:Key="Scheme_NavViewItemTemplate" x:DataType="local:SchemeStore">
                 <NavigationViewItem                    
                     Icon="List"                     
-                    Tag="{x:Bind scheme_guid}" 
-                    
-                    CanDrag="True"
-                    >
+                    Tag="{x:Bind scheme_guid}"                     
+                    CanDrag="True" >
                     
                     <NavigationViewItem.ContextFlyout>
                         <MenuFlyout>
@@ -146,13 +145,6 @@
 
         <Grid x:Name="AppTitleBar" Grid.Row="0" />
 
-        <InfoBar
-                    IsOpen="True"
-                    IsIconVisible="True"
-                    IsClosable="True"
-                    Title="Title"
-                    Message="Essential app message " />
-
         <NavigationView
             x:Name="navigationview"     
             SelectionChanged="navigationview_SelectionChanged"
@@ -173,8 +165,7 @@
             ExpandedModeThresholdWidth="500"
             SelectionFollowsFocus="Disabled"
             IsTabStop="False"
-            IsTitleBarAutoPaddingEnabled="False"            
-            >
+            IsTitleBarAutoPaddingEnabled="False" >
            
             <NavigationView.AutoSuggestBox>
                 <AutoSuggestBox

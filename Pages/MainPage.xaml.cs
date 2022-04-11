@@ -23,7 +23,9 @@ using Windows.Foundation.Collections;
 
 using Windows.UI;
 using better_power.Common;
-
+using Windows.UI.Core;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace better_power
 {    
@@ -69,8 +71,8 @@ namespace better_power
 
             Refresh_App_Elements();
 
-            // need only run once at construction
-            register_animation_globalnotifier();
+            register_animation(this.globalinfo, Colors.MediumSpringGreen, ANIMATION_SUCCESS_KEY);
+            register_animation(this.globalinfo, Colors.MediumVioletRed, ANIMATION_FAIL_KEY);
         }
 
         private void Refresh_App_Elements()
@@ -93,13 +95,14 @@ namespace better_power
             this.settings_locked_for_navigation = false;
         }
 
-        private void Application_Full_Refresh()
+        private async void Application_Full_Refresh()
         {
-            App.Current.Refresh_App_Data();
+            App.Window.Content = new WaitingScreen(); 
+
+            await Task.Run(() => App.Current.Refresh_App_Data());
             this.Refresh_App_Elements();
 
-            this.listview_Load_Elements();
-            this.navigationview_Load_Elements();
+            App.Window.Content = this;            
         }
 
 
@@ -319,13 +322,6 @@ namespace better_power
                 Storyboard.SetTargetName(story_board, storyboard_tag);
 
             element.Resources[animation_name] = story_board;
-        }
-
-        // register animators into global notifier infobar
-        private void register_animation_globalnotifier()
-        {
-            register_animation(this.globalinfo, Colors.MediumSpringGreen, ANIMATION_SUCCESS_KEY);
-            register_animation(this.globalinfo, Colors.MediumVioletRed, ANIMATION_FAIL_KEY);
         }
 
 
@@ -672,8 +668,13 @@ namespace better_power
             if (result == ContentDialogResult.Primary)
             {
                 bool success = App.Current.power_manager.powercfg_resetdefaultschemes();
-                this.Application_Full_Refresh();
-                fly_global_notification("resetting to default schemes", success, flash: true);
+                if (success)
+                {
+                    this.Resources["pending_notification"] = () => fly_global_notification("reset system to default schemes", success, flash: true);
+                    this.Loaded += fly_global_notification_on_load;
+
+                    this.Application_Full_Refresh();
+                }
             }
         }
 
@@ -695,8 +696,10 @@ namespace better_power
 
             if (result == ContentDialogResult.Primary)
             {
+                this.Resources["pending_notification"] = () => fly_global_notification("refreshed application data", true, flash: true);
+                this.Loaded += fly_global_notification_on_load;
+
                 this.Application_Full_Refresh();
-                this.fly_global_notification("refreshing application data", true, flash: true);
             }
         }
 
@@ -856,8 +859,8 @@ namespace better_power
             }
         }
 
-        private void fly_global_notification(string message, bool success, bool flash = false)
-        {
+        private void fly_global_notification(string message, bool success, bool flash = false) 
+        {                                 
             string title;
             if (success) title = "SUCCESS";
             else title = "FAILED";
@@ -868,6 +871,16 @@ namespace better_power
 
             if (flash)
                 fire_success_animation(this.globalinfo, success);
+        }
+
+        private void fly_global_notification_on_load(object _sender, RoutedEventArgs e)
+        {
+            if (this.Resources.ContainsKey("pending_notification"))
+            {
+                var func = this.Resources["pending_notification"] as Action;
+                func();
+            }
+            this.Loaded -= fly_global_notification_on_load;
         }
 
 
@@ -927,8 +940,10 @@ namespace better_power
         }
         private void F5_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
         {
+            this.Resources["pending_notification"] = () => fly_global_notification("refreshed application data", true, flash: true);
+            this.Loaded += fly_global_notification_on_load;
+
             this.Application_Full_Refresh();
-            this.fly_global_notification("refreshing application data", true, flash: true);
         }
     }
            
