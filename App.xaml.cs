@@ -31,13 +31,6 @@ namespace better_power
 
     // TODO
 
-    // BUG: RACE CONDITION ON APPLICATION REFRESH
-    // MORE COMMON WHEN RESETTING TO DEFAULT VALUES
-    // the systemactive_schemeguid is not found in the scheme_elements_dict (intermittently)
-    // edit: bug may be fixed. updated the async/await syntax to be more correct (?)
-
-    // enforce that the "working on it" behavior is the same no matter the dialog, flyout, import, refresh, etc
-    // if a new notification fires before the old one has timed out, force it to refresh with new notification content
     // default ordering from power saver to ultimate
 
     // setting cards:
@@ -191,7 +184,7 @@ namespace better_power
         {
             this.InitializeComponent();
 
-            this.read_classic_schemes_fromfiles();
+            this.read_classic_schemes_fromfiles();            
 
             this.Refresh_App_Data();
         }
@@ -250,6 +243,7 @@ namespace better_power
         // Build App data structs and objects
         //-------------------------------------------------------------------------------------------------
 
+        // parses strings returned from powershell powercfg
         private void build_schemedata()
         {
             var result = this.power_manager.powercfg_get_schemelist();
@@ -379,7 +373,7 @@ namespace better_power
         }
 
 
-        // populate the existing settings objs in the settings dict with currently-set values
+        // populate the existing settings objs in the settings dict with system's currently-set values
         private void store_setting_values_all_schemes()
         {
             foreach (var kvp in App._scheme_data_dict)
@@ -428,53 +422,6 @@ namespace better_power
             foreach (var setting_data in App._setting_data_dict.Values)            
                 setting_data.curr_setting_vals_by_scheme.Remove(scheme_guid);            
         }
-
-
-
-
-
-
-
-
-        //private void get_powerguids_from_classes()
-        //{
-        //    WMIHelper helper = new WMIHelper("root\\CimV2\\power");
-
-        //    var powerSettings = helper.Query("SELECT InstanceID, ElementName, Description FROM Win32_PowerSetting").ToList();
-        //    var powerSettingSubgroups = helper.Query("SELECT InstanceID, ElementName, Description FROM Win32_PowerSettingSubgroup").ToList();
-        //    var powerSettingsInSubgroups = helper.Query("SELECT PartComponent, GroupComponent FROM Win32_PowerSettingInSubgroup").ToList();
-
-        //    for (int i = 0; i < powerSettings.Count; i++)
-        //    {
-        //        string setting_guid = braces_reg.Match(powerSettings[i].InstanceID).Value;
-        //        string setting_name = powerSettings[i].ElementName;
-        //        string setting_descr = powerSettings[i].Description;
-
-        //        var store = new setting_store(setting_guid, "", setting_name, setting_descr);
-        //        this.setting_store_dict[setting_guid] = store;
-        //    }
-
-        //    for (int i = 0; i < powerSettingSubgroups.Count; i++)
-        //    {
-        //        string subgroup_guid = braces_reg.Match(powerSettingSubgroups[i].InstanceID).Value;
-        //        string subgroup_name = powerSettings[i].ElementName;
-        //        string subgroup_descr = powerSettings[i].Description;
-
-        //        var store = new group_store(subgroup_guid, subgroup_name, subgroup_descr);
-        //        this.subgroup_store_dict[subgroup_guid] = store;
-        //    }
-
-        //    for (int i = 0; i < powerSettingsInSubgroups.Count; i++)
-        //    {
-        //        string setting_guid = braces_reg.Match(powerSettingsInSubgroups[i].PartComponent).Value;
-
-        //        if (this.setting_store_dict.ContainsKey(setting_guid))
-        //        {
-        //            string group_guid = braces_reg.Match(powerSettingsInSubgroups[i].GroupComponent).Value;
-        //            this.setting_store_dict[setting_guid]._group_guid = group_guid;
-        //        }
-        //    }
-        //}
 
 
     }

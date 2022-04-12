@@ -183,7 +183,7 @@
                         IsOpen="False"
                         IsIconVisible="False"
                         IsClosable="False"
-                        AutoCloseInterval="2"
+                        AutoCloseInterval="3"
                         Visibility="Visible"/>
                 </NavigationViewItem>
                 

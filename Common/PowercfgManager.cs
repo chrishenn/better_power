@@ -40,7 +40,7 @@ namespace better_power.Common
             return (result.Count == 0);
         }
 
-        public bool set_systemactive_scheme(string scheme_guid)
+        public static bool set_systemactive_scheme(string scheme_guid)
         {
             var ps = PowerShell.Create().AddCommand("powercfg").AddArgument("setactive").AddArgument(scheme_guid);
             var result = ps.Invoke();
@@ -48,7 +48,7 @@ namespace better_power.Common
             return (result.Count == 0);
         }
 
-        public bool powercfg_rename_scheme(string scheme_guid, string name)
+        public static bool powercfg_rename_scheme(string scheme_guid, string name)
         {
             var ps = PowerShell.Create().AddCommand("powercfg").AddArgument("changename").AddArgument(scheme_guid).AddArgument(name);
             var result = ps.Invoke();
@@ -56,7 +56,7 @@ namespace better_power.Common
             return (result.Count == 0);
         }
 
-        public bool powercfg_copy_scheme(string scheme_guid, string new_guid)
+        public static bool powercfg_copy_scheme(string scheme_guid, string new_guid)
         {
             var ps = PowerShell.Create().AddCommand("powercfg").AddArgument("duplicatescheme").AddArgument(scheme_guid).AddArgument(new_guid);
             var result = ps.Invoke();
@@ -64,7 +64,7 @@ namespace better_power.Common
             return (result.Count == 1);
         }
 
-        public bool powercfg_del_scheme(string scheme_guid)
+        public static bool powercfg_del_scheme(string scheme_guid)
         {
             var ps = PowerShell.Create().AddCommand("powercfg").AddArgument("delete").AddArgument(scheme_guid);
             var result = ps.Invoke();

@@ -26,6 +26,7 @@ using better_power.Common;
 using Windows.UI.Core;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Threading;
 
 
 namespace better_power
@@ -403,8 +404,8 @@ namespace better_power
         private void SchemeSetActiveFlyout_Clicked(object sender, RoutedEventArgs e)
         {
             string scheme_guid = (sender as MenuFlyoutItem).Tag.ToString();
+            bool success = PowercfgManager.set_systemactive_scheme(scheme_guid);
 
-            bool success = App.Current.power_manager.set_systemactive_scheme(scheme_guid);
             if (success)
             {
                 this.systemactive_schemeguid = scheme_guid;
@@ -412,7 +413,7 @@ namespace better_power
             }
 
             fire_success_animation_scheme(scheme_guid, success);
-            fly_global_notification("setting active power scheme", success, flash: true);
+            fire_global_infobar("setting active power scheme", success, flash: true);
         }
 
         // rename a scheme
@@ -432,12 +433,12 @@ namespace better_power
                 string new_name = rename_dialog.new_name;
                 if (new_name != old_name)
                 {
-                    bool success = App.Current.power_manager.powercfg_rename_scheme(scheme_guid, new_name);
+                    bool success = PowercfgManager.powercfg_rename_scheme(scheme_guid, new_name);
                     if (success)
                         scheme_data.scheme_name = new_name;
 
                     fire_success_animation_scheme(scheme_guid, success);
-                    fly_global_notification("renaming power scheme \"" + old_name + "\" to \"" + new_name + "\"", success, flash: true);
+                    fire_global_infobar("renaming power scheme \"" + old_name + "\" to \"" + new_name + "\"", success, flash: true);
                 }
             }
         }
@@ -456,19 +457,26 @@ namespace better_power
 
             if (copy_dialog.result == CopyResult.CopySuccess)
             {
+                this.listview.ItemsSource = new ObservableCollection<FrameworkElement>() { new WaitPage() };
+
                 string new_scheme_guid = Guid.NewGuid().ToString();
                 string new_scheme_name = copy_dialog.new_name;
 
-                // copy scheme in system. rename new scheme to new name.
-                bool success1 = App.Current.power_manager.powercfg_copy_scheme(scheme_guid, new_scheme_guid);
-                bool success2 = App.Current.power_manager.powercfg_rename_scheme(new_scheme_guid, new_scheme_name);
+                // copy scheme in system.rename new scheme to new name.
+                //bool success1 = PowercfgManager.powercfg_copy_scheme(scheme_guid, new_scheme_guid);
+                //bool success2 = PowercfgManager.powercfg_rename_scheme(new_scheme_guid, new_scheme_name);
+
+                bool success1 = await Task.Run(() => PowercfgManager.powercfg_copy_scheme(scheme_guid, new_scheme_guid));
+                bool success2 = await Task.Run(() => PowercfgManager.powercfg_rename_scheme(new_scheme_guid, new_scheme_name));
 
                 bool success = success1 && success2;
                 if (success)
                     NewScheme_UpdateAppData_UpdateUIElems(new_scheme_name, new_scheme_guid);
 
+                this.listview.ItemsSource = this.setting_elements;
+
                 fire_success_animation_scheme(scheme_guid, success);
-                fly_global_notification("copying power scheme \"" + scheme_data.scheme_name + "\" to \"" + new_scheme_name + "\"", success, flash: true);
+                fire_global_infobar("copying power scheme \"" + scheme_data.scheme_name + "\" to \"" + new_scheme_name + "\"", success, flash: true);
             }
         }
 
@@ -513,7 +521,9 @@ namespace better_power
 
             if (result == ContentDialogResult.Primary)
             {
-                bool success = App.Current.power_manager.powercfg_del_scheme(scheme_guid);
+                //bool success = await Task.Run(() => PowercfgManager.powercfg_del_scheme(scheme_guid));
+                bool success = PowercfgManager.powercfg_del_scheme(scheme_guid);
+
                 if (success)
                 {
                     // if deleted scheme was selected by navigationview, select the systemactive scheme instead
@@ -525,11 +535,12 @@ namespace better_power
                     this.scheme_elements.Remove(scheme_elem);
                     this.scheme_elements_dict.Remove(scheme_guid);
 
-                    // delete scheme from application data
+                    // delete scheme from application data                    
                     App.scheme_data_dict.Remove(scheme_guid);
-                    App.Current.remove_setting_values_one_scheme(scheme_guid);
+                    App.Current.remove_setting_values_one_scheme(scheme_guid);                    
                 }
-                fly_global_notification("deleting power scheme \"" + scheme_data.scheme_name+"\"", success, flash: true);
+
+                fire_global_infobar("deleting power scheme \"" + scheme_data.scheme_name+"\"", success, flash: true);
             }
         }
 
@@ -554,11 +565,12 @@ namespace better_power
                 bool success = PowercfgManager.powercfg_export_scheme(scheme_guid, file.Path);
 
                 fire_success_animation_scheme(scheme_guid, success);
-                fly_global_notification("exporting power scheme \"" + scheme_data.scheme_name + "\" to file \"" + file.Name + "\"", success, flash: true);
+                fire_global_infobar("exporting power scheme \"" + scheme_data.scheme_name + "\" to file \"" + file.Name + "\"", success, flash: true);
             }
         }
 
 
+  
 
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -577,8 +589,8 @@ namespace better_power
 
             if (file != null)
             {
-                bool success = NewScheme_ImportFromFile_UpdateApp(file.Path);
-                fly_global_notification("importing scheme from \"" + file.Name+"\"", success, flash: true);
+                bool success = await NewScheme_ImportFromFile_UpdateApp(file.Path);
+                fire_global_infobar("importing scheme from \"" + file.Name+"\"", success, flash: true);
             }
         }
 
@@ -624,17 +636,17 @@ namespace better_power
             await install_dialog.ShowAsync();
         }
 
-        private void Scheme_InstallDialog_InstallButtonTapped(object _sender, RoutedEventArgs e)
+        private async void Scheme_InstallDialog_InstallButtonTapped(object _sender, RoutedEventArgs e)
         {
             var sender = _sender as Button;
             string schemepath = sender.Tag.ToString();
 
-            bool success = NewScheme_ImportFromFile_UpdateApp(schemepath);
+            bool success = await NewScheme_ImportFromFile_UpdateApp(schemepath);
 
             string name = schemepath.Substring(schemepath.LastIndexOf(@"\") + 1, schemepath.Length - 4 - schemepath.LastIndexOf(@"\") - 1);
 
             fire_success_animation(sender, success);
-            fly_global_notification("installing classic scheme \""+name+"\"", success, flash: true);
+            fire_global_infobar("installing classic scheme \""+name+"\"", success, flash: true);
         }
 
         private async void Scheme_ResetButton_Tapped(object _sender, TappedRoutedEventArgs e)
@@ -660,7 +672,7 @@ namespace better_power
                 if (success)
                 {
                     await this.Application_Full_Refresh();
-                    fly_global_notification("resetting default schemes", success, flash: true);
+                    fire_global_infobar("resetting default schemes", success, flash: true);
                 }
             }
         }
@@ -684,7 +696,7 @@ namespace better_power
             if (result == ContentDialogResult.Primary)
             {
                 await this.Application_Full_Refresh();
-                fly_global_notification("refreshing application data", true, flash: true);
+                fire_global_infobar("refreshing application data", true, flash: true);
             }
         }
 
@@ -801,15 +813,19 @@ namespace better_power
         // System, UI, and Application state-change helpers
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
-        private bool NewScheme_ImportFromFile_UpdateApp(string schemepath)
+        private async Task<bool> NewScheme_ImportFromFile_UpdateApp(string schemepath)
         {
             var new_scheme_guid = Guid.NewGuid().ToString();
-            bool success = PowercfgManager.powercfg_import_scheme(new_scheme_guid, schemepath);
+            bool success = await Task.Run(() => PowercfgManager.powercfg_import_scheme(new_scheme_guid, schemepath));
 
             if (success)
             {
-                string new_scheme_name = App.Current.power_manager.powercfg_get_schemename(new_scheme_guid);
+                this.listview.ItemsSource = new ObservableCollection<FrameworkElement>() { new WaitPage() };
+
+                string new_scheme_name = await Task.Run(() => App.Current.power_manager.powercfg_get_schemename(new_scheme_guid));
                 NewScheme_UpdateAppData_UpdateUIElems(new_scheme_name, new_scheme_guid);
+
+                this.listview.ItemsSource = this.setting_elements;
             }
             return success;
         }
@@ -844,7 +860,7 @@ namespace better_power
         }
 
         // will attempt to fly notification if there's a MainPage loaded into the Application's AppFrame
-        private static void fly_global_notification(string message, bool success, bool flash = false)
+        private static void fire_global_infobar(string message, bool success, bool flash = false)
         {
             if (App.AppFrame.Content is MainPage)
             {
@@ -853,6 +869,7 @@ namespace better_power
                 else title = "FAILED";
 
                 var active_mainpage = App.AppFrame.Content as MainPage;
+                active_mainpage.globalinfo.IsOpen = false;
 
                 active_mainpage.globalinfo.Title = title;
                 active_mainpage.globalinfo.Message = message;

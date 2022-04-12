@@ -40,58 +40,45 @@ namespace better_power.Common
 
         private void AutoCloseInfoBar_Loaded(object sender, RoutedEventArgs e)
         {
-            _token = this.RegisterPropertyChangedCallback(IsOpenProperty, IsOpenChanged);
-            if (IsOpen)
-            {
-                Open();
-            }
+            this._token = this.RegisterPropertyChangedCallback(AutoCloseInfoBar.IsOpenProperty, IsOpenChanged);
+            if (IsOpen)            
+                Open();            
         }
 
         private void AutoCloseInfoBar_Unloaded(object sender, RoutedEventArgs e)
         {
-            this.UnregisterPropertyChangedCallback(IsOpenProperty, _token);
+            this.UnregisterPropertyChangedCallback(AutoCloseInfoBar.IsOpenProperty, this._token);
         }
 
-        private void IsOpenChanged(DependencyObject o, DependencyProperty p)
+        private void IsOpenChanged(DependencyObject _infobar, DependencyProperty p)
         {
-            var that = o as AutoCloseInfoBar;
-            if (that == null)
-            {
+            var infobar = _infobar as AutoCloseInfoBar;
+            if (infobar == null)            
+                return;            
+            if (p != AutoCloseInfoBar.IsOpenProperty)            
                 return;
-            }
-
-            if (p != IsOpenProperty)
-            {
-                return;
-            }
-
-            if (that.IsOpen)
-            {
-                that.Open();
-            }
-            else
-            {
-                that.Close();
-            }
+            
+            if (infobar.IsOpen)            
+                infobar.Open();            
+            else            
+                infobar.Close();            
         }
 
         private void Open()
         {
-            _timer = new DispatcherTimer();
-            _timer.Tick += Timer_Tick;
-            _timer.Interval = TimeSpan.FromSeconds(AutoCloseInterval);
-            _timer.Start();
+            this._timer = new DispatcherTimer();
+            this._timer.Tick += Timer_Tick;
+            this._timer.Interval = TimeSpan.FromSeconds(AutoCloseInterval);
+            this._timer.Start();
         }
 
         private void Close()
         {
-            if (_timer == null)
-            {
+            if (this._timer == null)            
                 return;
-            }
-
-            _timer.Stop();
-            _timer.Tick -= Timer_Tick;
+            
+            this._timer.Stop();
+            this._timer.Tick -= Timer_Tick;
         }
 
         private void Timer_Tick(object sender, object e)
