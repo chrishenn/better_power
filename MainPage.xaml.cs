@@ -61,40 +61,34 @@ namespace better_power
         {
             this.InitializeComponent();
 
-            this.Refresh_App_Elements();
-
-            MainPage.register_animation(this.globalinfo, Colors.MediumSpringGreen, ANIMATION_SUCCESS_KEY);
-            MainPage.register_animation(this.globalinfo, Colors.MediumVioletRed, ANIMATION_FAIL_KEY);
+            this.Generate_App_Elements();
         }
 
-        private void Refresh_App_Elements()
+        private void Generate_App_Elements()
         {
-            this.setting_elements.Clear();
-            this.setting_elements_dict.Clear();
-            this.setting_elements_by_group_dict.Clear();
-            this.scheme_elements_dict.Clear();
-
-            this.navigationview.MenuItems.Clear();
-
             this.generate_setting_elements();
             this.generate_scheme_elements();
 
-            this.systemactive_schemeguid = App.Current.power_manager.get_systemactive_schemeguid();
-            // BUG this systemactive_schemeguid is an old schemeguid - from before the refresh!
-            this.navigationview.SelectedItem = this.scheme_elements_dict[this.systemactive_schemeguid];
+            MainPage.register_animation(this.globalinfo, Colors.MediumSpringGreen, ANIMATION_SUCCESS_KEY);
+            MainPage.register_animation(this.globalinfo, Colors.MediumVioletRed, ANIMATION_FAIL_KEY);
+
+            string systemactive_schemeguid = PowercfgManager.get_systemactive_schemeguid();
+            //string systemactive_schemeguid = Task.Run(() => PowercfgManager.get_systemactive_schemeguid()).Wait();
+
+            this.systemactive_schemeguid = systemactive_schemeguid;
+            this.navigationview.SelectedItem = this.scheme_elements_dict[systemactive_schemeguid];
         }
 
         private async Task Application_Full_Refresh()
         {
             this.Frame.Navigate(typeof(WaitPage));
 
-            //await Task.Run(() => App.Current.Refresh_App_Data());
-            //DispatcherQueue.TryEnqueue(() => App.Current.Refresh_App_Data());
-            App.Current.Refresh_App_Data();
-            this.Refresh_App_Elements();
+            await Task.Run(() => App.Current.Refresh_App_Data());
 
+            // will construct a new MainPage object
             this.Frame.Navigate(typeof(MainPage));
         }
+
 
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -672,7 +666,7 @@ namespace better_power
 
             if (result == ContentDialogResult.Primary)
             {
-                bool success = App.Current.power_manager.powercfg_resetdefaultschemes();
+                bool success = PowercfgManager.powercfg_resetdefaultschemes();
                 if (success)
                 {
                     //this.Resources["pending_notification"] = () => fly_global_notification("reset system to default schemes", success, flash: true);
@@ -701,10 +695,11 @@ namespace better_power
 
             if (result == ContentDialogResult.Primary)
             {
-                //this.Resources["pending_notification"] = () => fly_global_notification("refreshed application data", true, flash: true);
+                //this.Resources["pending_notification"] = () => fly_global_notification("refreshing application data", true, flash: true);
                 //this.Loaded += fly_global_notification_on_load;
 
                 await this.Application_Full_Refresh();
+                fly_global_notification("refreshing application data", true, flash: true);
             }
         }
 
@@ -869,15 +864,21 @@ namespace better_power
             if (success) title = "SUCCESS";
             else title = "FAILED";
 
-            this.globalinfo.Title = title;
-            this.globalinfo.Message = message;
-            this.globalinfo.IsOpen = true;
+            if (App.AppFrame.Content is MainPage)
+            {
+                var active_mainpage = App.AppFrame.Content as MainPage;
 
-            if (flash)
-                fire_success_animation(this.globalinfo, success);
+                active_mainpage.globalinfo.Title = title;
+                active_mainpage.globalinfo.Message = message;
+                active_mainpage.globalinfo.IsOpen = true;
+
+                if (flash)
+                    fire_success_animation(active_mainpage.globalinfo, success);
+            }
         }
 
         private void fly_global_notification_on_load(object _sender, RoutedEventArgs e)
+        //private void fly_global_notification_on_load(NavigationEventArgs e)
         {
             if (this.Resources.ContainsKey("pending_notification"))
             {
@@ -944,9 +945,6 @@ namespace better_power
         }
         private async void Refresh_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
         {
-            //this.Resources["pending_notification"] = () => fly_global_notification("refreshed application data", true, flash: true);
-            //this.Loaded += fly_global_notification_on_load;
-
             await this.Application_Full_Refresh();
         }
     }

@@ -20,7 +20,7 @@ namespace better_power.Common
             return ps.Invoke();
         }
 
-        public string get_systemactive_schemeguid()
+        public static string get_systemactive_schemeguid()
         {
             var ps = PowerShell.Create().AddCommand("powercfg").AddArgument("getactivescheme");
             return ps.Invoke()[0].ToString().Trim().Substring(19, 36);
@@ -82,12 +82,11 @@ namespace better_power.Common
             return schemename;
         }
 
-        public bool powercfg_resetdefaultschemes()
+        public static bool powercfg_resetdefaultschemes()
         {
             var ps = PowerShell.Create().AddCommand("powercfg").AddArgument("restoredefaultschemes");
-            var result = ps.Invoke();
 
-            return (result.Count == 0);
+            return ps.Invoke().Count == 0;
         }
 
 

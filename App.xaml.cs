@@ -24,6 +24,7 @@ using better_power.Common;
 using Microsoft.Windows.ApplicationModel.DynamicDependency;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace better_power
 {
@@ -164,6 +165,9 @@ namespace better_power
         public static Window Window { get { return _window; } }
         private static Window _window;
 
+        public static Frame AppFrame { get { return _appframe; } }
+        private static Frame _appframe;
+
         public IntPtr _hwnd;
 
         public static OrderedDictionary<string, SettingStore> setting_data_dict { get { return _setting_data_dict; } }
@@ -189,6 +193,15 @@ namespace better_power
 
             this.read_classic_schemes_fromfiles();
 
+            this.Refresh_App_Data();
+        }
+
+        public void Refresh_App_Data()
+        {
+            _setting_data_dict.Clear();
+            _group_data_dict.Clear();
+            _scheme_data_dict.Clear();
+
             this.build_schemedata();
             this.build_settingdata();
             this.store_setting_values_all_schemes();
@@ -202,8 +215,8 @@ namespace better_power
             var shellpage = new ShellPage();
             App._window.Content = shellpage;
 
-            Frame app_frame = shellpage.appframe;
-            app_frame.Navigate(typeof(MainPage));
+            App._appframe = shellpage.appframe;
+            _appframe.Navigate(typeof(MainPage));
 
             App._window.Activate();
 
@@ -231,16 +244,7 @@ namespace better_power
             this.classic_order = new int[] { 2, 0, 1, 3 };
         }
                
-        public void Refresh_App_Data()
-        {
-            _setting_data_dict.Clear();
-            _group_data_dict.Clear();
-            _scheme_data_dict.Clear();
 
-            this.build_schemedata();
-            this.build_settingdata();
-            this.store_setting_values_all_schemes();
-        }
 
         //-------------------------------------------------------------------------------------------------
         // Build App data structs and objects
@@ -270,7 +274,8 @@ namespace better_power
 
         private void build_settingdata()
         {
-            var all_settings = this.power_manager.get_powercfg_query(this.power_manager.get_systemactive_schemeguid(), "");
+            string systemactive_schemeguid = PowercfgManager.get_systemactive_schemeguid();
+            var all_settings = this.power_manager.get_powercfg_query(systemactive_schemeguid, "");
 
             string[] all_strings = new string[all_settings.Count];
             int all_strings_size = 0;
