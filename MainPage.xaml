@@ -170,22 +170,30 @@
         </NavigationView.AutoSuggestBox>
 
         <NavigationView.PaneFooter>
-            <StackPanel x:Name="notistackpanel" Orientation="Vertical" HorizontalAlignment="Stretch">
-
-                <common:AutoCloseInfoBar
-                        x:Name="globalinfo"
-                        Title="Info"
-                        Message="Setting success"
-                        IsOpen="False"
-                        IsIconVisible="True"
-                        IsClosable="True"
-                        AutoCloseInterval="3" />
-
+            <StackPanel Orientation="Vertical" HorizontalAlignment="Stretch">
                 <NavigationViewItemSeparator/>
+                <NavigationViewItem MinHeight="60" 
+                                    AllowFocusOnInteraction="False" 
+                                    IsFocusEngagementEnabled="False" 
+                                    IsHitTestVisible="False">
+                    <common:AutoCloseInfoBar
+                        x:Name="globalinfo"
+                        Title=""
+                        Message=""
+                        IsOpen="False"
+                        IsIconVisible="False"
+                        IsClosable="False"
+                        AutoCloseInterval="2"
+                        Visibility="Visible"/>
+                </NavigationViewItem>
+                
+                <NavigationViewItemSeparator/>
+                
                 <NavigationViewItem Content="Import Power Scheme"   Icon="Import"      Tapped="Scheme_ImportButton_Tapped"/>
                 <NavigationViewItem Content="Install Classic Schemes" Icon="ImportAll" Tapped="Scheme_InstallButton_Tapped"/>
                 <NavigationViewItem Content="Reset Default Schemes" Icon="Undo"        Tapped="Scheme_ResetButton_Tapped"/>
                 <NavigationViewItem Content="Refresh App Data"      Icon="Refresh"     Tapped="RefreshButton_Tapped"/>
+                
             </StackPanel>
         </NavigationView.PaneFooter>
 
@@ -198,7 +206,7 @@
                 
                 IsTabStop="False" 
                 SelectionMode="None"
-                IsItemClickEnabled="False">
+                IsItemClickEnabled="False">      
         </ListView>
 
     </NavigationView>

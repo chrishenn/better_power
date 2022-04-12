@@ -30,10 +30,14 @@ namespace better_power
 
     // TODO
 
+    // BUG: RACE CONDITION ON APPLICATION REFRESH
+    // MORE COMMON WHEN RESETTING TO DEFAULT VALUES
+    // the systemactive_schemeguid is not found in the scheme_elements_dict (intermittently)
+    // edit: bug may be fixed. updated the async/await syntax to be more correct (?)
+
     // enforce that the "working on it" behavior is the same no matter the dialog, flyout, import, refresh, etc
     // if a new notification fires before the old one has timed out, force it to refresh with new notification content
     // default ordering from power saver to ultimate
-    // explanatory tooltips
 
     // setting cards:
     //      indicate possible values to which we can set the setting
@@ -41,6 +45,7 @@ namespace better_power
     //      range checking
     //      ac + dc menus
 
+    // explanatory tooltips
     // error handling
     // write exceptions to recover, display errors to user, crash if needed 
     // check that new data objects with GUIDs have valid GUIDS
@@ -48,8 +53,8 @@ namespace better_power
     // packaging - modern install, portable install, taskbar icon, taskbar app name
     // installer must run power unhide scripts (reporpose system-object code?)
     // compatibility testing
+    // make the waiting animation smooth? It hitches while the main UI thread is refreshing the UIElements
 
-    // full refresh is slow. can be faster? (check speed in release build)
     // search behavior: include all settings under group header if header name matches search query?
     // [wait: future winui version] override window theme-color border
     // [wait: future winui version] drag-n-drop reordering of schemes in navigationview

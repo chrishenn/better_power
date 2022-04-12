@@ -40,6 +40,7 @@ namespace better_power
         // ordering needed to support drag-n-drop reordering in navigationview
         OrderedDictionary<string, NavigationViewItem> scheme_elements_dict = new OrderedDictionary<string, NavigationViewItem>();
 
+        // TODO: these class-global state strings are all now suspect after the debacle with setting element's locking for navigation
         // indicate the guid of the scheme element in nav view that was most recently selected
         string selected_scheme_element_guid;
 
@@ -51,7 +52,7 @@ namespace better_power
 
         // indicate that settings elements shown in listview should not change
         bool settings_elements_locked_in_view = false;
-
+       
         const string ANIMATION_SUCCESS_KEY = "animation_success";
         const string ANIMATION_FAIL_KEY = "animation_fail";
         const string BACKGROUND_BRUSH_KEY = "background_brush";
@@ -79,18 +80,17 @@ namespace better_power
             this.generate_scheme_elements();
 
             this.systemactive_schemeguid = App.Current.power_manager.get_systemactive_schemeguid();
-
-            if (!scheme_elements_dict.ContainsKey(systemactive_schemeguid))
-                Console.WriteLine("missing key");
-
+            // BUG this systemactive_schemeguid is an old schemeguid - from before the refresh!
             this.navigationview.SelectedItem = this.scheme_elements_dict[this.systemactive_schemeguid];
         }
 
-        private async void Application_Full_Refresh()
+        private async Task Application_Full_Refresh()
         {
             this.Frame.Navigate(typeof(WaitPage));
 
-            await Task.Run(() => App.Current.Refresh_App_Data());
+            //await Task.Run(() => App.Current.Refresh_App_Data());
+            //DispatcherQueue.TryEnqueue(() => App.Current.Refresh_App_Data());
+            App.Current.Refresh_App_Data();
             this.Refresh_App_Elements();
 
             this.Frame.Navigate(typeof(MainPage));
@@ -380,6 +380,18 @@ namespace better_power
 
         private void navigationview_Load_Elements()
         {
+            //var bar = new AutoCloseInfoBar()
+            //{
+            //    IsOpen = false,
+            //    IsIconVisible = false,
+            //    IsClosable = false,
+            //    AutoCloseInterval = 2
+            //};
+            //bar.SetValue(FrameworkElement.NameProperty, "globalinfo");
+
+            //this.navigationview.MenuItems.Add(bar); 
+            
+
             // need to add this header programmatically; menuitems will be cleared on refresh
             this.navigationview.MenuItems.Add(
                 new NavigationViewItemHeader()
@@ -416,7 +428,7 @@ namespace better_power
             }
 
             fire_success_animation_scheme(scheme_guid, success);
-            fly_global_notification("set active power scheme", success, flash: true);
+            fly_global_notification("setting active power scheme", success, flash: true);
         }
 
         // rename a scheme
@@ -441,7 +453,7 @@ namespace better_power
                         scheme_data.scheme_name = new_name;
 
                     fire_success_animation_scheme(scheme_guid, success);
-                    fly_global_notification("renamed power scheme \"" + old_name + "\" to \"" + new_name + "\"", success, flash: true);
+                    fly_global_notification("renaming power scheme \"" + old_name + "\" to \"" + new_name + "\"", success, flash: true);
                 }
             }
         }
@@ -472,7 +484,7 @@ namespace better_power
                     NewScheme_UpdateAppData_UpdateUIElems(new_scheme_name, new_scheme_guid);
 
                 fire_success_animation_scheme(scheme_guid, success);
-                fly_global_notification("copied power scheme \"" + scheme_data.scheme_name + "\" to \"" + new_scheme_name + "\"", success, flash: true);
+                fly_global_notification("copying power scheme \"" + scheme_data.scheme_name + "\" to \"" + new_scheme_name + "\"", success, flash: true);
             }
         }
 
@@ -533,7 +545,7 @@ namespace better_power
                     App.scheme_data_dict.Remove(scheme_guid);
                     App.Current.remove_setting_values_one_scheme(scheme_guid);
                 }
-                fly_global_notification("deleted power scheme: " + scheme_data.scheme_name, success, flash: true);
+                fly_global_notification("deleting power scheme \"" + scheme_data.scheme_name+"\"", success, flash: true);
             }
         }
 
@@ -558,7 +570,7 @@ namespace better_power
                 bool success = PowercfgManager.powercfg_export_scheme(scheme_guid, file.Path);
 
                 fire_success_animation_scheme(scheme_guid, success);
-                fly_global_notification("exported power scheme \"" + scheme_data.scheme_name + "\" to file \"" + file.Name + "\"", success, flash: true);
+                fly_global_notification("exporting power scheme \"" + scheme_data.scheme_name + "\" to file \"" + file.Name + "\"", success, flash: true);
             }
         }
 
@@ -582,7 +594,7 @@ namespace better_power
             if (file != null)
             {
                 bool success = NewScheme_ImportFromFile_UpdateApp(file.Path);
-                fly_global_notification("importing scheme from " + file.Name, success, flash: true);
+                fly_global_notification("importing scheme from \"" + file.Name+"\"", success, flash: true);
             }
         }
 
@@ -635,8 +647,10 @@ namespace better_power
 
             bool success = NewScheme_ImportFromFile_UpdateApp(schemepath);
 
+            string name = schemepath.Substring(schemepath.LastIndexOf(@"\") + 1, schemepath.Length - 4 - schemepath.LastIndexOf(@"\") - 1);
+
             fire_success_animation(sender, success);
-            fly_global_notification("installing classic scheme", success, flash: true);
+            fly_global_notification("installing classic scheme \""+name+"\"", success, flash: true);
         }
 
         private async void Scheme_ResetButton_Tapped(object _sender, TappedRoutedEventArgs e)
@@ -664,7 +678,7 @@ namespace better_power
                     //this.Resources["pending_notification"] = () => fly_global_notification("reset system to default schemes", success, flash: true);
                     //this.Loaded += fly_global_notification_on_load;
 
-                    this.Application_Full_Refresh();
+                    await this.Application_Full_Refresh();
                 }
             }
         }
@@ -690,7 +704,7 @@ namespace better_power
                 //this.Resources["pending_notification"] = () => fly_global_notification("refreshed application data", true, flash: true);
                 //this.Loaded += fly_global_notification_on_load;
 
-                this.Application_Full_Refresh();
+                await this.Application_Full_Refresh();
             }
         }
 
@@ -928,12 +942,12 @@ namespace better_power
         {
             this.searchbox.Focus(FocusState.Programmatic);
         }
-        private void Refresh_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+        private async void Refresh_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
         {
             //this.Resources["pending_notification"] = () => fly_global_notification("refreshed application data", true, flash: true);
             //this.Loaded += fly_global_notification_on_load;
 
-            this.Application_Full_Refresh();
+            await this.Application_Full_Refresh();
         }
     }
 }
