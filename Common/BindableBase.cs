@@ -39,7 +39,7 @@ namespace better_power.Common
             OnPropertyChanged(propertyName);
             return true;
         }
-
+   
         /// <summary>
         /// Notifies listeners that a property value has changed.
         /// </summary>
@@ -48,7 +48,7 @@ namespace better_power.Common
         /// that support <see cref="CallerMemberNameAttribute"/>.</param>
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+           PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

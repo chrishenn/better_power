@@ -27,6 +27,7 @@ using Windows.UI.Core;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
+
 namespace better_power
 {    
     public sealed partial class MainPage : Page
@@ -48,9 +49,6 @@ namespace better_power
         // the active power scheme guid as reported by system
         string systemactive_schemeguid;
 
-        // inidicate that setting values changing in listview should not fire system settings changes
-        bool settings_locked_for_navigation = false;
-
         // indicate that settings elements shown in listview should not change
         bool settings_elements_locked_in_view = false;
 
@@ -58,27 +56,18 @@ namespace better_power
         const string ANIMATION_FAIL_KEY = "animation_fail";
         const string BACKGROUND_BRUSH_KEY = "background_brush";
 
-
-        // -----------------------------------------------------------------------------------------------------------------------------------------------------
-        // Initialize instance; generate uielements from existing App data; code to refresh app elements
-        // -----------------------------------------------------------------------------------------------------------------------------------------------------
-
-        // clear and build instance UIElements, Collections and dicts with references to them
         public MainPage()
         {
             this.InitializeComponent();
-            App.Window.SetTitleBar(this.AppTitleBar);
 
-            Refresh_App_Elements();
+            this.Refresh_App_Elements();
 
-            register_animation(this.globalinfo, Colors.MediumSpringGreen, ANIMATION_SUCCESS_KEY);
-            register_animation(this.globalinfo, Colors.MediumVioletRed, ANIMATION_FAIL_KEY);
+            MainPage.register_animation(this.globalinfo, Colors.MediumSpringGreen, ANIMATION_SUCCESS_KEY);
+            MainPage.register_animation(this.globalinfo, Colors.MediumVioletRed, ANIMATION_FAIL_KEY);
         }
 
         private void Refresh_App_Elements()
         {
-            this.settings_locked_for_navigation = true;
-
             this.setting_elements.Clear();
             this.setting_elements_dict.Clear();
             this.setting_elements_by_group_dict.Clear();
@@ -90,19 +79,21 @@ namespace better_power
             this.generate_scheme_elements();
 
             this.systemactive_schemeguid = App.Current.power_manager.get_systemactive_schemeguid();
-            this.navigationview.SelectedItem = this.scheme_elements_dict[this.systemactive_schemeguid];
 
-            this.settings_locked_for_navigation = false;
+            if (!scheme_elements_dict.ContainsKey(systemactive_schemeguid))
+                Console.WriteLine("missing key");
+
+            this.navigationview.SelectedItem = this.scheme_elements_dict[this.systemactive_schemeguid];
         }
 
         private async void Application_Full_Refresh()
         {
-            App.Window.Content = new WaitingScreen(); 
+            this.Frame.Navigate(typeof(WaitPage));
 
             await Task.Run(() => App.Current.Refresh_App_Data());
             this.Refresh_App_Elements();
 
-            App.Window.Content = this;            
+            this.Frame.Navigate(typeof(MainPage));
         }
 
 
@@ -173,17 +164,19 @@ namespace better_power
                 this.setting_elements_by_group_dict[curr_groupid].Add(setting_elem);
             }
 
-            foreach (var elem in this.setting_elements_dict.Values) 
+            foreach (var elem in this.setting_elements_dict.Values)
                 this.setting_elements.Add(elem);
         }
 
         // settings elements: settings changed handler; numberbox
-        private void NumberBoxValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs e)
+        private void NumberBoxValueChanged(NumberBox _sender, NumberBoxValueChangedEventArgs e)
         {
-            if (this.settings_locked_for_navigation) return;
-            
+            NumberBox sender = _sender as NumberBox;
+            if (!sender.IsEnabled || !sender.IsLoaded) return;
+
             string setting_guid = sender.Tag.ToString();
             SettingStore setting_data = App.setting_data_dict[setting_guid];
+            var setting_elem = this.setting_elements_dict[setting_guid] as Panel;
 
             string selected_parent_schemeguid = this.selected_parent_schemeguid;
 
@@ -191,20 +184,19 @@ namespace better_power
             setting_data.curr_setting_vals_by_scheme[selected_parent_schemeguid] = ((int)sender.Value, curr_vals.dc_val);
 
             bool success = App.Current.power_manager.set_powersetting(selected_parent_schemeguid, setting_data._parent_groupguid, setting_guid, (int)sender.Value);
-
-            var setting_elem = this.setting_elements_dict[setting_guid] as Panel;
+                        
             fire_success_animation(setting_elem, success);
-            
         }
-        
+
         // settings elements: settings changed handler; combobox
         private void ComboBoxSelectionChanged(object _sender, SelectionChangedEventArgs e)
         {
-            if (this.settings_locked_for_navigation) return;
-            
             ComboBox sender = _sender as ComboBox;
+            if (!sender.IsEnabled || !sender.IsLoaded) return;
+
             string setting_guid = sender.Tag.ToString();
             SettingStore setting_data = App.setting_data_dict[setting_guid];
+            var setting_elem = this.setting_elements_dict[setting_guid] as Panel;
 
             string selected_parent_schemeguid = this.selected_parent_schemeguid;
 
@@ -213,9 +205,7 @@ namespace better_power
 
             bool success = App.Current.power_manager.set_powersetting(selected_parent_schemeguid, setting_data._parent_groupguid, setting_guid, (int)sender.SelectedIndex);
 
-            var setting_elem = this.setting_elements_dict[setting_guid] as Panel;
             fire_success_animation(setting_elem, success);
-            
         }
 
 
@@ -234,7 +224,7 @@ namespace better_power
         {
             string scheme_guid = scheme_data.scheme_guid;
 
-            var scheme_menuitem = (this.Resources["Scheme_NavViewItemTemplate"] as DataTemplate).LoadContent() as NavigationViewItem; 
+            var scheme_menuitem = (this.Resources["Scheme_NavViewItemTemplate"] as DataTemplate).LoadContent() as NavigationViewItem;
             scheme_menuitem.DataContext = scheme_data;
 
             // register animators
@@ -248,7 +238,7 @@ namespace better_power
             return scheme_menuitem;
         }
 
-          
+
 
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -289,7 +279,7 @@ namespace better_power
             Storyboard.SetTargetProperty(animation, "Color");
 
             Storyboard story_board = new Storyboard() { Children = { animation } };
-            if (storyboard_tag != null) 
+            if (storyboard_tag != null)
                 Storyboard.SetTargetName(story_board, storyboard_tag);
 
             element.Resources[animation_name] = story_board;
@@ -363,7 +353,7 @@ namespace better_power
         }
 
 
- 
+
 
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -392,20 +382,21 @@ namespace better_power
         {
             // need to add this header programmatically; menuitems will be cleared on refresh
             this.navigationview.MenuItems.Add(
-                new NavigationViewItemHeader() { 
+                new NavigationViewItemHeader()
+                {
                     Content = "Installed Power Schemes",
-                    FontWeight = FontWeights.Bold, 
-                    Foreground = new SolidColorBrush(Colors.SlateBlue), 
+                    FontWeight = FontWeights.Bold,
+                    Foreground = new SolidColorBrush(Colors.SlateBlue),
                 });
 
             foreach (var elem in this.scheme_elements_dict.Values)
                 this.navigationview.MenuItems.Add(elem);
 
-            UpdateUI_ShowSystemActiveScheme();            
+            UpdateUI_ShowSystemActiveScheme();
         }
 
 
-                 
+
 
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -421,7 +412,7 @@ namespace better_power
             if (success)
             {
                 this.systemactive_schemeguid = scheme_guid;
-                UpdateUI_ShowSystemActiveScheme();                
+                UpdateUI_ShowSystemActiveScheme();
             }
 
             fire_success_animation_scheme(scheme_guid, success);
@@ -446,11 +437,11 @@ namespace better_power
                 if (new_name != old_name)
                 {
                     bool success = App.Current.power_manager.powercfg_rename_scheme(scheme_guid, new_name);
-                    if (success)                         
+                    if (success)
                         scheme_data.scheme_name = new_name;
 
                     fire_success_animation_scheme(scheme_guid, success);
-                    fly_global_notification("renamed power scheme \""+ old_name+"\" to \""+new_name+"\"", success, flash: true);
+                    fly_global_notification("renamed power scheme \"" + old_name + "\" to \"" + new_name + "\"", success, flash: true);
                 }
             }
         }
@@ -481,7 +472,7 @@ namespace better_power
                     NewScheme_UpdateAppData_UpdateUIElems(new_scheme_name, new_scheme_guid);
 
                 fire_success_animation_scheme(scheme_guid, success);
-                fly_global_notification("copied power scheme \""+scheme_data.scheme_name+"\" to \""+new_scheme_name+"\"", success, flash: true);
+                fly_global_notification("copied power scheme \"" + scheme_data.scheme_name + "\" to \"" + new_scheme_name + "\"", success, flash: true);
             }
         }
 
@@ -493,7 +484,7 @@ namespace better_power
 
             // active scheme cannot be deleted - notify with dialog
             if (scheme_guid == this.systemactive_schemeguid)
-            {                
+            {
                 ContentDialog cannot_delete_dialog = new ContentDialog()
                 {
                     Title = "Cannot Delete",
@@ -514,7 +505,7 @@ namespace better_power
             {
                 Title = "Confirm Delete",
                 Content = "Are you sure you want to delete scheme: " + scheme_data.scheme_name + " ?",
-                
+
                 PrimaryButtonText = "Confirm",
                 CloseButtonText = "Cancel",
                 DefaultButton = ContentDialogButton.Primary,
@@ -531,9 +522,9 @@ namespace better_power
                 {
                     // if deleted scheme was selected by navigationview, select the systemactive scheme instead
                     var scheme_elem = this.scheme_elements_dict[scheme_guid];
-                    if (scheme_elem.IsSelected)                    
+                    if (scheme_elem.IsSelected)
                         this.navigationview.SelectedItem = this.scheme_elements_dict[this.systemactive_schemeguid];
-                                        
+
                     // delete scheme from navigationview
                     this.navigationview.MenuItems.Remove(scheme_elem);
                     this.scheme_elements_dict.Remove(scheme_guid);
@@ -567,7 +558,7 @@ namespace better_power
                 bool success = PowercfgManager.powercfg_export_scheme(scheme_guid, file.Path);
 
                 fire_success_animation_scheme(scheme_guid, success);
-                fly_global_notification("exported power scheme \"" + scheme_data.scheme_name + "\" to file \"" + file.Name+"\"", success, flash: true);
+                fly_global_notification("exported power scheme \"" + scheme_data.scheme_name + "\" to file \"" + file.Name + "\"", success, flash: true);
             }
         }
 
@@ -670,8 +661,8 @@ namespace better_power
                 bool success = App.Current.power_manager.powercfg_resetdefaultschemes();
                 if (success)
                 {
-                    this.Resources["pending_notification"] = () => fly_global_notification("reset system to default schemes", success, flash: true);
-                    this.Loaded += fly_global_notification_on_load;
+                    //this.Resources["pending_notification"] = () => fly_global_notification("reset system to default schemes", success, flash: true);
+                    //this.Loaded += fly_global_notification_on_load;
 
                     this.Application_Full_Refresh();
                 }
@@ -696,8 +687,8 @@ namespace better_power
 
             if (result == ContentDialogResult.Primary)
             {
-                this.Resources["pending_notification"] = () => fly_global_notification("refreshed application data", true, flash: true);
-                this.Loaded += fly_global_notification_on_load;
+                //this.Resources["pending_notification"] = () => fly_global_notification("refreshed application data", true, flash: true);
+                //this.Loaded += fly_global_notification_on_load;
 
                 this.Application_Full_Refresh();
             }
@@ -713,7 +704,7 @@ namespace better_power
         private void navigationview_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
             if (args.SelectedItemContainer == null) return;
-            
+
             string selected_tag = args.SelectedItemContainer.Tag.ToString();
             string new_parent_schemeguid;
 
@@ -733,7 +724,7 @@ namespace better_power
                         this.setting_elements.Add(elem);
                 }
             }
-                
+
             // selected_guid is a groupid. get selected scheme. check for parent scheme change. filter to group's settings in view.
             else
             {
@@ -797,17 +788,16 @@ namespace better_power
 
         private void navigation_update_settings_displaydata_to_scheme(string new_parent_schemeguid)
         {
-            this.settings_locked_for_navigation = true;
-
             foreach (SettingStore setting_data in App.setting_data_dict.Values)
             {
                 var vals = setting_data.curr_setting_vals_by_scheme[new_parent_schemeguid];
+                setting_data.setting_enabled = false;
 
                 setting_data.curr_ac_val = vals.ac_val;
                 setting_data.curr_dc_val = vals.dc_val;
-            }
 
-            this.settings_locked_for_navigation = false;
+                setting_data.setting_enabled = true;
+            }
         }
 
 
@@ -859,8 +849,8 @@ namespace better_power
             }
         }
 
-        private void fly_global_notification(string message, bool success, bool flash = false) 
-        {                                 
+        private void fly_global_notification(string message, bool success, bool flash = false)
+        {
             string title;
             if (success) title = "SUCCESS";
             else title = "FAILED";
@@ -890,7 +880,7 @@ namespace better_power
 
         private void searchbox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
-            if (args.Reason != AutoSuggestionBoxTextChangeReason.UserInput) 
+            if (args.Reason != AutoSuggestionBoxTextChangeReason.UserInput)
                 return;
 
             var query = sender.Text.ToLower().Trim();
@@ -925,7 +915,7 @@ namespace better_power
                     }
                 }
             }
-            
+
         }
 
 
@@ -938,13 +928,12 @@ namespace better_power
         {
             this.searchbox.Focus(FocusState.Programmatic);
         }
-        private void F5_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+        private void Refresh_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
         {
-            this.Resources["pending_notification"] = () => fly_global_notification("refreshed application data", true, flash: true);
-            this.Loaded += fly_global_notification_on_load;
+            //this.Resources["pending_notification"] = () => fly_global_notification("refreshed application data", true, flash: true);
+            //this.Loaded += fly_global_notification_on_load;
 
             this.Application_Full_Refresh();
         }
     }
-           
 }

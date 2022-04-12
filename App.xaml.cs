@@ -74,6 +74,8 @@ namespace better_power
         public string _setting_descr { get; set; }
         public string _parent_groupguid { get; set; }
 
+        private bool _setting_enabled = true;
+
         public bool is_range;
 
         public string min_val;
@@ -91,11 +93,16 @@ namespace better_power
         {
             get { return this._curr_ac_val; }
             set { this.SetProperty(ref this._curr_ac_val, value); }
-        }
+        }        
         public int curr_dc_val
         {
             get { return this._curr_dc_val; }
             set { this.SetProperty(ref this._curr_dc_val, value); }
+        }
+        public bool setting_enabled
+        {
+            get { return this._setting_enabled; }
+            set { this.SetProperty(ref this._setting_enabled, value); }
         }
     }
 
@@ -186,7 +193,13 @@ namespace better_power
         {
             App._window = new MainWindow();
             App._window.ExtendsContentIntoTitleBar = true;
-            App._window.Content = new MainPage();
+
+            var shellpage = new ShellPage();
+            App._window.Content = shellpage;
+
+            Frame app_frame = shellpage.appframe;
+            app_frame.Navigate(typeof(MainPage));
+
             App._window.Activate();
 
             this._hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App._window);
@@ -212,8 +225,7 @@ namespace better_power
 
             this.classic_order = new int[] { 2, 0, 1, 3 };
         }
-       
-        
+               
         public void Refresh_App_Data()
         {
             _setting_data_dict.Clear();

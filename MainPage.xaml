@@ -1,54 +1,52 @@
 ﻿<Page
     x:Class="better_power.MainPage"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:better_power"
+    xmlns:common="using:better_power.Common"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"    
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:common="using:better_power.Common"
-    mc:Ignorable="d"    
-    >
-
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"     
+    mc:Ignorable="d">
 
     <Page.Resources>
-        
         <ResourceDictionary>
             <CornerRadius x:Key="ControlCornerRadius">4</CornerRadius>
             <CornerRadius x:Key="OverlayCornerRadius">4</CornerRadius>
-            <Thickness x:Key="NavigationViewContentPresenterMargin">0,0,0,0</Thickness>
 
             <DataTemplate x:Key="SettingTemplate" x:DataType="local:SettingStore">
                 <Grid 
-                    CornerRadius="{StaticResource ControlCornerRadius}"
-                    Padding="5" 
-                    Margin="25,5,25,5" >
+                        CornerRadius="{StaticResource ControlCornerRadius}"
+                        Padding="5" 
+                        Margin="25,5,25,5" >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
                     <TextBlock                                 
-                        Grid.Column="0" 
-                        Width="300"
-                        VerticalAlignment="Center" 
-                        HorizontalAlignment="Left"                        
-                        Margin="10,5,0,5" 
+                            Grid.Column="0" 
+                            Width="300"
+                            VerticalAlignment="Center" 
+                            HorizontalAlignment="Left"                        
+                            Margin="10,5,0,5" 
                         
-                        Text="{x:Bind _setting_name}"
-                        TextWrapping="WrapWholeWords"
-                        />
+                            Text="{x:Bind _setting_name}"
+                            TextWrapping="WrapWholeWords" />
                 </Grid>
             </DataTemplate>
-            
+
             <DataTemplate x:Key="ComboBoxTemplate" x:DataType="local:SettingStore">
                 <ComboBox     
-                    Grid.Column="1" 
-                    Width="250"
-                    VerticalAlignment="Center"
-                    HorizontalAlignment="Left"
-                    Margin="0,5,10,5" 
+                        Grid.Column="1" 
+                        Width="250"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Left"
+                        Margin="0,5,10,5" 
                     
-                    ItemsSource="{x:Bind possible_settings_index_dict.Values}"
-                    SelectedIndex="{x:Bind curr_ac_val, Mode=TwoWay}" />
+                        IsEnabled="{x:Bind setting_enabled, Mode=OneWay}"
+                    
+                        ItemsSource="{x:Bind possible_settings_index_dict.Values}"
+                        SelectedIndex="{x:Bind curr_ac_val, Mode=TwoWay}" />
             </DataTemplate>
 
             <DataTemplate x:Key="NumberBoxTemplate" x:DataType="local:SettingStore">
@@ -59,15 +57,17 @@
                     HorizontalAlignment="Left"
                     Margin="0,5,10,5" 
                     
-                    Value="{x:Bind curr_ac_val, Mode=TwoWay}" />                
+                    IsEnabled="{x:Bind setting_enabled, Mode=OneWay}"
+                    
+                    Value="{x:Bind curr_ac_val, Mode=TwoWay}" />
             </DataTemplate>
 
             <DataTemplate x:Key="Scheme_NavViewItemTemplate" x:DataType="local:SchemeStore">
                 <NavigationViewItem                    
-                    Icon="List"                     
-                    Tag="{x:Bind scheme_guid}"                     
-                    CanDrag="True" >
-                    
+                        Icon="List"                     
+                        Tag="{x:Bind scheme_guid}"                     
+                        CanDrag="True" >
+
                     <NavigationViewItem.ContextFlyout>
                         <MenuFlyout>
                             <MenuFlyoutItem Text="Set Active" Icon="Accept" Tag="{x:Bind scheme_guid}" Click="SchemeSetActiveFlyout_Clicked"/>
@@ -83,74 +83,57 @@
                     <NavigationViewItem.MenuItems>
                         <NavigationViewItemHeader Content="Power Setting Groups" FontWeight="Bold" Foreground="SlateBlue" />
                     </NavigationViewItem.MenuItems>
-                    
+
                     <RelativePanel 
-                        MinHeight="30"
-                        HorizontalAlignment="Stretch"
-                        VerticalAlignment="Center" 
+                            MinHeight="30"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Center" 
                                                                     
-                        Margin="0,8,0,8">
-                        
+                            Margin="0,8,0,8">
+
                         <TextBlock
-                            x:Name="namebox"
-                            MaxWidth="160"
+                                x:Name="namebox"
+                                MaxWidth="160"
                              
-                            RelativePanel.AlignVerticalCenterWithPanel="True"
-                            RelativePanel.AlignLeftWithPanel="True"
+                                RelativePanel.AlignVerticalCenterWithPanel="True"
+                                RelativePanel.AlignLeftWithPanel="True"
                                                         
-                            TextWrapping="Wrap"  
-                            TextAlignment="Start"
-                            Text="{x:Bind scheme_name, Mode=OneWay}" />
+                                TextWrapping="Wrap"  
+                                TextAlignment="Start"
+                                Text="{x:Bind scheme_name, Mode=OneWay}" />
 
                         <TextBlock   
-                            RelativePanel.AlignVerticalCenterWithPanel="True"
-                            RelativePanel.AlignRightWithPanel="True"
-                            RelativePanel.RightOf="namebox"
-                            Margin="5,0,0,0"
+                                RelativePanel.AlignVerticalCenterWithPanel="True"
+                                RelativePanel.AlignRightWithPanel="True"
+                                RelativePanel.RightOf="namebox"
+                                Margin="5,0,0,0"
                             
-                            Text="Active"
-                            Foreground="MediumSpringGreen"
-                            FontWeight="Bold"
+                                Text="Active"
+                                Foreground="MediumSpringGreen"
+                                FontWeight="Bold"
                             
-                            TextAlignment="Right"
+                                TextAlignment="Right"
                                                         
-                            Visibility="{x:Bind activebox_visible, Mode=OneWay}"/>
+                                Visibility="{x:Bind activebox_visible, Mode=OneWay}"/>
 
                     </RelativePanel>
-                </NavigationViewItem>                
+                </NavigationViewItem>
             </DataTemplate>
 
-            
-        </ResourceDictionary>            
+        </ResourceDictionary>
     </Page.Resources>
 
+
+    <Page.KeyboardAccelerators>
+        <KeyboardAccelerator Key="F5" Invoked="Refresh_Invoked" />
+        <KeyboardAccelerator Modifiers="Control" Key="R" Invoked="Refresh_Invoked" />
+    </Page.KeyboardAccelerators>
     
-
-    <Grid 
-        KeyboardAcceleratorPlacementMode="Hidden"
-        Background="{StaticResource AppPageBackground}">
-
-        <Grid.Resources>
-            
-        </Grid.Resources>
-        
-        <Grid.RowDefinitions>
-            <RowDefinition Height="32"/>
-            <RowDefinition />
-        </Grid.RowDefinitions>
-
-        <Grid.KeyboardAccelerators>
-            <KeyboardAccelerator Key="F5" Invoked="F5_Invoked" />
-        </Grid.KeyboardAccelerators>
-
-        <Grid x:Name="AppTitleBar" Grid.Row="0" />
-
-        <NavigationView
+    <NavigationView
             x:Name="navigationview"     
             SelectionChanged="navigationview_SelectionChanged"
             Loaded="navigationview_Loaded"
             
-            Grid.Row="1"
             PaneDisplayMode="Left"
             Background="{StaticResource AppTitleBar_Grey}"
             
@@ -166,9 +149,9 @@
             SelectionFollowsFocus="Disabled"
             IsTabStop="False"
             IsTitleBarAutoPaddingEnabled="False" >
-           
-            <NavigationView.AutoSuggestBox>
-                <AutoSuggestBox
+
+        <NavigationView.AutoSuggestBox>
+            <AutoSuggestBox
                     x:Name="searchbox"
                     TextChanged="searchbox_TextChanged"
                     
@@ -180,16 +163,16 @@
                     QueryIcon="Find"                                        
                     KeyboardAcceleratorPlacementMode="Hidden" >
 
-                    <AutoSuggestBox.KeyboardAccelerators>
-                        <KeyboardAccelerator Modifiers="Control" Key="F" Invoked="CtrlF_Invoked" />
-                    </AutoSuggestBox.KeyboardAccelerators>
-                </AutoSuggestBox>
-            </NavigationView.AutoSuggestBox>
+                <AutoSuggestBox.KeyboardAccelerators>
+                    <KeyboardAccelerator Modifiers="Control" Key="F" Invoked="CtrlF_Invoked" />
+                </AutoSuggestBox.KeyboardAccelerators>
+            </AutoSuggestBox>
+        </NavigationView.AutoSuggestBox>
 
-            <NavigationView.PaneFooter>
-                <StackPanel x:Name="notistackpanel" Orientation="Vertical" HorizontalAlignment="Stretch">
-                    
-                    <common:AutoCloseInfoBar
+        <NavigationView.PaneFooter>
+            <StackPanel x:Name="notistackpanel" Orientation="Vertical" HorizontalAlignment="Stretch">
+
+                <common:AutoCloseInfoBar
                         x:Name="globalinfo"
                         Title="Info"
                         Message="Setting success"
@@ -198,15 +181,15 @@
                         IsClosable="True"
                         AutoCloseInterval="3" />
 
-                    <NavigationViewItemSeparator/>
-                    <NavigationViewItem Content="Import Power Scheme"   Icon="Import"      Tapped="Scheme_ImportButton_Tapped"/>
-                    <NavigationViewItem Content="Install Classic Schemes" Icon="ImportAll" Tapped="Scheme_InstallButton_Tapped"/>
-                    <NavigationViewItem Content="Reset Default Schemes" Icon="Undo"        Tapped="Scheme_ResetButton_Tapped"/>
-                    <NavigationViewItem Content="Refresh App Data"      Icon="Refresh"     Tapped="RefreshButton_Tapped"/>
-                </StackPanel>
-            </NavigationView.PaneFooter>
+                <NavigationViewItemSeparator/>
+                <NavigationViewItem Content="Import Power Scheme"   Icon="Import"      Tapped="Scheme_ImportButton_Tapped"/>
+                <NavigationViewItem Content="Install Classic Schemes" Icon="ImportAll" Tapped="Scheme_InstallButton_Tapped"/>
+                <NavigationViewItem Content="Reset Default Schemes" Icon="Undo"        Tapped="Scheme_ResetButton_Tapped"/>
+                <NavigationViewItem Content="Refresh App Data"      Icon="Refresh"     Tapped="RefreshButton_Tapped"/>
+            </StackPanel>
+        </NavigationView.PaneFooter>
 
-            <ListView 
+        <ListView 
                 x:Name="listview"                
                 Loaded="listview_Loaded"
                                                 
@@ -215,11 +198,8 @@
                 
                 IsTabStop="False" 
                 SelectionMode="None"
-                IsItemClickEnabled="False">                
-            </ListView>   
-            
-        </NavigationView>
+                IsItemClickEnabled="False">
+        </ListView>
 
-    </Grid>   
-
+    </NavigationView>
 </Page>
