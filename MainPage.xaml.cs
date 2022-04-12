@@ -39,6 +39,7 @@ namespace better_power
 
         // ordering needed to support drag-n-drop reordering in navigationview
         OrderedDictionary<string, NavigationViewItem> scheme_elements_dict = new OrderedDictionary<string, NavigationViewItem>();
+        ObservableCollection<NavigationViewItemBase> scheme_elements = new ObservableCollection<NavigationViewItemBase>();
 
         // TODO: these class-global state strings are all now suspect after the debacle with setting element's locking for navigation
         // indicate the guid of the scheme element in nav view that was most recently selected
@@ -69,14 +70,16 @@ namespace better_power
             this.generate_setting_elements();
             this.generate_scheme_elements();
 
-            MainPage.register_animation(this.globalinfo, Colors.MediumSpringGreen, ANIMATION_SUCCESS_KEY);
-            MainPage.register_animation(this.globalinfo, Colors.MediumVioletRed, ANIMATION_FAIL_KEY);
+            register_animation(this.globalinfo, Colors.MediumSpringGreen, ANIMATION_SUCCESS_KEY);
+            register_animation(this.globalinfo, Colors.MediumVioletRed, ANIMATION_FAIL_KEY);
 
-            string systemactive_schemeguid = PowercfgManager.get_systemactive_schemeguid();
-            //string systemactive_schemeguid = Task.Run(() => PowercfgManager.get_systemactive_schemeguid()).Wait();
-
+            // todo: is this faster or slower because of thread-creation ovehead?
+            //string systemactive_schemeguid = PowercfgManager.get_systemactive_schemeguid();
+            string systemactive_schemeguid = Task.Run(() => PowercfgManager.get_systemactive_schemeguid()).Result;
             this.systemactive_schemeguid = systemactive_schemeguid;
             this.navigationview.SelectedItem = this.scheme_elements_dict[systemactive_schemeguid];
+
+            UpdateUI_ShowSystemActiveScheme();
         }
 
         private async Task Application_Full_Refresh()
@@ -85,10 +88,9 @@ namespace better_power
 
             await Task.Run(() => App.Current.Refresh_App_Data());
 
-            // will construct a new MainPage object
+            // will construct a new MainPage object, and navigate the App.AppFrame to it
             this.Frame.Navigate(typeof(MainPage));
         }
-
 
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -209,8 +211,20 @@ namespace better_power
         // Generate navigationview elements 
         private void generate_scheme_elements()
         {
+            this.scheme_elements.Add(
+                 new NavigationViewItemHeader()
+                 {
+                    Content = "Installed Power Schemes",
+                    FontWeight = FontWeights.Bold,
+                    Foreground = new SolidColorBrush(Colors.SlateBlue),
+                 });
+
             foreach (var scheme_kvp in App.scheme_data_dict)
-                this.scheme_elements_dict[scheme_kvp.Key] = generate_schememenuitem(scheme_kvp.Value);
+            {
+                var elem = generate_schememenuitem(scheme_kvp.Value);
+                this.scheme_elements_dict[scheme_kvp.Key] = elem;
+                this.scheme_elements.Add(elem);
+            }
         }
 
         // generate a menuitem from scheme_data object
@@ -311,18 +325,18 @@ namespace better_power
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
-
+        // todo: differentiate this instance code from static animation-firing code
         private void fire_success_animation_scheme(string scheme_guid, bool success)
         {
             NavigationViewItem scheme_elem = this.scheme_elements_dict[scheme_guid];
 
-            // we assume that the re-select code will be registered into this elem's storyboard whenever it is selected
+            // we assume that the re-select code will already be registered into this elem's storyboard, because it is selected
             if (scheme_elem.IsSelected)
                 this.navigationview.SelectedItem = null;
 
             fire_success_animation(scheme_elem, success);
         }
-        private void fire_success_animation(FrameworkElement element, bool success)
+        private static void fire_success_animation(FrameworkElement element, bool success)
         {
             if (element is Control)
                 fire_success_animation_control(element as Control, success);
@@ -331,14 +345,14 @@ namespace better_power
             else
                 throw new ArgumentException();
         }
-        private void fire_success_animation_control(Control element, bool success)
+        private static void fire_success_animation_control(Control element, bool success)
         {
             if (success)
                 (element.Resources[ANIMATION_SUCCESS_KEY] as Storyboard).Begin();
             else
                 (element.Resources[ANIMATION_FAIL_KEY] as Storyboard).Begin();
         }
-        private void fire_success_animation_panel(Panel element, bool success)
+        private static void fire_success_animation_panel(Panel element, bool success)
         {
             if (success)
                 (element.Resources[ANIMATION_SUCCESS_KEY] as Storyboard).Begin();
@@ -351,7 +365,7 @@ namespace better_power
 
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
-        // Bind loaded UIElements from the UI to their component objects stored in this Page instance
+        // Connect loaded UIElements from the UI to their component objects stored in this Page instance
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
         // add stored power setting cards collection to main ListView
@@ -374,31 +388,7 @@ namespace better_power
 
         private void navigationview_Load_Elements()
         {
-            //var bar = new AutoCloseInfoBar()
-            //{
-            //    IsOpen = false,
-            //    IsIconVisible = false,
-            //    IsClosable = false,
-            //    AutoCloseInterval = 2
-            //};
-            //bar.SetValue(FrameworkElement.NameProperty, "globalinfo");
-
-            //this.navigationview.MenuItems.Add(bar); 
-            
-
-            // need to add this header programmatically; menuitems will be cleared on refresh
-            this.navigationview.MenuItems.Add(
-                new NavigationViewItemHeader()
-                {
-                    Content = "Installed Power Schemes",
-                    FontWeight = FontWeights.Bold,
-                    Foreground = new SolidColorBrush(Colors.SlateBlue),
-                });
-
-            foreach (var elem in this.scheme_elements_dict.Values)
-                this.navigationview.MenuItems.Add(elem);
-
-            UpdateUI_ShowSystemActiveScheme();
+            this.navigationview.MenuItemsSource = this.scheme_elements;
         }
 
 
@@ -532,7 +522,7 @@ namespace better_power
                         this.navigationview.SelectedItem = this.scheme_elements_dict[this.systemactive_schemeguid];
 
                     // delete scheme from navigationview
-                    this.navigationview.MenuItems.Remove(scheme_elem);
+                    this.scheme_elements.Remove(scheme_elem);
                     this.scheme_elements_dict.Remove(scheme_guid);
 
                     // delete scheme from application data
@@ -669,10 +659,8 @@ namespace better_power
                 bool success = PowercfgManager.powercfg_resetdefaultschemes();
                 if (success)
                 {
-                    //this.Resources["pending_notification"] = () => fly_global_notification("reset system to default schemes", success, flash: true);
-                    //this.Loaded += fly_global_notification_on_load;
-
                     await this.Application_Full_Refresh();
+                    fly_global_notification("resetting default schemes", success, flash: true);
                 }
             }
         }
@@ -695,9 +683,6 @@ namespace better_power
 
             if (result == ContentDialogResult.Primary)
             {
-                //this.Resources["pending_notification"] = () => fly_global_notification("refreshing application data", true, flash: true);
-                //this.Loaded += fly_global_notification_on_load;
-
                 await this.Application_Full_Refresh();
                 fly_global_notification("refreshing application data", true, flash: true);
             }
@@ -838,7 +823,7 @@ namespace better_power
 
             // update view elements for the new scheme
             var new_scheme_elem = generate_schememenuitem(new_scheme_data);
-            this.navigationview.MenuItems.Add(new_scheme_elem);
+            this.scheme_elements.Add(new_scheme_elem);
             this.scheme_elements_dict[new_scheme_guid] = new_scheme_elem;
 
             fire_success_animation(new_scheme_elem, true);
@@ -849,23 +834,24 @@ namespace better_power
             string active_scheme_guid = this.systemactive_schemeguid;
 
             // all elements must be visited
-            foreach (var kvp in this.scheme_elements_dict)
+            foreach (var kvp in App.scheme_data_dict)
             {
                 if (kvp.Key == active_scheme_guid)
-                    App.scheme_data_dict[kvp.Key].activebox_visible = "Visible";
+                    kvp.Value.activebox_visible = "Visible";
                 else
-                    App.scheme_data_dict[kvp.Key].activebox_visible = "Collapsed";
+                    kvp.Value.activebox_visible = "Collapsed";
             }
         }
 
-        private void fly_global_notification(string message, bool success, bool flash = false)
+        // will attempt to fly notification if there's a MainPage loaded into the Application's AppFrame
+        private static void fly_global_notification(string message, bool success, bool flash = false)
         {
-            string title;
-            if (success) title = "SUCCESS";
-            else title = "FAILED";
-
             if (App.AppFrame.Content is MainPage)
             {
+                string title;
+                if (success) title = "SUCCESS";
+                else title = "FAILED";
+
                 var active_mainpage = App.AppFrame.Content as MainPage;
 
                 active_mainpage.globalinfo.Title = title;
@@ -877,16 +863,7 @@ namespace better_power
             }
         }
 
-        private void fly_global_notification_on_load(object _sender, RoutedEventArgs e)
-        //private void fly_global_notification_on_load(NavigationEventArgs e)
-        {
-            if (this.Resources.ContainsKey("pending_notification"))
-            {
-                var func = this.Resources["pending_notification"] as Action;
-                func();
-            }
-            this.Loaded -= fly_global_notification_on_load;
-        }
+
 
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
