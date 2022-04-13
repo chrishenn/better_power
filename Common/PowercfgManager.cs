@@ -12,8 +12,6 @@ namespace better_power.Common
 {
     public static class PowercfgManager
     {       
-        //public PowercfgManager() { }
-
         public static Collection<PSObject> get_powercfg_query(string scheme_guid, string group_guid)
         {
             var ps = PowerShell.Create().AddCommand("powercfg").AddArgument("q").AddArgument(scheme_guid).AddArgument(group_guid);

@@ -31,6 +31,16 @@ using Windows.System;
 
 namespace better_power
 {
+    public class SettingTag
+    {
+        public string acdc_val;
+
+        SettingTag(string acdc_val) 
+        {
+            this.acdc_val = acdc_val;
+        }
+    }
+
     public sealed partial class MainPage : Page
     {
         // required ordereddict to maintain the ordering of headers and setting elements in the listView
@@ -122,35 +132,20 @@ namespace better_power
                     this.setting_elements_by_group_dict[curr_groupid].Add(curr_groupheader);
                 }
 
-                Control box_elem;
-                if (setting.is_range)
-                {
-                    DataTemplate box_template = (DataTemplate)this.Resources["NumberBoxTemplate"];
-                    NumberBox nb_elem = (NumberBox)box_template.LoadContent();
-
-                    nb_elem.ValueChanged += NumberBoxValueChanged;
-                    nb_elem.Tag = setting_guid;
-
-                    box_elem = nb_elem;
-                }
-                else
-                {
-                    DataTemplate box_template = (DataTemplate)this.Resources["ComboBoxTemplate"];
-                    ComboBox cb_elem = (ComboBox)box_template.LoadContent();
-
-                    cb_elem.SelectionChanged += ComboBoxSelectionChanged;
-                    cb_elem.Tag = setting_guid;
-
-                    box_elem = cb_elem;
-                }
 
                 // compose the setting element from constituents
                 DataTemplate setting_template = (DataTemplate)this.Resources["SettingTemplate"];
-                Grid setting_elem = (Grid)setting_template.LoadContent();
+                //StackPanel setting_elem = (StackPanel)setting_template.LoadContent();
+                RelativePanel setting_elem = (RelativePanel)setting_template.LoadContent();
 
-                setting_elem.Children.Add(box_elem);
+                DataTemplate box_template;
+                if (setting.is_range)                
+                    box_template = (DataTemplate)this.Resources["NumberBoxTemplate"];
+                else                
+                    box_template = (DataTemplate)this.Resources["ComboBoxTemplate"];                    
+                
+                setting_elem.Children.Add((StackPanel)box_template.LoadContent());
                 setting_elem.DataContext = setting;
-                setting_elem.Tag = setting_guid;
 
                 // register animators into element's Resources  
                 register_animation(setting_elem, Colors.MediumSpringGreen, ANIMATION_SUCCESS_KEY);
@@ -166,42 +161,43 @@ namespace better_power
         }
 
         // settings elements: settings changed handler; numberbox
-        private void NumberBoxValueChanged(NumberBox _sender, NumberBoxValueChangedEventArgs e)
+        private void NumberBoxValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs e)
         {
-            NumberBox sender = _sender as NumberBox;
-            if (!sender.IsEnabled || !sender.IsLoaded) return;
-
-            string setting_guid = sender.Tag.ToString();
-            SettingStore setting_data = App.setting_data_dict[setting_guid];
-            var setting_elem = this.setting_elements_dict[setting_guid] as Panel;
-
-            string selected_parent_schemeguid = this.selected_parent_schemeguid;
-
-            var curr_vals = setting_data.curr_setting_vals_by_scheme[selected_parent_schemeguid];
-            setting_data.curr_setting_vals_by_scheme[selected_parent_schemeguid] = ((int)sender.Value, curr_vals.dc_val);
-
-            bool success = PowercfgManager.set_powersetting(selected_parent_schemeguid, setting_data._parent_groupguid, setting_guid, (int)sender.Value);
-
-            fire_success_animation(setting_elem, success);
+            SettingChanged(sender);                        
         }
 
         // settings elements: settings changed handler; combobox
-        private void ComboBoxSelectionChanged(object _sender, SelectionChangedEventArgs e)
+        private void ComboBoxSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            ComboBox sender = _sender as ComboBox;
+            SettingChanged(sender as ComboBox);
+        }
+
+        private void SettingChanged(Control sender)
+        {
             if (!sender.IsEnabled || !sender.IsLoaded) return;
 
-            string setting_guid = sender.Tag.ToString();
-            SettingStore setting_data = App.setting_data_dict[setting_guid];
-            var setting_elem = this.setting_elements_dict[setting_guid] as Panel;
-
+            SettingStore setting_data = (SettingStore)sender.DataContext;
+            string setting_guid = setting_data._setting_guid;            
             string selected_parent_schemeguid = this.selected_parent_schemeguid;
-
             var curr_vals = setting_data.curr_setting_vals_by_scheme[selected_parent_schemeguid];
-            setting_data.curr_setting_vals_by_scheme[selected_parent_schemeguid] = ((int)sender.SelectedIndex, curr_vals.dc_val);
 
-            bool success = PowercfgManager.set_powersetting(selected_parent_schemeguid, setting_data._parent_groupguid, setting_guid, (int)sender.SelectedIndex);
+            int new_val;
+            if (sender is ComboBox)
+                new_val = (int)(sender as ComboBox).SelectedIndex;
+            else
+                new_val = (int)(sender as NumberBox).Value;
+                        
+            (int ac_val, int dc_val) new_vals;
+            if (sender.Tag.ToString() == "ac_val")
+                new_vals = (ac_val: new_val, dc_val: curr_vals.dc_val);
+            else
+                new_vals = (ac_val: curr_vals.ac_val, dc_val: new_val);
 
+            setting_data.curr_setting_vals_by_scheme[selected_parent_schemeguid] = new_vals;
+
+            bool success = PowercfgManager.set_powersetting(selected_parent_schemeguid, setting_data._parent_groupguid, setting_guid, new_val);
+
+            var setting_elem = this.setting_elements_dict[setting_guid] as Panel;
             fire_success_animation(setting_elem, success);
         }
 
@@ -562,11 +558,11 @@ namespace better_power
         }
 
         // export a scheme
-        private async void SchemeExportFlyout_Clicked(object sender, RoutedEventArgs e)
+        private async void SchemeExportFlyout_Clicked(object _sender, RoutedEventArgs e)
         {
-            var senderitem = sender as MenuFlyoutItem;
-            string scheme_guid = senderitem.Tag.ToString();
-            var scheme_data = App.scheme_data_dict[scheme_guid];
+            var sender = _sender as MenuFlyoutItem;
+            var scheme_data = (SchemeStore)sender.DataContext;
+            string scheme_guid = scheme_data.scheme_guid;
 
             var savePicker = new Windows.Storage.Pickers.FileSavePicker();
             savePicker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary;
@@ -854,6 +850,7 @@ namespace better_power
 
         private void NewScheme_UpdateAppData_UpdateUIElems(string new_scheme_name, string new_scheme_guid)
         {
+            // insert new scheme according to default ordering on "powerfulness" of the name
             int score = App.name_score(new_scheme_name);
             int insert_i = 0;
             for (int i = 0; i < App.scheme_data_dict.Count; i++)
@@ -865,16 +862,12 @@ namespace better_power
 
             // update Application datastructures for new scheme
             SchemeStore new_scheme_data = new SchemeStore(new_scheme_name, new_scheme_guid);
-
             App.scheme_data_dict.Insert(insert_i, new_scheme_guid, new_scheme_data);
-            //App.scheme_data_dict[new_scheme_guid] = new_scheme_data;
             App.Current.store_setting_values_one_scheme(new_scheme_guid);
 
             // update view elements for the new scheme
             var new_scheme_elem = generate_schememenuitem(new_scheme_data);
-
             this.scheme_elements.Insert(insert_i+1, new_scheme_elem);
-            //this.scheme_elements.Add(new_scheme_elem);
             this.scheme_elements_dict[new_scheme_guid] = new_scheme_elem;
 
             fire_success_animation(new_scheme_elem, true);

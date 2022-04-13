@@ -31,8 +31,6 @@ namespace better_power
 
     // TODO
 
-    // default ordering from power saver to ultimate
-
     // setting cards:
     //      indicate possible values to which we can set the setting
     //      data units + format     

@@ -14,59 +14,91 @@
             <CornerRadius x:Key="OverlayCornerRadius">4</CornerRadius>
 
             <DataTemplate x:Key="SettingTemplate" x:DataType="local:SettingStore">
-                <Grid 
-                        CornerRadius="{StaticResource ControlCornerRadius}"
-                        Padding="5" 
-                        Margin="25,5,25,5" >
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
+                <RelativePanel
+                    CornerRadius="{StaticResource ControlCornerRadius}"
+                    Padding="25,5,25,5" 
+                    Margin="25,5,25,5"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Center"
+                    
+                    >
 
-                    <TextBlock                                 
-                            Grid.Column="0" 
-                            Width="300"
-                            VerticalAlignment="Center" 
-                            HorizontalAlignment="Left"                        
-                            Margin="10,5,0,5" 
+                    <TextBlock                           
+                        Width="300"
+                        RelativePanel.AlignVerticalCenterWithPanel="True"
+                        RelativePanel.AlignLeftWithPanel="True"   
                         
-                            Text="{x:Bind _setting_name}"
-                            TextWrapping="WrapWholeWords" />
-                </Grid>
+                        Text="{x:Bind _setting_name}"
+                        TextWrapping="WrapWholeWords" />
+
+                </RelativePanel>
+               
             </DataTemplate>
 
             <DataTemplate x:Key="ComboBoxTemplate" x:DataType="local:SettingStore">
-                <ComboBox     
-                        Grid.Column="1" 
+                <StackPanel
+                    Name="settingbox"
+                    Orientation="Horizontal"
+                    Spacing="10"                    
+                    
+                    RelativePanel.AlignRightWithPanel="True"
+                    RelativePanel.AlignVerticalCenterWithPanel="True"
+                    >
+                    <ComboBox    
+                        Tag="ac_val"
                         Width="250"
-                        VerticalAlignment="Center"
-                        HorizontalAlignment="Left"
-                        Margin="0,5,10,5" 
                     
-                        IsEnabled="{x:Bind setting_enabled, Mode=OneWay}"
-                    
+                        IsEnabled="{x:Bind setting_enabled, Mode=OneWay}"                    
                         ItemsSource="{x:Bind possible_settings_index_dict.Values}"
-                        SelectedIndex="{x:Bind curr_ac_val, Mode=TwoWay}" />
+                        SelectedIndex="{x:Bind curr_ac_val, Mode=TwoWay}" 
+                        SelectionChanged="ComboBoxSelectionChanged"/>
+
+                    <ComboBox   
+                        Tag="dc_val"
+                        Width="250"
+                    
+                        IsEnabled="{x:Bind setting_enabled, Mode=OneWay}"                    
+                        ItemsSource="{x:Bind possible_settings_index_dict.Values}"
+                        SelectedIndex="{x:Bind curr_dc_val, Mode=TwoWay}" 
+                        SelectionChanged="ComboBoxSelectionChanged"/>
+                </StackPanel>                
             </DataTemplate>
 
             <DataTemplate x:Key="NumberBoxTemplate" x:DataType="local:SettingStore">
-                <NumberBox     
-                    Grid.Column="1" 
-                    Width="250"
+                <StackPanel
+                    Name="settingbox"
+                    Orientation="Horizontal"
+                    Spacing="10"
+                    HorizontalAlignment="Right"
                     VerticalAlignment="Center"
-                    HorizontalAlignment="Left"
-                    Margin="0,5,10,5" 
                     
-                    IsEnabled="{x:Bind setting_enabled, Mode=OneWay}"
+                    RelativePanel.AlignRightWithPanel="True"
+                    RelativePanel.AlignVerticalCenterWithPanel="True"
+                    >
+                    <NumberBox    
+                        Tag="ac_val"
+                        Width="250"
                     
-                    Value="{x:Bind curr_ac_val, Mode=TwoWay}" />
+                        IsEnabled="{x:Bind setting_enabled, Mode=OneWay}"                    
+                        Value="{x:Bind curr_ac_val, Mode=TwoWay}" 
+                        ValueChanged="NumberBoxValueChanged" />
+                    
+                    <NumberBox     
+                        Tag="dc_val"
+                        Width="250"
+                    
+                        IsEnabled="{x:Bind setting_enabled, Mode=OneWay}"                    
+                        Value="{x:Bind curr_dc_val, Mode=TwoWay}" 
+                        ValueChanged="NumberBoxValueChanged" />
+                </StackPanel>                
             </DataTemplate>
 
             <DataTemplate x:Key="Scheme_NavViewItemTemplate" x:DataType="local:SchemeStore">
                 <NavigationViewItem                    
                         Icon="List"                     
-                        Tag="{x:Bind scheme_guid}"                     
-                        CanDrag="True">
+                        Tag="{x:Bind scheme_guid}"  
+                    
+                        CanDrag="True" >
 
                     <NavigationViewItem.ContextFlyout>
                         <MenuFlyout>
@@ -140,7 +172,7 @@
             SelectionFollowsFocus="Disabled"
             IsTabStop="False"
             IsTitleBarAutoPaddingEnabled="False" >
-        
+                
         <NavigationView.AutoSuggestBox>
             <AutoSuggestBox
                     x:Name="searchbox"
@@ -193,7 +225,7 @@
                 
                 IsTabStop="False" 
                 SelectionMode="None"
-                IsItemClickEnabled="False">
+                IsItemClickEnabled="False"  >
 
             <ListView.KeyboardAccelerators>
                 <KeyboardAccelerator Modifiers="Control" Key="F"    Invoked="FindKey_Invoked" />
