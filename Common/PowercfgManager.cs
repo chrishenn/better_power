@@ -10,11 +10,11 @@ using Truncon.Collections;
 
 namespace better_power.Common
 {
-    public class PowercfgManager
+    public static class PowercfgManager
     {       
-        public PowercfgManager() { }
+        //public PowercfgManager() { }
 
-        public Collection<PSObject> get_powercfg_query(string scheme_guid, string group_guid)
+        public static Collection<PSObject> get_powercfg_query(string scheme_guid, string group_guid)
         {
             var ps = PowerShell.Create().AddCommand("powercfg").AddArgument("q").AddArgument(scheme_guid).AddArgument(group_guid);
             return ps.Invoke();
@@ -26,13 +26,13 @@ namespace better_power.Common
             return ps.Invoke()[0].ToString().Trim().Substring(19, 36);
         }
 
-        public Collection<PSObject> powercfg_get_schemelist()
+        public static Collection<PSObject> powercfg_get_schemelist()
         {
             var ps = PowerShell.Create().AddCommand("powercfg").AddArgument("list");
             return ps.Invoke();
         }
 
-        public bool set_powersetting(string scheme_guid, string group_guid, string setting_guid, int value)
+        public static bool set_powersetting(string scheme_guid, string group_guid, string setting_guid, int value)
         {
             var ps = PowerShell.Create().AddCommand("powercfg").AddArgument("setacvalueindex").AddArgument(scheme_guid).AddArgument(group_guid).AddArgument(setting_guid).AddArgument(value);
             var result = ps.Invoke();
@@ -72,7 +72,7 @@ namespace better_power.Common
             return (result.Count == 0);
         }
 
-        public string powercfg_get_schemename(string scheme_guid)
+        public static string powercfg_get_schemename(string scheme_guid)
         {
             var ps = PowerShell.Create().AddCommand("powercfg").AddArgument("query").AddArgument(scheme_guid);
             var result = ps.Invoke();

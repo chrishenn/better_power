@@ -196,11 +196,11 @@
                 IsItemClickEnabled="False">
 
             <ListView.KeyboardAccelerators>
+                <KeyboardAccelerator Modifiers="Control" Key="F"    Invoked="FindKey_Invoked" />
+                
                 <KeyboardAccelerator                     Key="F5"   Invoked="RefreshKey_Invoked" />
                 <KeyboardAccelerator Modifiers="Control" Key="R"    Invoked="RefreshKey_Invoked" />
-
-                <KeyboardAccelerator Modifiers="Control" Key="F"    Invoked="FindKey_Invoked" />
-
+               
                 <KeyboardAccelerator Modifiers="Control" Key="C"    Invoked="SchemeModifyKey_Invoked"/>
                 <KeyboardAccelerator                     Key="Delete" Invoked="SchemeModifyKey_Invoked"/>
                 <KeyboardAccelerator                     Key="F2"   Invoked="SchemeModifyKey_Invoked"/>

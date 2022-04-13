@@ -180,7 +180,7 @@ namespace better_power
             var curr_vals = setting_data.curr_setting_vals_by_scheme[selected_parent_schemeguid];
             setting_data.curr_setting_vals_by_scheme[selected_parent_schemeguid] = ((int)sender.Value, curr_vals.dc_val);
 
-            bool success = App.Current.power_manager.set_powersetting(selected_parent_schemeguid, setting_data._parent_groupguid, setting_guid, (int)sender.Value);
+            bool success = PowercfgManager.set_powersetting(selected_parent_schemeguid, setting_data._parent_groupguid, setting_guid, (int)sender.Value);
 
             fire_success_animation(setting_elem, success);
         }
@@ -200,7 +200,7 @@ namespace better_power
             var curr_vals = setting_data.curr_setting_vals_by_scheme[selected_parent_schemeguid];
             setting_data.curr_setting_vals_by_scheme[selected_parent_schemeguid] = ((int)sender.SelectedIndex, curr_vals.dc_val);
 
-            bool success = App.Current.power_manager.set_powersetting(selected_parent_schemeguid, setting_data._parent_groupguid, setting_guid, (int)sender.SelectedIndex);
+            bool success = PowercfgManager.set_powersetting(selected_parent_schemeguid, setting_data._parent_groupguid, setting_guid, (int)sender.SelectedIndex);
 
             fire_success_animation(setting_elem, success);
         }
@@ -844,7 +844,7 @@ namespace better_power
             {
                 this.listview.ItemsSource = new ObservableCollection<FrameworkElement>() { new WaitPage() };
 
-                string new_scheme_name = await Task.Run(() => App.Current.power_manager.powercfg_get_schemename(new_scheme_guid));
+                string new_scheme_name = await Task.Run(() => PowercfgManager.powercfg_get_schemename(new_scheme_guid));
                 NewScheme_UpdateAppData_UpdateUIElems(new_scheme_name, new_scheme_guid);
 
                 this.listview.ItemsSource = this.setting_elements;

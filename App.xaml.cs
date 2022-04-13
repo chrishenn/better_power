@@ -42,13 +42,12 @@ namespace better_power
     // explanatory tooltips
     // error handling
     // write exceptions to recover, display errors to user, crash if needed 
-    // check that new data objects with GUIDs have valid GUIDS
 
     // packaging - modern install, portable install, taskbar icon, taskbar app name
-    // installer must run power unhide scripts (reporpose system-object code?)
+    // installer must run power unhide scripts (or reporpose system-object code?)
     // compatibility testing
-    // make the waiting animation smooth? It hitches while the main UI thread is refreshing the UIElements
 
+    // make the waiting animation smooth? It hitches while the main UI thread is refreshing the UIElements
     // search behavior: include all settings under group header if header name matches search query?
     // [wait: future winui version] override window theme-color border
     // [wait: future winui version] drag-n-drop reordering of schemes in navigationview
@@ -172,8 +171,6 @@ namespace better_power
         public static OrderedDictionary<string, SchemeStore> scheme_data_dict { get { return _scheme_data_dict; } }
         private static OrderedDictionary<string, SchemeStore> _scheme_data_dict = new OrderedDictionary<string, SchemeStore>();
 
-        public PowercfgManager power_manager = new PowercfgManager();
-
         public string[] classic_filepaths;
         public string[] classic_guids;
         public int[] classic_order;
@@ -246,7 +243,7 @@ namespace better_power
         // parses strings returned from powershell powercfg
         private void build_schemedata()
         {
-            var result = this.power_manager.powercfg_get_schemelist();
+            var result = PowercfgManager.powercfg_get_schemelist();
 
             foreach (var ps_ob in result)
             {
@@ -269,7 +266,7 @@ namespace better_power
         private void build_settingdata()
         {
             string systemactive_schemeguid = PowercfgManager.get_systemactive_schemeguid();
-            var all_settings = this.power_manager.get_powercfg_query(systemactive_schemeguid, "");
+            var all_settings = PowercfgManager.get_powercfg_query(systemactive_schemeguid, "");
 
             string[] all_strings = new string[all_settings.Count];
             int all_strings_size = 0;
@@ -385,7 +382,7 @@ namespace better_power
         
         public void store_setting_values_one_scheme(string scheme_guid)
         {
-            var res_objs = this.power_manager.get_powercfg_query(scheme_guid, "");
+            var res_objs = PowercfgManager.get_powercfg_query(scheme_guid, "");
 
             string curr_setting_guid = null;
             int i = 0;
