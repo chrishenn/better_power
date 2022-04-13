@@ -148,7 +148,7 @@ namespace better_power
     //-----------------------------------------------------------------------------------------------------------------------------------------------------------------
     //-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    
+
 
     public partial class App : Application
     {
@@ -172,7 +172,6 @@ namespace better_power
         private static OrderedDictionary<string, SchemeStore> _scheme_data_dict = new OrderedDictionary<string, SchemeStore>();
 
         public string[] classic_filepaths;
-        public string[] classic_guids;
         public int[] classic_order;
 
 
@@ -181,7 +180,7 @@ namespace better_power
         {
             this.InitializeComponent();
 
-            this.read_classic_schemes_fromfiles();            
+            this.read_classic_schemes_fromfiles();
 
             this.Refresh_App_Data();
         }
@@ -229,11 +228,9 @@ namespace better_power
             var config_path = proj_path + @"\classic_configs\";
 
             this.classic_filepaths = Directory.GetFiles(config_path, "*.pow", SearchOption.TopDirectoryOnly);
-            this.classic_guids = File.ReadAllLines(config_path + @"classic_scheme_guids.txt");
-
             this.classic_order = new int[] { 2, 0, 1, 3 };
         }
-               
+
 
 
         //-------------------------------------------------------------------------------------------------
@@ -244,6 +241,7 @@ namespace better_power
         private void build_schemedata()
         {
             var result = PowercfgManager.powercfg_get_schemelist();
+            var schemelist = new List<SchemeStore>();
 
             foreach (var ps_ob in result)
             {
@@ -258,9 +256,43 @@ namespace better_power
                     string name = tmp.Substring(58);
                     name = name.TrimEnd(new char[] { ')', '*', ' ' });
 
-                    App._scheme_data_dict[guid] = new SchemeStore(name, guid);
+                    schemelist.Add(new SchemeStore(name, guid));
                 }
             }
+
+            schemelist.Sort(CompareSchemesByPowerfulness);
+
+            foreach (var scheme_data in schemelist)            
+                App._scheme_data_dict[scheme_data.scheme_guid] = scheme_data;            
+        }
+        private static int CompareSchemesByPowerfulness(SchemeStore x, SchemeStore y)
+        {            
+            string x_name = x.scheme_name.ToLower();
+            string y_name = y.scheme_name.ToLower();
+
+            int x_score = App.name_score(x_name);
+            int y_score = App.name_score(y_name);
+
+            if ( x_score < y_score ) 
+                return -1;
+            else if( x_score == y_score ) 
+                return 0;
+            else 
+                return 1;
+        }
+        public static int name_score(string name)
+        {
+            int score = 4;
+            if (name.Contains("saver"))
+                score = 0;
+            else if (name.Contains("balance"))
+                score = 1;
+            else if (name.Contains("high"))
+                score = 2;
+            else if (name.Contains("ultimate"))
+                score = 3;
+
+            return score;
         }
 
         private void build_settingdata()

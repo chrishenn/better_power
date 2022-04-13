@@ -854,14 +854,27 @@ namespace better_power
 
         private void NewScheme_UpdateAppData_UpdateUIElems(string new_scheme_name, string new_scheme_guid)
         {
+            int score = App.name_score(new_scheme_name);
+            int insert_i = 0;
+            for (int i = 0; i < App.scheme_data_dict.Count; i++)
+            {
+                int score_i = App.name_score(App.scheme_data_dict[insert_i].scheme_name);
+                if (score >= score_i)
+                    insert_i = i + 1;
+            }
+
             // update Application datastructures for new scheme
             SchemeStore new_scheme_data = new SchemeStore(new_scheme_name, new_scheme_guid);
-            App.scheme_data_dict[new_scheme_guid] = new_scheme_data;
+
+            App.scheme_data_dict.Insert(insert_i, new_scheme_guid, new_scheme_data);
+            //App.scheme_data_dict[new_scheme_guid] = new_scheme_data;
             App.Current.store_setting_values_one_scheme(new_scheme_guid);
 
             // update view elements for the new scheme
             var new_scheme_elem = generate_schememenuitem(new_scheme_data);
-            this.scheme_elements.Add(new_scheme_elem);
+
+            this.scheme_elements.Insert(insert_i+1, new_scheme_elem);
+            //this.scheme_elements.Add(new_scheme_elem);
             this.scheme_elements_dict[new_scheme_guid] = new_scheme_elem;
 
             fire_success_animation(new_scheme_elem, true);
@@ -963,7 +976,6 @@ namespace better_power
         {
             await RefreshConfirmDialog();
         }
-
         private async void SchemeModifyKey_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
         {
             if (this.navigationview.SelectedItem == null) return;
