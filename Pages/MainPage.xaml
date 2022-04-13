@@ -66,7 +66,7 @@
                 <NavigationViewItem                    
                         Icon="List"                     
                         Tag="{x:Bind scheme_guid}"                     
-                        CanDrag="True" >
+                        CanDrag="True">
 
                     <NavigationViewItem.ContextFlyout>
                         <MenuFlyout>
@@ -79,10 +79,6 @@
                             <MenuFlyoutItem Text="Delete"   Icon="Delete"   Tag="{x:Bind scheme_guid}" Click="SchemeDeleteFlyout_Clicked"/>
                         </MenuFlyout>
                     </NavigationViewItem.ContextFlyout>
-
-                    <NavigationViewItem.MenuItems>
-                        <NavigationViewItemHeader Content="Power Setting Groups" FontWeight="Bold" Foreground="SlateBlue" />
-                    </NavigationViewItem.MenuItems>
 
                     <RelativePanel 
                             MinHeight="30"
@@ -123,12 +119,7 @@
         </ResourceDictionary>
     </Page.Resources>
 
-
-    <Page.KeyboardAccelerators>
-        <KeyboardAccelerator Key="F5" Invoked="Refresh_Invoked" />
-        <KeyboardAccelerator Modifiers="Control" Key="R" Invoked="Refresh_Invoked" />
-    </Page.KeyboardAccelerators>
-    
+   
     <NavigationView
             x:Name="navigationview"     
             SelectionChanged="navigationview_SelectionChanged"
@@ -149,7 +140,7 @@
             SelectionFollowsFocus="Disabled"
             IsTabStop="False"
             IsTitleBarAutoPaddingEnabled="False" >
-
+        
         <NavigationView.AutoSuggestBox>
             <AutoSuggestBox
                     x:Name="searchbox"
@@ -161,12 +152,8 @@
                     x:FieldModifier="public"
                     PlaceholderText="Search Settings in Selected Scheme"
                     QueryIcon="Find"                                        
-                    KeyboardAcceleratorPlacementMode="Hidden" >
+                    KeyboardAcceleratorPlacementMode="Hidden" />
 
-                <AutoSuggestBox.KeyboardAccelerators>
-                    <KeyboardAccelerator Modifiers="Control" Key="F" Invoked="CtrlF_Invoked" />
-                </AutoSuggestBox.KeyboardAccelerators>
-            </AutoSuggestBox>
         </NavigationView.AutoSuggestBox>
 
         <NavigationView.PaneFooter>
@@ -206,7 +193,18 @@
                 
                 IsTabStop="False" 
                 SelectionMode="None"
-                IsItemClickEnabled="False">      
+                IsItemClickEnabled="False">
+
+            <ListView.KeyboardAccelerators>
+                <KeyboardAccelerator                     Key="F5"   Invoked="RefreshKey_Invoked" />
+                <KeyboardAccelerator Modifiers="Control" Key="R"    Invoked="RefreshKey_Invoked" />
+
+                <KeyboardAccelerator Modifiers="Control" Key="F"    Invoked="FindKey_Invoked" />
+
+                <KeyboardAccelerator Modifiers="Control" Key="C"    Invoked="SchemeModifyKey_Invoked"/>
+                <KeyboardAccelerator                     Key="Delete" Invoked="SchemeModifyKey_Invoked"/>
+                <KeyboardAccelerator                     Key="F2"   Invoked="SchemeModifyKey_Invoked"/>
+            </ListView.KeyboardAccelerators>
         </ListView>
 
     </NavigationView>

@@ -27,10 +27,10 @@ using Windows.UI.Core;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Threading;
-
+using Windows.System;
 
 namespace better_power
-{    
+{
     public sealed partial class MainPage : Page
     {
         // required ordereddict to maintain the ordering of headers and setting elements in the listView
@@ -54,7 +54,7 @@ namespace better_power
 
         // indicate that settings elements shown in listview should not change
         bool settings_elements_locked_in_view = false;
-       
+
         const string ANIMATION_SUCCESS_KEY = "animation_success";
         const string ANIMATION_FAIL_KEY = "animation_fail";
         const string BACKGROUND_BRUSH_KEY = "background_brush";
@@ -181,7 +181,7 @@ namespace better_power
             setting_data.curr_setting_vals_by_scheme[selected_parent_schemeguid] = ((int)sender.Value, curr_vals.dc_val);
 
             bool success = App.Current.power_manager.set_powersetting(selected_parent_schemeguid, setting_data._parent_groupguid, setting_guid, (int)sender.Value);
-                        
+
             fire_success_animation(setting_elem, success);
         }
 
@@ -215,9 +215,9 @@ namespace better_power
             this.scheme_elements.Add(
                  new NavigationViewItemHeader()
                  {
-                    Content = "Installed Power Schemes",
-                    FontWeight = FontWeights.Bold,
-                    Foreground = new SolidColorBrush(Colors.SlateBlue),
+                     Content = "Installed Power Schemes",
+                     FontWeight = FontWeights.Bold,
+                     Foreground = new SolidColorBrush(Colors.SlateBlue),
                  });
 
             foreach (var scheme_kvp in App.scheme_data_dict)
@@ -241,6 +241,12 @@ namespace better_power
             register_animation(scheme_menuitem, Colors.MediumVioletRed, ANIMATION_FAIL_KEY, storyboard_tag: scheme_guid);
 
             // each scheme menuitem gets a complete list of all groups as submenu items            
+            scheme_menuitem.MenuItems.Add(new NavigationViewItemHeader()
+            {
+                Content = "Power Setting Groups",
+                FontWeight = FontWeights.Bold,
+                Foreground = new SolidColorBrush() { Color = Colors.SlateBlue }
+            });
             foreach (var group_data in App.group_data_dict)
                 scheme_menuitem.MenuItems.Add(new NavigationViewItem() { Content = group_data.Value._group_name, Tag = group_data.Key });
 
@@ -420,9 +426,12 @@ namespace better_power
         private async void SchemeRenameFlyout_Clicked(object _sender, RoutedEventArgs e)
         {
             var sender = _sender as MenuFlyoutItem;
-            SchemeStore scheme_data = sender.DataContext as SchemeStore;
-            string scheme_guid = scheme_data.scheme_guid;
+            await SchemeRename(sender.DataContext as SchemeStore);
+        }
+        private async Task SchemeRename(SchemeStore scheme_data)
+        {
             string old_name = scheme_data.scheme_name + "";
+            string scheme_guid = scheme_data.scheme_guid;
 
             RenameDialog rename_dialog = new RenameDialog(old_name);
             rename_dialog.XamlRoot = this.XamlRoot;
@@ -446,10 +455,13 @@ namespace better_power
         // copy a scheme
         private async void SchemeCopyFlyout_Clicked(object _sender, RoutedEventArgs e)
         {
-            // ask for a new scheme name with default 
             var sender = _sender as MenuFlyoutItem;
-            string scheme_guid = sender.Tag.ToString();
-            SchemeStore scheme_data = sender.DataContext as SchemeStore;
+            await SchemeCopy(sender.DataContext as SchemeStore);
+        }
+
+        private async Task SchemeCopy(SchemeStore scheme_data)
+        {
+            string scheme_guid = scheme_data.scheme_guid;
 
             CopyDialog copy_dialog = new CopyDialog(scheme_data.scheme_name);
             copy_dialog.XamlRoot = this.XamlRoot;
@@ -484,7 +496,12 @@ namespace better_power
         private async void SchemeDeleteFlyout_Clicked(object _sender, RoutedEventArgs e)
         {
             var sender = _sender as MenuFlyoutItem;
-            string scheme_guid = sender.Tag.ToString();
+            await SchemeDelete(sender.DataContext as SchemeStore);
+        }
+
+        private async Task SchemeDelete(SchemeStore scheme_data)
+        {
+            string scheme_guid = scheme_data.scheme_guid;
 
             // active scheme cannot be deleted - notify with dialog
             if (scheme_guid == this.systemactive_schemeguid)
@@ -504,7 +521,6 @@ namespace better_power
             }
 
             // confirm delete
-            var scheme_data = sender.DataContext as SchemeStore;
             ContentDialog confirm_delete_dialog = new ContentDialog()
             {
                 Title = "Confirm Delete",
@@ -519,6 +535,7 @@ namespace better_power
 
             ContentDialogResult result = await confirm_delete_dialog.ShowAsync();
 
+            // do delete if confired
             if (result == ContentDialogResult.Primary)
             {
                 //bool success = await Task.Run(() => PowercfgManager.powercfg_del_scheme(scheme_guid));
@@ -537,10 +554,10 @@ namespace better_power
 
                     // delete scheme from application data                    
                     App.scheme_data_dict.Remove(scheme_guid);
-                    App.Current.remove_setting_values_one_scheme(scheme_guid);                    
+                    App.Current.remove_setting_values_one_scheme(scheme_guid);
                 }
 
-                fire_global_infobar("deleting power scheme \"" + scheme_data.scheme_name+"\"", success, flash: true);
+                fire_global_infobar("deleting power scheme \"" + scheme_data.scheme_name + "\"", success, flash: true);
             }
         }
 
@@ -570,7 +587,7 @@ namespace better_power
         }
 
 
-  
+
 
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -590,7 +607,7 @@ namespace better_power
             if (file != null)
             {
                 bool success = await NewScheme_ImportFromFile_UpdateApp(file.Path);
-                fire_global_infobar("importing scheme from \"" + file.Name+"\"", success, flash: true);
+                fire_global_infobar("importing scheme from \"" + file.Name + "\"", success, flash: true);
             }
         }
 
@@ -646,7 +663,7 @@ namespace better_power
             string name = schemepath.Substring(schemepath.LastIndexOf(@"\") + 1, schemepath.Length - 4 - schemepath.LastIndexOf(@"\") - 1);
 
             fire_success_animation(sender, success);
-            fire_global_infobar("installing classic scheme \""+name+"\"", success, flash: true);
+            fire_global_infobar("installing classic scheme \"" + name + "\"", success, flash: true);
         }
 
         private async void Scheme_ResetButton_Tapped(object _sender, TappedRoutedEventArgs e)
@@ -678,6 +695,11 @@ namespace better_power
         }
 
         private async void RefreshButton_Tapped(object _sender, TappedRoutedEventArgs e)
+        {
+            await RefreshConfirmDialog();
+        }
+
+        private async Task RefreshConfirmDialog()
         {
             ContentDialog refresh_dialog = new ContentDialog()
             {
@@ -933,13 +955,30 @@ namespace better_power
         // Hotkeys
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
-        private void CtrlF_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+        private void FindKey_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
         {
             this.searchbox.Focus(FocusState.Programmatic);
         }
-        private async void Refresh_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+        private async void RefreshKey_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
         {
-            await this.Application_Full_Refresh();
+            await RefreshConfirmDialog();
+        }
+
+        private async void SchemeModifyKey_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+        {
+            if (this.navigationview.SelectedItem == null) return;
+
+
+            var scheme_data = (this.navigationview.SelectedItem as NavigationViewItem).DataContext as SchemeStore;
+
+            if (sender.Key == VirtualKey.C && sender.Modifiers == VirtualKeyModifiers.Control)
+                await SchemeCopy(scheme_data);
+
+            else if (sender.Key == VirtualKey.Delete)
+                await SchemeDelete(scheme_data);
+
+            else if (sender.Key == VirtualKey.F2)
+                await SchemeRename(scheme_data);
         }
     }
 }

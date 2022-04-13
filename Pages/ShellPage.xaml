@@ -22,7 +22,6 @@
 
         <Frame x:Name="appframe" Grid.Row="1" x:FieldModifier="public"/>
 
-
     </Grid>   
 
 </Page>
