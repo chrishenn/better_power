@@ -124,8 +124,7 @@ namespace better_power
                     curr_groupid = setting._parent_groupguid;
                     string curr_groupname = App.group_data_dict[curr_groupid]._group_name;
 
-                    curr_groupheader = new ListViewHeaderItem() { Content = curr_groupname, Tag = curr_groupid  };
-                    curr_groupheader.Resources["ListViewHeaderItemDividerStroke"] = new SolidColorBrush(Color.FromArgb(0, 0, 0, 0));
+                    curr_groupheader = new ListViewHeaderItem() { Content = curr_groupname, Tag = curr_groupid, Style=this.Resources["PurpleStyle"] as Style };
 
                     this.setting_elements_dict[curr_groupid] = curr_groupheader;
 
@@ -133,10 +132,9 @@ namespace better_power
                     this.setting_elements_by_group_dict[curr_groupid].Add(curr_groupheader);
                 }
 
-
                 // compose the setting element from constituents
                 DataTemplate setting_template = (DataTemplate)this.Resources["SettingTemplate"];
-                RelativePanel setting_elem = (RelativePanel)setting_template.LoadContent();
+                Panel setting_elem = (Panel)setting_template.LoadContent();
 
                 DataTemplate box_template;
                 if (setting.is_range)                

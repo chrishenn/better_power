@@ -31,15 +31,17 @@ namespace better_power
 
     // TODO
 
+    // indicate AC vs Battery setting on all cards
+    // cards should wrap settings boxes under text setting names when small
+        // https://docs.microsoft.com/en-us/windows/apps/design/layout/layouts-with-xaml
+
     // setting cards:
-    //      indicate possible values to which we can set the setting
-    //      data units + format     
+    //      indicate valid range of values to which we can set the setting (numberbox)
     //      range checking
-    //      ac + dc menus
+    //      data units + format     
 
     // explanatory tooltips
     // error handling
-    // write exceptions to recover, display errors to user, crash if needed 
 
     // packaging - modern install, portable install, taskbar icon, taskbar app name
     // installer must run power unhide scripts (or reporpose system-object code?)

@@ -9,18 +9,23 @@
     mc:Ignorable="d" >
 
     <Page.Resources>
+        
         <ResourceDictionary>
             <CornerRadius x:Key="ControlCornerRadius">2</CornerRadius>
             <CornerRadius x:Key="OverlayCornerRadius">2</CornerRadius>
 
             <SolidColorBrush x:Key="SettingCardBackground" Color="#2b2b2b"/>
 
+            <Style x:Key="PurpleStyle" TargetType="ListViewHeaderItem">
+                <Setter Property="FontSize" Value="14"/>                
+            </Style>
+
             <DataTemplate x:Key="SettingTemplate" x:DataType="local:SettingStore">
                 <RelativePanel
                     CornerRadius="{StaticResource ControlCornerRadius}"
                     Background="#2b2b2b"
-                    Padding="25,10,25,10" 
-                    Margin="25,2,25,2"                  
+                    Padding="30,10,30,10" 
+                    Margin="30,2,30,2"                  
                     >
 
                     <TextBlock                           
@@ -227,6 +232,10 @@
                 IsTabStop="False" 
                 SelectionMode="None"
                 IsItemClickEnabled="False"  >
+
+            <ListView.Resources>
+                <SolidColorBrush x:Key="ListViewHeaderItemDividerStroke" Color="Transparent"/>
+            </ListView.Resources>
            
             <ListView.KeyboardAccelerators>
                 <KeyboardAccelerator Modifiers="Control" Key="F"    Invoked="FindKey_Invoked" />
