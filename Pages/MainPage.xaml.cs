@@ -333,7 +333,7 @@ namespace better_power
 
         private void listview_Load_Elements()
         {
-            this.listview.ItemsSource = this.setting_elements;
+            this.listview.ItemsSource = this.setting_elements;            
         }
 
 

@@ -17,19 +17,19 @@
 
             <DataTemplate x:Key="ComboBoxTemplate" x:DataType="local:SettingStore">
                 <Grid
-                    MaxWidth="1200"
-                    Margin="10,2,10,0"
-                    Padding="30,10,30,10"
+                    HorizontalAlignment="Left"
+                    Margin="0,3,10,0"
+                    Padding="30,20,30,20"
                                         
-                    CornerRadius="{StaticResource ControlCornerRadius}"
-                              
-                    Background="{StaticResource SettingCardBackground}" 
-                    >
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
+                    CornerRadius="{StaticResource ControlCornerRadius}"                              
+                    Background="{StaticResource SettingCardBackground}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="30"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                    
                     <TextBlock  
                         Width="300"
                         Grid.Column="0"
@@ -37,12 +37,12 @@
                                         
                         TextWrapping="WrapWholeWords"
                         Text="{x:Bind _setting_name}" />
+                    
                     <StackPanel Orientation="Horizontal"
-                                Grid.Column="2"
+                                Grid.Column="3"
                                 Spacing="10"
                                 Margin="10,0,0,0"
-                                VerticalAlignment="Center"
-                                >
+                                VerticalAlignment="Center" >
                         <ComboBox              
                             Width="250"
                                    
@@ -60,25 +60,24 @@
                             SelectedIndex="{x:Bind curr_dc_val, Mode=TwoWay}"
                             SelectionChanged="ComboBoxSelectionChanged"/>
                     </StackPanel>
-                </Grid>
+                </Grid>                
             </DataTemplate>
-
 
             <DataTemplate x:Key="NumberBoxTemplate" x:DataType="local:SettingStore">
                 <Grid
-                    MaxWidth="1200"
-                    Margin="10,2,10,0"
-                    Padding="30,10,30,10"
+                    HorizontalAlignment="Left"
+                    Margin="0,3,10,0"
+                    Padding="30,20,30,20"
                                         
-                    CornerRadius="{StaticResource ControlCornerRadius}"
-                              
-                    Background="{StaticResource SettingCardBackground}" 
-                    >
+                    CornerRadius="{StaticResource ControlCornerRadius}"                              
+                    Background="{StaticResource SettingCardBackground}" >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="30"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
+
                     <TextBlock   
                         Width="300"
                         Grid.Column="0"
@@ -87,11 +86,11 @@
                         TextWrapping="WrapWholeWords"
                         Text="{x:Bind _setting_name}" />
                     <StackPanel Orientation="Horizontal"
-                                Grid.Column="2"
-                                Spacing="10"
-                                Margin="10,0,0,0"
-                                VerticalAlignment="Center"
-                                >
+                            Grid.Column="3"
+                            Spacing="10"
+                            Margin="10,0,0,0"
+                            VerticalAlignment="Center"
+                            >
                         <NumberBox              
                             Width="250"
                                    
@@ -245,15 +244,10 @@
                 Loaded="listview_Loaded"
                 Background="#202020"
                                                      
-                IsTabStop="False" 
-                SelectionMode="None"
-                IsItemClickEnabled="False" 
+                IsTabStop="False"  
+            SelectionMode="None"
             >
-
-            <ListView.Resources>
-                <SolidColorBrush x:Key="ListViewHeaderItemDividerStroke" Color="Transparent"/>
-            </ListView.Resources>
-           
+ 
             <ListView.KeyboardAccelerators>
                 <KeyboardAccelerator Modifiers="Control" Key="F"    Invoked="FindKey_Invoked" />
 
