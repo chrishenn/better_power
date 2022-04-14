@@ -8,10 +8,11 @@
     mc:Ignorable="d">
 
     <Grid 
+        Background="{StaticResource Custom_Gray}"
         KeyboardAcceleratorPlacementMode="Hidden">
         
         <ProgressRing             
-            Height="200" Width="200"   
+            Height="200" Width="200"              
             IsActive="True" />        
     </Grid>
 

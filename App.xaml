@@ -14,11 +14,10 @@
                 <!-- Other merged dictionaries here -->
             </ResourceDictionary.MergedDictionaries>
 
-            <SolidColorBrush x:Key="WindowCaptionBackground" Color="#202020" />          
-            <SolidColorBrush x:Key="WindowCaptionBackgroundDisabled" Color="#202020" />          
+            <SolidColorBrush x:Key="WindowCaptionBackground" Color="#2b2b2b" />
+            <SolidColorBrush x:Key="WindowCaptionBackgroundDisabled" Color="#2b2b2b" />
 
-            <!--<SolidColorBrush x:Key="AppTitleBar_Grey" Color="#202020"/>-->
-            <!--<SolidColorBrush x:Key="AppPageBackground" Color="#272727"/>-->
+            <SolidColorBrush x:Key="Custom_Gray" Color="#202020"/>
                        
             
             <ResourceDictionary.ThemeDictionaries>
@@ -55,3 +54,4 @@
         
     </Application.Resources>
 </Application>
+ 

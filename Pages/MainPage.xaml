@@ -13,8 +13,9 @@
         <ResourceDictionary>
             <CornerRadius x:Key="ControlCornerRadius">2</CornerRadius>
             <CornerRadius x:Key="OverlayCornerRadius">2</CornerRadius>
-            <SolidColorBrush x:Key="SettingCardBackground" Color="#2b2b2b"/>
-
+            
+            <SolidColorBrush x:Key="SettingCardBackground" Color="#2b2b2b"/>            
+            
             <DataTemplate x:Key="ComboBoxTemplate" x:DataType="local:SettingStore">
                 <Grid
                     HorizontalAlignment="Left"
@@ -109,9 +110,6 @@
                 </Grid>
             </DataTemplate>
             
-            
-
-
             <DataTemplate x:Key="Scheme_NavViewItemTemplate" x:DataType="local:SchemeStore">
                 <NavigationViewItem                    
                         Icon="List"                     
@@ -177,8 +175,8 @@
             SelectionChanged="navigationview_SelectionChanged"
             Loaded="navigationview_Loaded"
             
-            Background="#202020"
-            PaneDisplayMode="Left"
+            Background="{StaticResource Custom_Gray}"
+            PaneDisplayMode="Left"            
                         
             IsPaneToggleButtonVisible="False"
             IsSettingsVisible="False"
@@ -199,7 +197,7 @@
                     TextChanged="searchbox_TextChanged"
                     
                     MinWidth="100"
-                    Margin="10,0,10,5"
+                    Margin="10,5,10,0"
                     
                     x:FieldModifier="public"
                     PlaceholderText="Search Settings in Selected Scheme"

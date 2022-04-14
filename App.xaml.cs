@@ -32,8 +32,6 @@ namespace better_power
     // TODO
 
     // indicate AC vs Battery setting on all cards
-    // cards should wrap settings boxes under text setting names when small
-        // https://docs.microsoft.com/en-us/windows/apps/design/layout/layouts-with-xaml
 
     // setting cards:
     //      indicate valid range of values to which we can set the setting (numberbox)

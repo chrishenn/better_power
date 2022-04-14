@@ -252,22 +252,25 @@ namespace better_power
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
         // register animation to (a Control) or (a Panel); dispatcher
-        private static void register_animation(FrameworkElement element, Color color, string animation_name, string storyboard_tag = null)
+        private void register_animation(FrameworkElement element, Color color, string animation_name, string storyboard_tag = null)
         {
-            Brush b_brush;            
-            if (element is Control)            
-                b_brush = (element as Control).Background;            
-            else            
-                b_brush = (element as Panel).Background;
-            
+            SolidColorBrush b_brush;
+            if (element is Control)
+                b_brush = (element as Control).Background as SolidColorBrush;
+            else
+                b_brush = (element as Panel).Background as SolidColorBrush;
+
             SolidColorBrush target_brush;
             if (element.Resources.ContainsKey(BACKGROUND_BRUSH_KEY))
             {
                 target_brush = element.Resources[BACKGROUND_BRUSH_KEY] as SolidColorBrush;
             }
             else
-            {                
-                target_brush = new SolidColorBrush((b_brush as SolidColorBrush).Color);
+            {             
+                if (b_brush is null)
+                    target_brush = new SolidColorBrush((App.Current.Resources["Custom_Gray"] as SolidColorBrush).Color);
+                else
+                    target_brush = new SolidColorBrush(b_brush.Color); 
                 element.Resources[BACKGROUND_BRUSH_KEY] = target_brush;
             }
 

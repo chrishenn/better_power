@@ -12,6 +12,7 @@
 
     <Grid 
         KeyboardAcceleratorPlacementMode="Hidden" 
+        Background="{StaticResource WindowCaptionBackground}"
         >        
                 
         <Grid.RowDefinitions>
@@ -21,7 +22,8 @@
 
         <Grid 
             x:Name="AppTitleBar"
-            Grid.Row="0">          
+            Grid.Row="0"
+            >          
         </Grid>            
 
         <Frame x:Name="appframe" Grid.Row="1" x:FieldModifier="public"/>
