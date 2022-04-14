@@ -132,20 +132,15 @@ namespace better_power
                     this.setting_elements_by_group_dict[curr_groupid].Add(curr_groupheader);
                 }
 
-                // compose the setting element from constituents
-                DataTemplate setting_template = (DataTemplate)this.Resources["SettingTemplate"];
-                //ListViewItem setting_elem = (ListViewItem)setting_template.LoadContent();
-
+                // build the appropriate the setting card 
                 DataTemplate box_template;
                 if (setting_data.is_range)                
                     box_template = (DataTemplate)this.Resources["NumberBoxTemplate"];                
                 else                
                     box_template = (DataTemplate)this.Resources["ComboBoxTemplate"];
 
-                //setting_elem.Content = (Panel)box_template.LoadContent(); 
-                //setting_elem.DataContext = setting_data;
-
                 FrameworkElement setting_elem = (FrameworkElement)box_template.LoadContent();
+                setting_elem.DataContext = setting_data;
 
                 // register animators into element's Resources  
                 register_animation(setting_elem, Colors.MediumSpringGreen, ANIMATION_SUCCESS_KEY);
@@ -259,8 +254,7 @@ namespace better_power
         // register animation to (a Control) or (a Panel); dispatcher
         private static void register_animation(FrameworkElement element, Color color, string animation_name, string storyboard_tag = null)
         {
-            Brush b_brush;
-            
+            Brush b_brush;            
             if (element is Control)            
                 b_brush = (element as Control).Background;            
             else            

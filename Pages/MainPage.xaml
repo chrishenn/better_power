@@ -15,21 +15,14 @@
             <CornerRadius x:Key="OverlayCornerRadius">2</CornerRadius>
             <SolidColorBrush x:Key="SettingCardBackground" Color="#2b2b2b"/>
 
-            <DataTemplate x:Key="SettingTemplate" x:DataType="local:SettingStore">
-                <ListViewItem    
+            <DataTemplate x:Key="ComboBoxTemplate" x:DataType="local:SettingStore">
+                <Grid
                     MaxWidth="1200"
-                    HorizontalContentAlignment="Stretch"
                     Margin="10,2,10,0"
                     Padding="30,10,30,10"
                                         
                     CornerRadius="{StaticResource ControlCornerRadius}"
                               
-                    Background="{StaticResource SettingCardBackground}" >                                        
-                </ListViewItem>
-            </DataTemplate>
-
-            <DataTemplate x:Key="ComboBoxTemplate" x:DataType="local:SettingStore">
-                <Grid
                     Background="{StaticResource SettingCardBackground}" 
                     >
                     <Grid.ColumnDefinitions>
@@ -72,7 +65,15 @@
 
 
             <DataTemplate x:Key="NumberBoxTemplate" x:DataType="local:SettingStore">
-                <Grid>
+                <Grid
+                    MaxWidth="1200"
+                    Margin="10,2,10,0"
+                    Padding="30,10,30,10"
+                                        
+                    CornerRadius="{StaticResource ControlCornerRadius}"
+                              
+                    Background="{StaticResource SettingCardBackground}" 
+                    >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
