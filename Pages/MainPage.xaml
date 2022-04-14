@@ -13,88 +13,104 @@
         <ResourceDictionary>
             <CornerRadius x:Key="ControlCornerRadius">2</CornerRadius>
             <CornerRadius x:Key="OverlayCornerRadius">2</CornerRadius>
-
             <SolidColorBrush x:Key="SettingCardBackground" Color="#2b2b2b"/>
 
-            <Style x:Key="PurpleStyle" TargetType="ListViewHeaderItem">
-                <Setter Property="FontSize" Value="14"/>                
-            </Style>
-
             <DataTemplate x:Key="SettingTemplate" x:DataType="local:SettingStore">
-                <RelativePanel
+                <ListViewItem    
+                    MaxWidth="1200"
+                    HorizontalContentAlignment="Stretch"
+                    Margin="10,2,10,0"
+                    Padding="30,10,30,10"
+                                        
                     CornerRadius="{StaticResource ControlCornerRadius}"
-                    Background="#2b2b2b"
-                    Padding="30,10,30,10" 
-                    Margin="30,2,30,2"                  
-                    >
-
-                    <TextBlock                           
-                        Width="300"
-                        RelativePanel.AlignVerticalCenterWithPanel="True"
-                        RelativePanel.AlignLeftWithPanel="True"   
-                        
-                        Text="{x:Bind _setting_name}"
-                        TextWrapping="WrapWholeWords" />
-
-                </RelativePanel>
-               
+                              
+                    Background="{StaticResource SettingCardBackground}" >                                        
+                </ListViewItem>
             </DataTemplate>
 
             <DataTemplate x:Key="ComboBoxTemplate" x:DataType="local:SettingStore">
-                <StackPanel
-                    Name="settingbox"
-                    Orientation="Horizontal"     
-                    Spacing="10"
-                    
-                    RelativePanel.AlignRightWithPanel="True"
-                    RelativePanel.AlignVerticalCenterWithPanel="True"
+                <Grid
+                    Background="{StaticResource SettingCardBackground}" 
                     >
-                    <ComboBox    
-                        Tag="ac_val"
-                        Width="250"
-                    
-                        IsEnabled="{x:Bind setting_enabled, Mode=OneWay}"                    
-                        ItemsSource="{x:Bind possible_settings_index_dict.Values}"
-                        SelectedIndex="{x:Bind curr_ac_val, Mode=TwoWay}" 
-                        SelectionChanged="ComboBoxSelectionChanged"/>
-
-                    <ComboBox   
-                        Tag="dc_val"
-                        Width="250"
-                    
-                        IsEnabled="{x:Bind setting_enabled, Mode=OneWay}"                    
-                        ItemsSource="{x:Bind possible_settings_index_dict.Values}"
-                        SelectedIndex="{x:Bind curr_dc_val, Mode=TwoWay}" 
-                        SelectionChanged="ComboBoxSelectionChanged"/>
-                </StackPanel>                
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock  
+                        Width="300"
+                        Grid.Column="0"
+                        VerticalAlignment="Center"
+                                        
+                        TextWrapping="WrapWholeWords"
+                        Text="{x:Bind _setting_name}" />
+                    <StackPanel Orientation="Horizontal"
+                                Grid.Column="2"
+                                Spacing="10"
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center"
+                                >
+                        <ComboBox              
+                            Width="250"
+                                   
+                            Tag="ac_val"
+                            IsEnabled="{x:Bind setting_enabled, Mode=OneWay}"                    
+                            ItemsSource="{x:Bind possible_settings_index_dict.Values}"
+                            SelectedIndex="{x:Bind curr_ac_val, Mode=TwoWay}"
+                            SelectionChanged="ComboBoxSelectionChanged"/>
+                        <ComboBox               
+                            Width="250"
+                                        
+                            Tag="dc_val"
+                            IsEnabled="{x:Bind setting_enabled, Mode=OneWay}"                    
+                            ItemsSource="{x:Bind possible_settings_index_dict.Values}"
+                            SelectedIndex="{x:Bind curr_dc_val, Mode=TwoWay}"
+                            SelectionChanged="ComboBoxSelectionChanged"/>
+                    </StackPanel>
+                </Grid>
             </DataTemplate>
+
 
             <DataTemplate x:Key="NumberBoxTemplate" x:DataType="local:SettingStore">
-                <StackPanel
-                    Name="settingbox"
-                    Orientation="Horizontal"
-                    Spacing="10"
-                    
-                    RelativePanel.AlignRightWithPanel="True"
-                    RelativePanel.AlignVerticalCenterWithPanel="True"
-                    >
-                    <NumberBox    
-                        Tag="ac_val"
-                        Width="250"
-                    
-                        IsEnabled="{x:Bind setting_enabled, Mode=OneWay}"                    
-                        Value="{x:Bind curr_ac_val, Mode=TwoWay}" 
-                        ValueChanged="NumberBoxValueChanged" />
-                    
-                    <NumberBox     
-                        Tag="dc_val"
-                        Width="250"
-                    
-                        IsEnabled="{x:Bind setting_enabled, Mode=OneWay}"                    
-                        Value="{x:Bind curr_dc_val, Mode=TwoWay}" 
-                        ValueChanged="NumberBoxValueChanged" />
-                </StackPanel>                
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock   
+                        Width="300"
+                        Grid.Column="0"
+                        VerticalAlignment="Center"
+                                        
+                        TextWrapping="WrapWholeWords"
+                        Text="{x:Bind _setting_name}" />
+                    <StackPanel Orientation="Horizontal"
+                                Grid.Column="2"
+                                Spacing="10"
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center"
+                                >
+                        <NumberBox              
+                            Width="250"
+                                   
+                            Tag="ac_val"
+                            IsEnabled="{x:Bind setting_enabled, Mode=OneWay}"            
+                            Value="{x:Bind curr_ac_val, Mode=TwoWay}"
+                            ValueChanged="NumberBoxValueChanged"/>
+                        <NumberBox               
+                            Width="250"
+                                        
+                            Tag="dc_val"
+                            IsEnabled="{x:Bind setting_enabled, Mode=OneWay}"           
+                            Value="{x:Bind curr_dc_val, Mode=TwoWay}"
+                            ValueChanged="NumberBoxValueChanged"/>
+                    </StackPanel>
+                </Grid>
             </DataTemplate>
+            
+            
+
 
             <DataTemplate x:Key="Scheme_NavViewItemTemplate" x:DataType="local:SchemeStore">
                 <NavigationViewItem                    
@@ -220,7 +236,6 @@
         </NavigationView.PaneFooter>
 
         <NavigationView.Resources>
-            <!--<SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />-->
             <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent" />
         </NavigationView.Resources>
 
@@ -231,7 +246,8 @@
                                                      
                 IsTabStop="False" 
                 SelectionMode="None"
-                IsItemClickEnabled="False"  >
+                IsItemClickEnabled="False" 
+            >
 
             <ListView.Resources>
                 <SolidColorBrush x:Key="ListViewHeaderItemDividerStroke" Color="Transparent"/>

@@ -111,20 +111,20 @@ namespace better_power
         private void generate_setting_elements()
         {
             string curr_groupid = "";
-            ListViewHeaderItem curr_groupheader = null;
+            Control curr_groupheader;
 
             // ordering of setting_data_dict elements matters; ordering of setting_element_dict must match
             foreach (var kvp in App.setting_data_dict)
             {
                 string setting_guid = kvp.Key;
-                SettingStore setting = kvp.Value;
+                SettingStore setting_data = kvp.Value;
 
-                if (setting._parent_groupguid != curr_groupid)
+                if (setting_data._parent_groupguid != curr_groupid)
                 {
-                    curr_groupid = setting._parent_groupguid;
+                    curr_groupid = setting_data._parent_groupguid;
                     string curr_groupname = App.group_data_dict[curr_groupid]._group_name;
 
-                    curr_groupheader = new ListViewHeaderItem() { Content = curr_groupname, Tag = curr_groupid, Style=this.Resources["PurpleStyle"] as Style };
+                    curr_groupheader = new ListViewItem() { Content = new TextBlock() { Text = curr_groupname, FontSize = 14 } };
 
                     this.setting_elements_dict[curr_groupid] = curr_groupheader;
 
@@ -134,16 +134,18 @@ namespace better_power
 
                 // compose the setting element from constituents
                 DataTemplate setting_template = (DataTemplate)this.Resources["SettingTemplate"];
-                Panel setting_elem = (Panel)setting_template.LoadContent();
+                //ListViewItem setting_elem = (ListViewItem)setting_template.LoadContent();
 
                 DataTemplate box_template;
-                if (setting.is_range)                
-                    box_template = (DataTemplate)this.Resources["NumberBoxTemplate"];
+                if (setting_data.is_range)                
+                    box_template = (DataTemplate)this.Resources["NumberBoxTemplate"];                
                 else                
-                    box_template = (DataTemplate)this.Resources["ComboBoxTemplate"];                    
-                
-                setting_elem.Children.Add((StackPanel)box_template.LoadContent());
-                setting_elem.DataContext = setting;
+                    box_template = (DataTemplate)this.Resources["ComboBoxTemplate"];
+
+                //setting_elem.Content = (Panel)box_template.LoadContent(); 
+                //setting_elem.DataContext = setting_data;
+
+                FrameworkElement setting_elem = (FrameworkElement)box_template.LoadContent();
 
                 // register animators into element's Resources  
                 register_animation(setting_elem, Colors.MediumSpringGreen, ANIMATION_SUCCESS_KEY);
@@ -270,7 +272,7 @@ namespace better_power
                 target_brush = element.Resources[BACKGROUND_BRUSH_KEY] as SolidColorBrush;
             }
             else
-            {
+            {                
                 target_brush = new SolidColorBrush((b_brush as SolidColorBrush).Color);
                 element.Resources[BACKGROUND_BRUSH_KEY] = target_brush;
             }
