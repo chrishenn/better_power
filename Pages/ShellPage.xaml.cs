@@ -36,7 +36,5 @@ namespace better_power
             this.InitializeComponent();
             App.Window.SetTitleBar(this.AppTitleBar);
         }
-
-    }
-           
+    }           
 }

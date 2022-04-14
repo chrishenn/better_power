@@ -124,7 +124,8 @@ namespace better_power
                     curr_groupid = setting._parent_groupguid;
                     string curr_groupname = App.group_data_dict[curr_groupid]._group_name;
 
-                    curr_groupheader = new ListViewHeaderItem() { Content = curr_groupname, Tag = curr_groupid };
+                    curr_groupheader = new ListViewHeaderItem() { Content = curr_groupname, Tag = curr_groupid  };
+                    curr_groupheader.Resources["ListViewHeaderItemDividerStroke"] = new SolidColorBrush(Color.FromArgb(0, 0, 0, 0));
 
                     this.setting_elements_dict[curr_groupid] = curr_groupheader;
 
@@ -135,7 +136,6 @@ namespace better_power
 
                 // compose the setting element from constituents
                 DataTemplate setting_template = (DataTemplate)this.Resources["SettingTemplate"];
-                //StackPanel setting_elem = (StackPanel)setting_template.LoadContent();
                 RelativePanel setting_elem = (RelativePanel)setting_template.LoadContent();
 
                 DataTemplate box_template;
@@ -259,34 +259,39 @@ namespace better_power
         // register animation to (a Control) or (a Panel); dispatcher
         private static void register_animation(FrameworkElement element, Color color, string animation_name, string storyboard_tag = null)
         {
-            if (element is Control)
-                register_animation_control(element as Control, color, animation_name, storyboard_tag);
-            else if (element is Panel)
-                register_animation_panel(element as Panel, color, animation_name, storyboard_tag);
+            Brush b_brush;
+            
+            if (element is Control)            
+                b_brush = (element as Control).Background;            
+            else            
+                b_brush = (element as Panel).Background;
+            
+            SolidColorBrush target_brush;
+            if (element.Resources.ContainsKey(BACKGROUND_BRUSH_KEY))
+            {
+                target_brush = element.Resources[BACKGROUND_BRUSH_KEY] as SolidColorBrush;
+            }
             else
-                throw new ArgumentException();
-        }
-        private static void register_animation_control(Control element, Color color, string animation_name, string storyboard_tag = null)
-        {
-            Color background_gray = (App.Current.Resources["AppTitleBar_Grey"] as SolidColorBrush).Color;
-
-            if (!element.Resources.ContainsKey(BACKGROUND_BRUSH_KEY))
             {
-                SolidColorBrush background_brush = new SolidColorBrush(background_gray);
-                element.Background = background_brush;
-                element.Resources[BACKGROUND_BRUSH_KEY] = background_brush;
+                target_brush = new SolidColorBrush((b_brush as SolidColorBrush).Color);
+                element.Resources[BACKGROUND_BRUSH_KEY] = target_brush;
             }
+
+            if (element is Control)
+                (element as Control).Background = target_brush;
+            else
+                (element as Panel).Background = target_brush;
 
             var color_tocolor = new LinearColorKeyFrame() { Value = color, KeyTime = TimeSpan.FromSeconds(0.025) };
             var color_hold = new LinearColorKeyFrame() { Value = color, KeyTime = TimeSpan.FromSeconds(0.1) };
-            var color_togray = new LinearColorKeyFrame() { Value = background_gray, KeyTime = TimeSpan.FromSeconds(0.25) };
+            var color_togray = new LinearColorKeyFrame() { Value = target_brush.Color, KeyTime = TimeSpan.FromSeconds(0.25) };
 
             var animation = new ColorAnimationUsingKeyFrames();
             animation.KeyFrames.Add(color_tocolor);
             animation.KeyFrames.Add(color_hold);
             animation.KeyFrames.Add(color_togray);
 
-            Storyboard.SetTarget(animation, element.Resources[BACKGROUND_BRUSH_KEY] as SolidColorBrush);
+            Storyboard.SetTarget(animation, target_brush);
             Storyboard.SetTargetProperty(animation, "Color");
 
             Storyboard story_board = new Storyboard() { Children = { animation } };
@@ -295,35 +300,7 @@ namespace better_power
 
             element.Resources[animation_name] = story_board;
         }
-        private static void register_animation_panel(Panel element, Color color, string animation_name, string storyboard_tag = null)
-        {
-            Color background_gray = (App.Current.Resources["AppTitleBar_Grey"] as SolidColorBrush).Color;
-
-            if (!element.Resources.ContainsKey(BACKGROUND_BRUSH_KEY))
-            {
-                SolidColorBrush background_brush = new SolidColorBrush(background_gray);
-                element.Background = background_brush;
-                element.Resources["background_brush"] = background_brush;
-            }
-
-            var color_tocolor = new LinearColorKeyFrame() { Value = color, KeyTime = TimeSpan.FromSeconds(0.025) };
-            var color_hold = new LinearColorKeyFrame() { Value = color, KeyTime = TimeSpan.FromSeconds(0.1) };
-            var color_togray = new LinearColorKeyFrame() { Value = background_gray, KeyTime = TimeSpan.FromSeconds(0.25) };
-
-            var animation = new ColorAnimationUsingKeyFrames();
-            animation.KeyFrames.Add(color_tocolor);
-            animation.KeyFrames.Add(color_hold);
-            animation.KeyFrames.Add(color_togray);
-
-            Storyboard.SetTarget(animation, element.Resources[BACKGROUND_BRUSH_KEY] as SolidColorBrush);
-            Storyboard.SetTargetProperty(animation, "Color");
-
-            Storyboard story_board = new Storyboard() { Children = { animation } };
-            if (storyboard_tag != null)
-                Storyboard.SetTargetName(story_board, storyboard_tag);
-
-            element.Resources[animation_name] = story_board;
-        }
+        
 
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -341,29 +318,12 @@ namespace better_power
         }
         private static void fire_success_animation(FrameworkElement element, bool success)
         {
-            if (element is Control)
-                fire_success_animation_control(element as Control, success);
-            else if (element is Panel)
-                fire_success_animation_panel(element as Panel, success);
-            else
-                throw new ArgumentException();
-        }
-        private static void fire_success_animation_control(Control element, bool success)
-        {
             if (success)
                 (element.Resources[ANIMATION_SUCCESS_KEY] as Storyboard).Begin();
             else
                 (element.Resources[ANIMATION_FAIL_KEY] as Storyboard).Begin();
         }
-        private static void fire_success_animation_panel(Panel element, bool success)
-        {
-            if (success)
-                (element.Resources[ANIMATION_SUCCESS_KEY] as Storyboard).Begin();
-            else
-                (element.Resources[ANIMATION_FAIL_KEY] as Storyboard).Begin();
-        }
-
-
+       
 
 
 
@@ -985,5 +945,9 @@ namespace better_power
             else if (sender.Key == VirtualKey.F2)
                 await SchemeRename(scheme_data);
         }
+    
+    
+
+       
     }
 }

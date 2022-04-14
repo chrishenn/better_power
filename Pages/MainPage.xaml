@@ -10,17 +10,17 @@
 
     <Page.Resources>
         <ResourceDictionary>
-            <CornerRadius x:Key="ControlCornerRadius">4</CornerRadius>
-            <CornerRadius x:Key="OverlayCornerRadius">4</CornerRadius>
+            <CornerRadius x:Key="ControlCornerRadius">2</CornerRadius>
+            <CornerRadius x:Key="OverlayCornerRadius">2</CornerRadius>
+
+            <SolidColorBrush x:Key="SettingCardBackground" Color="#2b2b2b"/>
 
             <DataTemplate x:Key="SettingTemplate" x:DataType="local:SettingStore">
                 <RelativePanel
                     CornerRadius="{StaticResource ControlCornerRadius}"
-                    Padding="25,5,25,5" 
-                    Margin="25,5,25,5"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Center"
-                    
+                    Background="#2b2b2b"
+                    Padding="25,10,25,10" 
+                    Margin="25,2,25,2"                  
                     >
 
                     <TextBlock                           
@@ -38,8 +38,8 @@
             <DataTemplate x:Key="ComboBoxTemplate" x:DataType="local:SettingStore">
                 <StackPanel
                     Name="settingbox"
-                    Orientation="Horizontal"
-                    Spacing="10"                    
+                    Orientation="Horizontal"     
+                    Spacing="10"
                     
                     RelativePanel.AlignRightWithPanel="True"
                     RelativePanel.AlignVerticalCenterWithPanel="True"
@@ -69,8 +69,6 @@
                     Name="settingbox"
                     Orientation="Horizontal"
                     Spacing="10"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Center"
                     
                     RelativePanel.AlignRightWithPanel="True"
                     RelativePanel.AlignVerticalCenterWithPanel="True"
@@ -151,28 +149,29 @@
         </ResourceDictionary>
     </Page.Resources>
 
-   
-    <NavigationView
+
+
+    <NavigationView            
             x:Name="navigationview"     
             SelectionChanged="navigationview_SelectionChanged"
             Loaded="navigationview_Loaded"
             
+            Background="#202020"
             PaneDisplayMode="Left"
-            Background="{StaticResource AppTitleBar_Grey}"
-            
+                        
             IsPaneToggleButtonVisible="False"
             IsSettingsVisible="False"
             IsBackButtonVisible="Collapsed"
             IsBackEnabled="False"
-            Header=""
+            Header="testing"
             AlwaysShowHeader="False"
             PaneTitle=""
                         
-            ExpandedModeThresholdWidth="500"
             SelectionFollowsFocus="Disabled"
             IsTabStop="False"
-            IsTitleBarAutoPaddingEnabled="False" >
-                
+            IsTitleBarAutoPaddingEnabled="False" 
+        >
+           
         <NavigationView.AutoSuggestBox>
             <AutoSuggestBox
                     x:Name="searchbox"
@@ -185,7 +184,6 @@
                     PlaceholderText="Search Settings in Selected Scheme"
                     QueryIcon="Find"                                        
                     KeyboardAcceleratorPlacementMode="Hidden" />
-
         </NavigationView.AutoSuggestBox>
 
         <NavigationView.PaneFooter>
@@ -216,23 +214,26 @@
             </StackPanel>
         </NavigationView.PaneFooter>
 
+        <NavigationView.Resources>
+            <!--<SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />-->
+            <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent" />
+        </NavigationView.Resources>
+
         <ListView 
                 x:Name="listview"                
                 Loaded="listview_Loaded"
-                                                
-                Grid.Row="1"                         
-                Padding="0,5,0,5"
-                
+                Background="#202020"
+                                                     
                 IsTabStop="False" 
                 SelectionMode="None"
                 IsItemClickEnabled="False"  >
-
+           
             <ListView.KeyboardAccelerators>
                 <KeyboardAccelerator Modifiers="Control" Key="F"    Invoked="FindKey_Invoked" />
-                
+
                 <KeyboardAccelerator                     Key="F5"   Invoked="RefreshKey_Invoked" />
                 <KeyboardAccelerator Modifiers="Control" Key="R"    Invoked="RefreshKey_Invoked" />
-               
+
                 <KeyboardAccelerator Modifiers="Control" Key="C"    Invoked="SchemeModifyKey_Invoked"/>
                 <KeyboardAccelerator                     Key="Delete" Invoked="SchemeModifyKey_Invoked"/>
                 <KeyboardAccelerator                     Key="F2"   Invoked="SchemeModifyKey_Invoked"/>
@@ -240,4 +241,5 @@
         </ListView>
 
     </NavigationView>
+        
 </Page>

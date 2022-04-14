@@ -14,14 +14,15 @@
                 <!-- Other merged dictionaries here -->
             </ResourceDictionary.MergedDictionaries>
 
-            <SolidColorBrush x:Key="WindowCaptionBackground" Color="#202020" />            
-            <SolidColorBrush x:Key="WindowCaptionBackgroundDisabled" Color="#202020" />
+            <SolidColorBrush x:Key="WindowCaptionBackground" Color="#202020" />          
+            <SolidColorBrush x:Key="WindowCaptionBackgroundDisabled" Color="#202020" />          
 
-            <SolidColorBrush x:Key="AppTitleBar_Grey" Color="#202020"/>
-            <SolidColorBrush x:Key="AppPageBackground" Color="#272727"/>
+            <!--<SolidColorBrush x:Key="AppTitleBar_Grey" Color="#202020"/>-->
+            <!--<SolidColorBrush x:Key="AppPageBackground" Color="#272727"/>-->
+                       
             
             <ResourceDictionary.ThemeDictionaries>
-                <ResourceDictionary x:Key="Light">
+                <!--<ResourceDictionary x:Key="Light">
                     <SolidColorBrush x:Key="HomePageBackgroundBrush" Color="Transparent"/>
                     <SolidColorBrush x:Key="PageHeaderForegroundBrush" Color="Black"/>
                     <StaticResource x:Key="ControlExampleDisplayBrush" ResourceKey="SolidBackgroundFillColorBaseBrush" />
@@ -47,7 +48,7 @@
                     <Thickness x:Key="SearchBoxBorderThickness">2</Thickness>
                     <Thickness x:Key="ControlExampleDisplayBorderThickness">1</Thickness>
                     <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="Transparent"/>
-                </ResourceDictionary>
+                </ResourceDictionary>-->
             </ResourceDictionary.ThemeDictionaries>
 
         </ResourceDictionary>
