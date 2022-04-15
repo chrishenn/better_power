@@ -31,16 +31,6 @@ using Windows.System;
 
 namespace better_power
 {
-    public class SettingTag
-    {
-        public string acdc_val;
-
-        SettingTag(string acdc_val) 
-        {
-            this.acdc_val = acdc_val;
-        }
-    }
-
     public sealed partial class MainPage : Page
     {
         // required ordereddict to maintain the ordering of headers and setting elements in the listView

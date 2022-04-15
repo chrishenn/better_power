@@ -31,7 +31,10 @@ namespace better_power
 
     // TODO
 
-    // indicate AC vs Battery setting on all cards
+    // indicate AC vs Battery setting on all setting cards
+    // editable "favorites" and "frequent" pages
+    // reorderable pages in main navigation
+    // reset a scheme's settings to a classic scheme default
 
     // setting cards:
     //      indicate valid range of values to which we can set the setting (numberbox)
