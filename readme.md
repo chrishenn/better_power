@@ -1,5 +1,7 @@
 # Better Power
 
+![Hero image for Better Power](doc/images/hero_betterpower_1.PNG)
+
 A barebones WINUI3 application, with the bare minimum of code and UI functionality, to provide a modern way to sort and change the power settings on a Windows 10 machine.
 
 Microsoft has hid, fragmented, and obfuscated core system settings and functions. The settings that are accessible through the modern menu are spread over multiple pages, with terrible UI design, nonintuitive layout, and a frustrating nonfunctional search. Often, the modern setting app will contain links to multiple legacy settings windows carried over from Windows Vista, XP, and 1995.
@@ -8,7 +10,7 @@ This project is the beginnings of a drop-in fix for the shameful state of Window
 
 I thought I'd attempt to take on power settings by themselves at first, and expand to other settings as time allows. As of today, my above-stated goals are not necessarily achieved - and the code itself is as anemic as possible to produce a running UI. On the other hand, it is already significantly better than the built-in "change advanced power settings" window - which can't be resized! - if you can get it to build and run in its current state.
 
-Some features are held back by the beta-ish nature of WINUI3. However, most of these things just need time to research, design, and implement. As a first foray into a strongly OOP UI, this has been a strange and interesting project.
+Some features are held back by the beta-ish nature of WINUI3. However, most of these things just need time to research, design, and implement. As a first foray into a strongly OOP UI, this has been a strange and interesting project. A note - I pretty much directly cloned the UI design from PowerToys [https://github.com/microsoft/PowerToys].
 
 
 ## What is present in this application:
