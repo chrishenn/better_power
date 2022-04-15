@@ -1,4 +1,4 @@
-#### Better Power
+# Better Power
 
 A barebones WINUI3 application, with the bare minimum of code and UI functionality, to provide a modern way to sort and change the power settings on a Windows 10 machine.
 
