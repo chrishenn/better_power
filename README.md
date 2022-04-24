@@ -1,6 +1,10 @@
-# Better Power
+<h1 align="center" style="margin-top: 0px;">Better Power</h1>
 
-![Hero image for Better Power](doc/images/hero_betterpower_1.PNG)
+<div id="img0" align="center">
+    <img src="doc/images/hero_betterpower_cropped.PNG" height="600">
+</div>
+
+<br />
 
 A barebones WINUI3 application, with the bare minimum of code and UI functionality, to provide a modern way to sort and change the power settings on a Windows 10 machine.
 
@@ -10,10 +14,11 @@ This project is the beginnings of a drop-in fix for the embarassing state of Win
 
 I thought I'd attempt to take on power settings by themselves at first, and expand to other settings as time allows. As of today, my above-stated goals are not necessarily achieved - and the code itself is as anemic as possible to produce a running UI. On the other hand, it is already significantly better than the built-in "change advanced power settings" window - which can't be resized! - if you can get it to build and run in its current state.
 
-Some features are held back by the beta-ish nature of WINUI3. However, most of these things just need time to research, design, and implement. As a first foray into a strongly OOP UI, this has been a strange and interesting project. A note - I pretty much directly cloned the UI design from PowerToys [https://github.com/microsoft/PowerToys].
+Some features are held back by the beta-ish nature of WINUI3. However, most of these things just need time to research, design, and implement. As a first foray into a strongly OOP UI, this has been a strange and interesting project. A note - I pretty much directly cloned the UI appearance from [Microsoft/PowerToys](https://github.com/microsoft/PowerToys).
 
+<br />
 
-## What is present in this application:
+## Working Features
 
 - viewing all power settings in each installed system power scheme
 - viewing the power settings in a given setting group, under a given scheme
@@ -26,20 +31,7 @@ Some features are held back by the beta-ish nature of WINUI3. However, most of t
 - hotkeys to support rename, copy, delete, refresh
 
 
-## What is missing from this codebase:
-
-- unit testing
-- integration testing
-- UI testing
-- performance testing / resource optimization
-- compatibility testing / windows versioning awareness
-- performant and stable system APIs (right now it uses powershell, and parses strings from its output)
-- awareness of system state-changes
-- "correct" use of Windows application styles / theme awareness
-- packaging
-
-
-## What is missing from this application:
+## Missing Features
 
 - editable "favorites" and "frequently used" pages
 - sorting settings by "simple" and "advanced" settings-types
@@ -51,3 +43,16 @@ Some features are held back by the beta-ish nature of WINUI3. However, most of t
 - initial window sizing
 - units and range checking for settings
 - that single pixel of black at the top of the apptitlebar
+
+
+## Missing from the Codebase
+
+- unit testing
+- integration testing
+- UI testing
+- performance testing / resource optimization
+- compatibility testing / windows versioning awareness
+- performant and stable system APIs (right now it uses powershell, and parses strings from its output)
+- awareness of system state-changes
+- "correct" use of Windows application styles / theme awareness
+- packaging
