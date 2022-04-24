@@ -1,7 +1,7 @@
 <h1 align="center" style="margin-top: 0px;">Better Power</h1>
 
 <div id="img0" align="center">
-    <img src="doc/images/hero_betterpower_cropped.PNG" height="600">
+    <img src="doc/images/hero_betterpower_cropped.PNG" height="450">
 </div>
 
 <br />
